@@ -157,10 +157,10 @@ function renderStats(){
   const labels=buckets.map(b=>`<div class="rh-xl">${String(b)}</div>`).join('');
 
   $('#statsBody').innerHTML = `
-    <div class="stats-grid">
-      <div class="stat"><div class="n money">${fmtBRL(invest)}</div><div class="l">Investido no acervo</div></div>
-      <div class="stat"><div class="n">${owned.length}</div><div class="l">Tenho</div></div>
-      <div class="stat"><div class="n">${want.length}</div><div class="l">Quero</div></div>
+    <div class="stats-grid bento">
+      <div class="stat big-cell"><div class="n money">${fmtBRL(invest)}</div><div class="l">Investido no acervo</div></div>
+      <div class="stat"><div class="n tick" data-to="${owned.length}">0</div><div class="l">Tenho</div></div>
+      <div class="stat"><div class="n tick" data-to="${want.length}">0</div><div class="l">Quero</div></div>
       <div class="stat"><div class="n">${pctLido}%</div><div class="l">Lidos (${lidos}/${owned.length})</div></div>
     </div>
     <div class="stats-avgs">
@@ -177,6 +177,7 @@ function renderStats(){
       <div><h4>Investimento por editora</h4>${topInv.length?barsMoney(topInv,maxI):'<span style="color:var(--ink-faint);font-size:12px">Sem valores pagos ainda.</span>'}</div>
       <div><h4>Por país</h4>${topP.length?bars(topP,maxP):'<span style="color:var(--ink-faint);font-size:12px">Sem país informado ainda.</span>'}</div>
     </div>`;
+  $('#statsBody').querySelectorAll('.tick').forEach(e=>tickNum(e, Number(e.dataset.to)));
 }
 
 /* ---------- cards ---------- */
@@ -230,7 +231,8 @@ function cardHTML(o,i){
     progress = `<div class="prog"><div class="prog-bar"><span style="width:${pct}%"></span></div>${missTxt}</div>`;
   }
   const noteIcon = (o.resenha&&o.resenha.trim())?'<span class="noteic" title="Tem anotação">✎</span>':'';
-  return `<div class="card" style="animation-delay:${Math.min((i||0)*22,240)}ms">
+  return `<div class="card" data-tilt style="animation-delay:${Math.min((i||0)*22,240)}ms">
+    <i class="card-glare"></i>
     ${coverHTML(o)}
     <div class="cbody clickable" data-open="${o.id}">
       ${eyebrow}
@@ -304,6 +306,66 @@ function openStats(){ $('#statsOverlay').classList.add('on'); }
 function closeStats(){ $('#statsOverlay').classList.remove('on'); }
 
 /* ---------- main render ---------- */
+/* ---------- efeitos visuais ---------- */
+function prefersReduced(){ return !!(window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches); }
+function tickNum(el,to){ if(!el) return; to=Number(to)||0;
+  if(prefersReduced()){ el.textContent=to; return; }
+  const from=Number(String(el.textContent).replace(/[^\d-]/g,''))||0;
+  if(from===to){ el.textContent=to; return; }
+  const t0=performance.now(), d=Math.min(1000,320+Math.abs(to-from)*10);
+  (function f(now){ let p=Math.min(1,(now-t0)/d); p=1-Math.pow(1-p,3);
+    el.textContent=Math.round(from+(to-from)*p); if(p<1) requestAnimationFrame(f); })(t0);
+}
+function bindTilt(scope){ if(prefersReduced()) return;
+  scope.querySelectorAll('.card[data-tilt]').forEach(card=>{
+    card.addEventListener('pointermove',e=>{ if(e.pointerType==='touch') return; const r=card.getBoundingClientRect();
+      const px=(e.clientX-r.left)/r.width, py=(e.clientY-r.top)/r.height;
+      card.style.transform=`perspective(720px) rotateY(${(px-.5)*7}deg) rotateX(${(.5-py)*7}deg) translateY(-3px)`;
+      card.style.setProperty('--gx',(px*100)+'%'); card.style.setProperty('--gy',(py*100)+'%'); });
+    card.addEventListener('pointerleave',()=>{ card.style.transform=''; });
+  });
+}
+function renderMarquee(){ const m=$('#marquee'); if(!m) return;
+  const withCover = state.obras.filter(o=>coverOf(o)).slice().sort((a,b)=>(b.id||0)-(a.id||0)).slice(0,14);
+  if(state.view!=='galeria' || withCover.length<6){ m.hidden=true; m.innerHTML=''; return; }
+  const cell=o=>`<div class="mq-cell" data-open="${o.id}" title="${esc(o.nome)}"><img src="${coverOf(o)}" alt="" loading="lazy"></div>`;
+  const row=withCover.map(cell).join('');
+  m.hidden=false; m.innerHTML=`<div class="mq-lbl">Adicionados recentemente</div><div class="mq-track">${row}${row}</div>`;
+  m.querySelectorAll('[data-open]').forEach(el=>el.onclick=()=>openEditor(Number(el.dataset.open)));
+}
+function showSkeletons(n){ const c=$('#content'); if(!c) return;
+  c.innerHTML=`<div class="grid">`+Array.from({length:n||10}).map(()=>`<div class="skel-card"><div class="skel-cov"></div><div class="skel-ln"></div><div class="skel-ln short"></div></div>`).join('')+`</div>`;
+}
+function confettiBurst(){ if(prefersReduced()) return;
+  const cv=document.createElement('canvas');
+  Object.assign(cv.style,{position:'fixed',left:0,top:0,width:'100%',height:'100%',pointerEvents:'none',zIndex:200});
+  document.body.appendChild(cv); const ctx=cv.getContext('2d');
+  const W=cv.width=innerWidth, H=cv.height=innerHeight;
+  const cols=['#4B5D3A','#B0862B','#9C4A2E','#5E7146','#E7B85B'];
+  const P=Array.from({length:130}).map(()=>({x:W/2+(Math.random()-.5)*140,y:H*0.32,vx:(Math.random()-.5)*11,vy:Math.random()*-13-4,g:.32+Math.random()*.15,s:5+Math.random()*6,rot:Math.random()*6.28,vr:(Math.random()-.5)*.4,c:cols[(Math.random()*cols.length)|0]}));
+  const t0=performance.now();
+  (function frame(now){ const el=now-t0; ctx.clearRect(0,0,W,H);
+    P.forEach(p=>{ p.vy+=p.g; p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot); ctx.globalAlpha=Math.max(0,1-el/2600); ctx.fillStyle=p.c;
+      ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s*0.62); ctx.restore(); });
+    if(el<2600) requestAnimationFrame(frame); else cv.remove();
+  })(t0);
+}
+function initCombobox(input, getItems){ if(!input || input.dataset.cb) return; input.dataset.cb='1'; input.removeAttribute('list');
+  const wrap=document.createElement('div'); wrap.className='cb-wrap'; input.parentNode.insertBefore(wrap,input); wrap.appendChild(input);
+  const menu=document.createElement('div'); menu.className='cb-menu'; menu.hidden=true; wrap.appendChild(menu);
+  const close=()=>{ menu.hidden=true; };
+  const openList=()=>{ const q=gNorm(input.value); const items=getItems()||[];
+    const list=(q?items.filter(x=>gNorm(x).includes(q)):items).slice(0,60);
+    if(!list.length){ menu.hidden=true; return; }
+    menu.innerHTML=list.map(x=>`<button type="button" class="cb-opt">${esc(x)}</button>`).join('');
+    menu.querySelectorAll('.cb-opt').forEach(b=>b.onmousedown=e=>{ e.preventDefault(); input.value=b.textContent; close(); input.dispatchEvent(new Event('input',{bubbles:true})); });
+    menu.hidden=false;
+  };
+  input.addEventListener('focus',openList); input.addEventListener('input',openList);
+  input.addEventListener('blur',()=>setTimeout(close,140));
+}
+
 function render(){
   renderStats();
   updateFilterCount();
@@ -323,7 +385,7 @@ function render(){
   const nS=arr.filter(o=>tipoOf(o)==='serie').length, nB=arr.filter(o=>tipoOf(o)==='box').length;
   $('#count').textContent = `${total} ${total===1?'item':'itens'}${nS?` · ${nS} série(s)`:''}${nB?` · ${nB} box(es)`:''}`;
   const c=$('#content');
-  if(!total){ c.innerHTML=`<div class="empty"><div class="big">Nada por aqui</div>Nenhuma obra corresponde aos filtros. <br>Ajuste a busca ou <a href="#" id="emptyNew">cadastre uma nova obra</a>.</div>`;
+  if(!total){ c.innerHTML=`<div class="empty"><div class="big shiny">Nada por aqui</div>Nenhuma obra corresponde aos filtros. <br>Ajuste a busca ou <a href="#" id="emptyNew">cadastre uma nova obra</a>.</div>`;
     const en=$('#emptyNew'); if(en) en.onclick=e=>{e.preventDefault();openEditor(null);}; return; }
   const body = state.view==='galeria'
     ? `<div class="grid">${pageArr.map(cardHTML).join('')}</div>`
@@ -332,6 +394,8 @@ function render(){
   c.querySelectorAll('[data-open]').forEach(el=>el.onclick=()=>openEditor(Number(el.dataset.open)));
   c.querySelectorAll('[data-vols]').forEach(el=>el.onclick=e=>{ e.stopPropagation(); openVols(Number(el.dataset.vols)); });
   wirePager(c);
+  bindTilt(c);
+  renderMarquee();
 }
 function pageList(cur,tot){ const out=[];
   if(tot<=7){ for(let i=1;i<=tot;i++)out.push(i); return out; }
@@ -384,8 +448,9 @@ function updateFooter(){ const el=$('#footStats'); if(!el) return;
   const sb=O.filter(o=>{const t=tipoOf(o);return t==='serie'||t==='box';}).length;
   const tenho=O.filter(o=>statusMatch(o,'biblioteca')).length;
   const generos=new Set(O.flatMap(tagsOf)).size;
-  const stat=(n,l)=>`<div class="foot-stat"><span class="n">${n}</span><span class="l">${l}</span></div>`;
+  const stat=(n,l)=>`<div class="foot-stat"><span class="n tick" data-to="${n}">0</span><span class="l">${l}</span></div>`;
   el.innerHTML = stat(obras,'obras') + stat(sb,'séries / boxes') + stat(tenho,'na estante') + stat(generos,'gêneros');
+  el.querySelectorAll('.tick').forEach(e=>tickNum(e, Number(e.dataset.to)));
 }
 function markChangedFilters(){ const f=state.filters;
   const setField=(id,on)=>{ const el=$(id); const fl=el&&el.closest('.field'); if(fl) fl.classList.toggle('changed',!!on); };
@@ -561,6 +626,7 @@ function saveEditor(){
   const tags=(editorDraft.genres||[]).slice(); const resenha=$('#e_resenha').value.trim();
   const regEd=()=>{ if(editora && !(state.editoras||[]).includes(editora)) (state.editoras=state.editoras||[]).push(editora); };
   const rec = editingId!=null ? state.obras.find(x=>x.id===editingId) : {id:nextId()};
+  const wasComplete = rec && Array.isArray(rec.volumes) && rec.volumes.length>0 && rec.volumes.every(v=>v.status==='biblioteca');
   ['editoraBR','editoraOriginal','serie','volume','serieTotal','conteudo'].forEach(k=>{ if(k in rec) delete rec[k]; });
   if(tipo==='box'||tipo==='serie'){
     const withCover = tipo==='serie';
@@ -582,8 +648,10 @@ function saveEditor(){
     if('volumes' in rec) delete rec.volumes;
   }
   if(editingId==null) state.obras.push(rec);
+  const nowComplete = (tipo==='box'||tipo==='serie') && Array.isArray(rec.volumes) && rec.volumes.length>0 && rec.volumes.every(v=>v.status==='biblioteca');
   regEd(); save(); refreshOptions(); render(); closeEditor();
-  toast(editingId==null?(tipo==='box'?'Box adicionado.':tipo==='serie'?'Série adicionada.':'Obra adicionada.'):'Alterações salvas.');
+  if(nowComplete && !wasComplete){ toast('Coleção completa! 🎉'); confettiBurst(); }
+  else toast(editingId==null?(tipo==='box'?'Box adicionado.':tipo==='serie'?'Série adicionada.':'Obra adicionada.'):'Alterações salvas.');
 }
 function deleteObra(){
   const o=state.obras.find(x=>x.id===editingId); if(!o) return;
@@ -709,6 +777,7 @@ function bind(){
   $('#clrStars').onclick=()=>{ editorDraft.nota=0; paintStars(0); };
   $('#e_img_btn').onclick=()=>$('#e_img_file').click();
   $('#e_genresBtn').onclick=openGenrePopup;
+  initCombobox($('#e_editora'), ()=>(state.editoras||[]).slice().sort((a,b)=>a.localeCompare(b,'pt')));
   $('#genreSearch').oninput=renderGenreGrid;
   $('#genreClose').onclick=$('#genreDone').onclick=closeGenrePopup;
   $('#genreOverlay').onclick=e=>{ if(e.target===$('#genreOverlay')) closeGenrePopup(); };
@@ -754,14 +823,15 @@ async function ghPut(path,contentB64,message,sha){
 }
 async function pullFromCloud(){
   setSync('sync');
+  if(!state.obras.length) showSkeletons(12);
   try{
     const f=await ghGet(cloud.path);
-    if(!f){ setSync('ok'); return false; }
+    if(!f){ setSync('ok'); render(); return false; }
     cloud.sha=f.sha; saveCloud();
     const data=JSON.parse(b64dec(f.content));
-    if(Array.isArray(data.obras)){ state.obras=data.obras; state.editoras=data.editoras||state.editoras; persistLocal(); refreshOptions(); render(); }
-    setSync('ok'); return true;
-  }catch(e){ setSync('err'); toast('Falha ao puxar: '+e.message); return false; }
+    if(Array.isArray(data.obras)){ state.obras=data.obras; state.editoras=data.editoras||state.editoras; persistLocal(); refreshOptions(); }
+    setSync('ok'); render(); return true;
+  }catch(e){ setSync('err'); render(); toast('Falha ao puxar: '+e.message); return false; }
 }
 let pushTimer=null, pushing=false, pushAgain=false;
 function scheduleCloudPush(){ setSync('pending'); clearTimeout(pushTimer); pushTimer=setTimeout(()=>pushToCloud(),1500); }
