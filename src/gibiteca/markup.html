@@ -51,6 +51,7 @@
   </div>
 
   <div class="count" id="count"></div>
+  <div class="marquee" id="marquee" hidden></div>
   <div id="content"></div>
 </main>
 
@@ -125,7 +126,7 @@
   <div class="modal" role="dialog" aria-modal="true">
     <div class="mh">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--moss)" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>
-      <h3>Painel da coleção</h3><button class="x" id="statsClose">×</button>
+      <h3 class="shiny">Painel da coleção</h3><button class="x" id="statsClose">×</button>
     </div>
     <div class="statswrap"><div id="statsBody"></div></div>
   </div>
@@ -168,8 +169,8 @@
 </div>
 
 <!-- editor -->
-<div class="overlay" id="overlay">
-  <div class="modal" role="dialog" aria-modal="true">
+<div class="overlay drawer" id="overlay">
+  <div class="modal drawer-panel" role="dialog" aria-modal="true">
     <div class="mh">
       <h3 id="mTitle">Nova obra</h3>
       <button class="x" id="mClose">×</button>
