@@ -6,7 +6,7 @@
 
 :root {
   color-scheme: light;
-  --ink: #20241A;
+  --ink: #23271C;
   --rust: #9C4A2E;
 }
 
@@ -17,7 +17,7 @@ body {
   background-color: #F4F0E6;
   background-image: radial-gradient(rgba(75,93,58,.05) 1px, transparent 1px);
   background-size: 22px 22px;
-  color: #20241A;
+  color: #23271C;
   font-family: Inter, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
@@ -30,8 +30,35 @@ body {
   .neo-btn:hover { @apply -translate-x-px -translate-y-px bg-paper-2; box-shadow: 4px 4px 0 var(--ink); }
   .neo-btn:active { @apply translate-x-0.5 translate-y-0.5; box-shadow: 1px 1px 0 var(--ink); }
   .neo-btn-moss { @apply bg-moss text-white; }
+  .neo-btn-moss:hover { @apply bg-moss-2; }
   .neo-btn-rust { @apply border-rust text-rust; box-shadow: 3px 3px 0 var(--rust); }
   .neo-btn-rust:hover { box-shadow: 4px 4px 0 var(--rust); }
+  .neo-btn-rust:active { box-shadow: 1px 1px 0 var(--rust); }
+
+  /* botão de ícone do cabeçalho (quadrado) */
+  .neo-icon {
+    @apply inline-flex items-center justify-center rounded-[10px] border-[1.7px] border-ink bg-paper text-ink shadow-neo transition;
+    width: 40px; height: 40px;
+  }
+  .neo-icon:hover { @apply -translate-x-px -translate-y-px bg-paper-2; box-shadow: 4px 4px 0 var(--ink); }
+  .neo-icon:active { @apply translate-x-0.5 translate-y-0.5; box-shadow: 1px 1px 0 var(--ink); }
+
+  /* selos (pills) — fiéis à referência */
+  .pill { @apply inline-flex items-center font-mono text-[9px] font-bold tracking-[.06em] uppercase px-2 py-[3px] rounded-full leading-none; }
+  .pill-tenho { @apply bg-moss text-white; }
+  .pill-quero { @apply bg-paper-2 text-ink-soft border border-moss-line; }
+  .pill-imp   { @apply bg-blue text-white; }
+
+  /* select estilizado com seta */
+  .field-select {
+    appearance: none; -webkit-appearance: none; -moz-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23565b48' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>");
+    background-repeat: no-repeat; background-position: right 11px center;
+  }
+  .field-input {
+    @apply w-full rounded-[10px] border-[1.5px] border-moss-line bg-surface px-3 py-2.5 text-[13.5px] text-ink outline-none transition;
+  }
+  .field-input:focus { @apply border-moss; box-shadow: 0 0 0 3px rgba(94,113,70,.15); }
 }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }

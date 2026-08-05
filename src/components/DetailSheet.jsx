@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { coverOf, tipoOf, edOf, authorsOf, tagsOf, avgNota, unitsOf, ownedCount, sumValor, fmtBRL, statusMatch } from '../lib/helpers.js'
 
-export default function DetailSheet({ obra, onClose }) {
+export default function DetailSheet({ obra, onClose, onEdit }) {
   return (
     <AnimatePresence>
       {obra && (
@@ -11,9 +11,13 @@ export default function DetailSheet({ obra, onClose }) {
             className="fixed z-50 bg-paper border-moss-line flex flex-col right-0 top-0 h-full w-[min(460px,100%)] border-l-[1.5px] sm:rounded-none max-sm:top-auto max-sm:bottom-0 max-sm:w-full max-sm:h-auto max-sm:max-h-[92vh] max-sm:rounded-t-[20px] max-sm:border-l-0 max-sm:border-t-[1.5px]"
             initial={{ x: 40, opacity: 0.4 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 40, opacity: 0 }} transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] }}
           >
-            <div className="flex items-center justify-between px-5 py-4 border-b-[1.5px] border-moss-line">
-              <h3 className="font-serif text-[20px] text-moss truncate pr-3">{obra.nome}</h3>
-              <button className="w-9 h-9 rounded-lg border-[1.5px] border-ink bg-paper shadow-neo-sm shrink-0" onClick={onClose}>×</button>
+            <div className="flex items-center gap-2 px-5 py-4 border-b-[1.5px] border-moss-line">
+              <h3 className="font-serif text-[20px] text-moss truncate flex-1">{obra.nome}</h3>
+              <button className="neo-btn !py-1.5 !px-3 shrink-0" onClick={() => onEdit?.(obra)}>
+                <svg className="w-[15px] h-[15px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" /></svg>
+                Editar
+              </button>
+              <button className="w-9 h-9 rounded-lg border-[1.5px] border-ink bg-paper shadow-neo-sm hover:bg-paper-2 shrink-0" onClick={onClose}>×</button>
             </div>
             <div className="flex-1 overflow-auto p-5">
               <div className="flex gap-4">

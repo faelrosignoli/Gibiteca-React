@@ -79,3 +79,7 @@ export function sortList(arr, sort){
     return sort.dir==='desc'?-r:r;
   });
 }
+
+// --- valores monetários (mesma lógica da versão HTML) ---
+export function moneyToNumber(str){ const digits=(str||'').replace(/\D/g,''); return digits?parseInt(digits,10)/100:0; }
+export function moneyFormat(n){ return n?fmtBRL(n):''; }

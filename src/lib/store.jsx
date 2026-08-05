@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useMemo, useEffect, useCallback } from 'react'
+import { createContext, useContext, useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { passes, sortList } from './helpers.js'
 import { EDITORAS } from '../data.js'
 
@@ -34,6 +34,13 @@ export function StoreProvider({ children }) {
     return n || 40
   })
 
+  // persiste no navegador sempre que a coleção muda (a partir da 1ª alteração)
+  const dirty = useRef(false)
+  useEffect(() => {
+    if (!dirty.current) return
+    try { localStorage.setItem('gibiteca_v1', JSON.stringify({ version: 1, obras, editoras })) } catch (e) { /* */ }
+  }, [obras, editoras])
+
   const setFilter = useCallback((key, val) => { setFilters(f => ({ ...f, [key]: val })); setPage(1) }, [])
   const resetFilters = useCallback(() => { setFilters(DEFAULT_FILTERS); setPage(1) }, [])
   const setPageSize = useCallback((n) => {
@@ -42,10 +49,33 @@ export function StoreProvider({ children }) {
   }, [])
   const loadBackup = useCallback((data) => {
     if (Array.isArray(data?.obras)) {
+      dirty.current = true
       setObras(data.obras)
       if (Array.isArray(data.editoras) && data.editoras.length) setEditoras(data.editoras)
       setPage(1)
     }
+  }, [])
+
+  const nextId = useCallback(() => obras.reduce((m, o) => Math.max(m, o.id || 0), 0) + 1, [obras])
+
+  const registerEditora = useCallback((nome) => {
+    if (!nome) return
+    setEditoras(list => (list.includes(nome) ? list : [...list, nome]))
+  }, [])
+
+  const upsertObra = useCallback((rec) => {
+    dirty.current = true
+    registerEditora(rec.editora)
+    setObras(list => {
+      const idx = list.findIndex(o => o.id === rec.id)
+      if (idx === -1) return [...list, rec]
+      const copy = list.slice(); copy[idx] = rec; return copy
+    })
+  }, [registerEditora])
+
+  const deleteObra = useCallback((id) => {
+    dirty.current = true
+    setObras(list => list.filter(o => o.id !== id))
   }, [])
 
   // volta pra página 1 quando o conjunto filtrado muda
@@ -63,6 +93,7 @@ export function StoreProvider({ children }) {
   const value = {
     obras, editoras, filters, sort, view, page: safePage, pageSize,
     setSort, setView, setPage, setPageSize, setFilter, resetFilters, loadBackup,
+    nextId, upsertObra, deleteObra,
     filtered, total, totalPages, start, pageItems, all,
   }
   return <StoreCtx.Provider value={value}>{children}</StoreCtx.Provider>

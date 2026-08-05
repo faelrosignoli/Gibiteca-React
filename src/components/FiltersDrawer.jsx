@@ -5,22 +5,23 @@ import { edOf, authorsOf, tagsOf } from '../lib/helpers.js'
 
 function Field({ label, changed, children }) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <label className={`font-mono text-[10px] tracking-widest uppercase ${changed ? 'text-moss font-bold' : 'text-ink-faint'}`}>
+    <div className="flex flex-col gap-1">
+      <label className={`font-mono text-[10px] tracking-[.12em] uppercase pl-0.5 ${changed ? 'text-moss font-bold' : 'text-ink-faint'}`}>
         {label}{changed && <span className="ml-1.5 inline-block w-[7px] h-[7px] rounded-full bg-gold align-middle" />}
       </label>
       {children}
     </div>
   )
 }
-const selCls = (changed) => `rounded-[10px] border-[1.5px] bg-surface px-3 py-2.5 text-[13.5px] text-ink outline-none ${changed ? 'border-moss' : 'border-ink'}`
+const selCls = (changed) =>
+  `field-select w-full rounded-[9px] border-[1.5px] bg-surface pl-3 pr-8 py-2 text-[13.5px] font-semibold text-ink outline-none transition ${changed ? 'border-moss' : 'border-moss-line hover:border-moss-3'}`
 
 function Seg({ options, value, onChange }) {
   return (
-    <div className="flex w-full rounded-[10px] border-[1.5px] border-moss-line overflow-hidden min-h-[42px]">
+    <div className="flex w-full rounded-[9px] border-[1.5px] border-moss-line overflow-hidden">
       {options.map(([v, l]) => (
         <button key={v} onClick={() => onChange(v)}
-          className={`flex-1 text-[13px] font-semibold px-2 ${value === v ? 'bg-moss text-white' : 'bg-surface text-ink-soft'}`}>{l}</button>
+          className={`flex-1 text-[13px] font-semibold py-2 px-2 transition ${value === v ? 'bg-moss text-white' : 'bg-surface text-ink-soft hover:bg-paper-2'}`}>{l}</button>
       ))}
     </div>
   )
@@ -28,10 +29,10 @@ function Seg({ options, value, onChange }) {
 
 export default function FiltersDrawer({ open, onClose }) {
   const { obras, editoras, filters, sort, setFilter, setSort, resetFilters } = useStore()
-  const paises = useMemo(() => Array.from(new Set(obras.map(o => o.pais).filter(Boolean))).sort((a,b)=>a.localeCompare(b,'pt')), [obras])
-  const autores = useMemo(() => Array.from(new Set(obras.flatMap(authorsOf))).sort((a,b)=>a.localeCompare(b,'pt')), [obras])
-  const generos = useMemo(() => Array.from(new Set(obras.flatMap(tagsOf))).sort((a,b)=>a.localeCompare(b,'pt')), [obras])
-  const eds = useMemo(() => Array.from(new Set([...(editoras||[]), ...obras.map(edOf)].filter(Boolean))).sort((a,b)=>a.localeCompare(b,'pt')), [editoras, obras])
+  const paises = useMemo(() => Array.from(new Set(obras.map(o => o.pais).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt')), [obras])
+  const autores = useMemo(() => Array.from(new Set(obras.flatMap(authorsOf))).sort((a, b) => a.localeCompare(b, 'pt')), [obras])
+  const generos = useMemo(() => Array.from(new Set(obras.flatMap(tagsOf))).sort((a, b) => a.localeCompare(b, 'pt')), [obras])
+  const eds = useMemo(() => Array.from(new Set([...(editoras || []), ...obras.map(edOf)].filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt')), [editoras, obras])
 
   return (
     <AnimatePresence>
@@ -43,12 +44,14 @@ export default function FiltersDrawer({ open, onClose }) {
             initial={{ x: 40, opacity: 0.5 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 40, opacity: 0 }}
             transition={{ duration: 0.32, ease: [0.2, 0.8, 0.2, 1] }}
           >
-            <div className="flex items-center justify-between px-5 py-4 border-b-[1.5px] border-moss-line">
+            <div className="flex items-center justify-between px-5 py-3.5 border-b-[1.5px] border-moss-line">
               <h3 className="font-serif text-[22px] text-moss">Filtros</h3>
-              <button className="w-9 h-9 rounded-lg border-[1.5px] border-ink bg-paper shadow-neo-sm" onClick={onClose}>×</button>
+              <button className="w-9 h-9 rounded-lg border-[1.5px] border-ink bg-paper shadow-neo-sm hover:bg-paper-2" onClick={onClose}>×</button>
             </div>
-            <div className="flex-1 overflow-auto px-5 py-5 grid grid-cols-2 gap-3">
-              <div className="col-span-2"><Seg options={[['todos','Todos'],['biblioteca','Tenho'],['wishlist','Quero']]} value={filters.status} onChange={v => setFilter('status', v)} /></div>
+
+            <div className="flex-1 overflow-auto px-5 py-4 grid grid-cols-2 gap-x-3 gap-y-3">
+              <div className="col-span-2"><Seg options={[['todos', 'Todos'], ['biblioteca', 'Tenho'], ['wishlist', 'Quero']]} value={filters.status} onChange={v => setFilter('status', v)} /></div>
+
               <Field label="Tipo" changed={!!filters.tipo}>
                 <select className={selCls(!!filters.tipo)} value={filters.tipo} onChange={e => setFilter('tipo', e.target.value)}>
                   <option value="">Todos</option><option value="avulso">Só avulsos</option><option value="box">Só boxes</option><option value="serie">Só séries</option>
@@ -81,22 +84,26 @@ export default function FiltersDrawer({ open, onClose }) {
                   <option value="asc">Crescente</option><option value="desc">Decrescente</option>
                 </select>
               </Field>
+
               <div className="col-span-2"><Field label="Gênero" changed={!!filters.genero}>
                 <select className={selCls(!!filters.genero)} value={filters.genero} onChange={e => setFilter('genero', e.target.value)}>
                   <option value="">Todos</option>{generos.map(x => <option key={x} value={x}>{x}</option>)}
                 </select>
               </Field></div>
+
               <div className="col-span-2"><Field label="Leitura" changed={filters.leitura !== 'todos'}>
-                <Seg options={[['todos','Todos'],['lido','Lidos'],['naolido','Não lidos']]} value={filters.leitura} onChange={v => setFilter('leitura', v)} />
+                <Seg options={[['todos', 'Todos'], ['lido', 'Lidos'], ['naolido', 'Não lidos']]} value={filters.leitura} onChange={v => setFilter('leitura', v)} />
               </Field></div>
-              <label className="flex items-center gap-2 rounded-[10px] border-[1.5px] border-moss-line px-3 py-2.5 text-[13px] cursor-pointer">
-                <input type="checkbox" checked={filters.importado} onChange={e => setFilter('importado', e.target.checked)} /> Importados
+
+              <label className={`flex items-center justify-center gap-2 rounded-[9px] border-[1.5px] px-3 py-2.5 text-[13px] font-semibold cursor-pointer transition ${filters.importado ? 'border-moss text-moss bg-surface-2' : 'border-moss-line text-ink-soft'}`}>
+                <input type="checkbox" className="accent-moss w-[15px] h-[15px]" checked={filters.importado} onChange={e => setFilter('importado', e.target.checked)} /> Importados
               </label>
-              <label className="flex items-center gap-2 rounded-[10px] border-[1.5px] border-moss-line px-3 py-2.5 text-[13px] cursor-pointer">
-                <input type="checkbox" checked={filters.urgencia} onChange={e => setFilter('urgencia', e.target.checked)} /> Urgentes
+              <label className={`flex items-center justify-center gap-2 rounded-[9px] border-[1.5px] px-3 py-2.5 text-[13px] font-semibold cursor-pointer transition ${filters.urgencia ? 'border-moss text-moss bg-surface-2' : 'border-moss-line text-ink-soft'}`}>
+                <input type="checkbox" className="accent-moss w-[15px] h-[15px]" checked={filters.urgencia} onChange={e => setFilter('urgencia', e.target.checked)} /> Urgentes
               </label>
             </div>
-            <div className="flex gap-2 px-5 py-4 border-t-[1.5px] border-moss-line">
+
+            <div className="flex gap-2 px-5 py-3.5 border-t-[1.5px] border-moss-line">
               <button className="neo-btn neo-btn-rust mr-auto" onClick={resetFilters}>Limpar filtros</button>
               <button className="neo-btn neo-btn-moss" onClick={onClose}>Ver resultados</button>
             </div>
