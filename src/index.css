@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --ink: #20241A;
+  --rust: #9C4A2E;
+}
+
+html, body { margin: 0; }
+html { background: #F4F0E6; }
+body {
+  min-height: 100dvh;
+  background-color: #F4F0E6;
+  background-image: radial-gradient(rgba(75,93,58,.05) 1px, transparent 1px);
+  background-size: 22px 22px;
+  color: #20241A;
+  font-family: Inter, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+#root { min-height: 100dvh; }
+
+@layer components {
+  .neo-btn {
+    @apply inline-flex items-center gap-2 rounded-[10px] border-[1.7px] border-ink bg-paper px-3.5 py-2 text-[13px] font-semibold text-ink shadow-neo transition;
+  }
+  .neo-btn:hover { @apply -translate-x-px -translate-y-px bg-paper-2; box-shadow: 4px 4px 0 var(--ink); }
+  .neo-btn:active { @apply translate-x-0.5 translate-y-0.5; box-shadow: 1px 1px 0 var(--ink); }
+  .neo-btn-moss { @apply bg-moss text-white; }
+  .neo-btn-rust { @apply border-rust text-rust; box-shadow: 3px 3px 0 var(--rust); }
+  .neo-btn-rust:hover { box-shadow: 4px 4px 0 var(--rust); }
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #c4cbaf; border-radius: 99px; border: 2px solid #F4F0E6; }
+
+@keyframes marquee { to { transform: translateX(-50%); } }
+@keyframes shine { to { background-position: -200% center; } }
