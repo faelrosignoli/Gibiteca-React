@@ -1,38 +1,33 @@
-# Minha Gibiteca — projeto React (Vite)
+# Minha Gibiteca — React (componentizado)
 
-O app **Minha Gibiteca** rodando dentro de um projeto **Vite + React**.
-Esta é a **Fase 1 da migração**: o app é idêntico à versão HTML anterior
-(mesmo markup, mesmo CSS, mesma lógica), agora dentro da arquitetura React.
-A partir daqui, conforme as mudanças visuais forem pedidas, cada parte
-(cabeçalho, cards, editor, filtros…) vai virando um componente React de verdade.
+**Fase 2 da migração:** a interface agora é feita de **componentes React reais**,
+com **Tailwind CSS** + **Framer Motion**. Esta versão foca a **visualização da
+coleção** (Header, Toolbar, Cards 3D, Marquee, Paginação, Filtros em gaveta,
+detalhe da obra, Rodapé). Editor, Estatísticas e sincronização com a nuvem
+chegam nas próximas fases.
 
-## Rodar localmente
+> Rode localmente pra ver. Seu app publicado (a versão anterior) continua
+> funcionando como está — troque só quando esta alcançar tudo.
 
-Precisa do Node.js 18+.
-
+## Rodar
 ```bash
-npm install     # só na primeira vez
-npm run dev     # http://localhost:5173  (recarrega ao salvar)
+npm install     # instala as dependências (inclui as novas: tailwind, framer-motion)
+npm run dev     # http://localhost:5173
 ```
 
-## Publicar
-
-```bash
-npm run build   # gera dist/ (site estático, pronto pro GitHub Pages/Netlify/Vercel)
-npm run preview # testa o dist/ localmente
-```
-
-`vite.config.js` usa `base: './'`, então funciona em qualquer subpasta.
+## Ver com seus dados
+O app lê sua coleção do navegador (localStorage). Se abrir vazio, clique em
+**Backup** (no topo) e carregue seu **gibiteca-dados.json** — a coleção aparece
+nos componentes novos.
 
 ## Estrutura
+- `src/lib/helpers.js` — funções puras do modelo (mesma lógica do app original).
+- `src/lib/store.jsx` — estado global (coleção, filtros, ordenação, paginação).
+- `src/components/` — `Header`, `Toolbar`, `Card` (tilt 3D), `Marquee`,
+  `Collection`, `Pagination`, `FiltersDrawer`, `DetailSheet`, `Footer`, `Ticker`.
+- `tailwind.config.js` — cores da marca (creme, verde musgo, dourado, ferrugem)
+  + sombra neobrutalista.
 
-- `src/App.jsx` — monta o app dentro do React.
-- `src/app.css` — o CSS do app (idêntico ao original).
-- `src/data.js` — listas fixas: 128 editoras + 43 gêneros.
-- `src/gibiteca/markup.html` — o HTML do app (cabeçalho, toolbar, modais…).
-- `src/gibiteca/logic.js` — toda a lógica (estado, coleção, editor, filtros,
-  estatísticas, nuvem/GitHub, backup). É o mesmo código da versão HTML.
-- `src/assets/logo.png` — o logo.
-
-> Nas próximas fases, o conteúdo de `markup.html` + `logic.js` vai sendo
-> transformado em componentes `.jsx` conforme cada parte for redesenhada.
+## Publicar
+`npm run build` gera `dist/`. O workflow em `.github/workflows/deploy.yml`
+publica automático no GitHub Pages (Settings → Pages → Source: GitHub Actions).
