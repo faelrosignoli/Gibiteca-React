@@ -2,8 +2,8 @@ import { useRef, useState, useEffect } from 'react'
 import { useStore } from '../lib/store.jsx'
 import logo from '../assets/logo.png'
 
-export default function Header({ onNotice }) {
-  const { obras, editoras, loadBackup } = useStore()
+export default function Header({ onNotice, onCloud, onBulk }) {
+  const { obras, editoras, loadBackup, cloud, sync } = useStore()
   const fileRef = useRef(null)
   const [menu, setMenu] = useState(false)
   const wrapRef = useRef(null)
@@ -42,19 +42,20 @@ export default function Header({ onNotice }) {
         <div className="flex items-center gap-2 shrink-0">
           <input ref={fileRef} type="file" accept="application/json" hidden onChange={onFile} />
 
-          {/* Nuvem (próxima fase) */}
-          <button className="neo-icon sm:hidden" title="Sincronizar (em breve)" onClick={() => onNotice?.('A sincronização com a nuvem chega numa próxima fase ☁️')}>
-            <IconCloud />
+          {/* Nuvem (sincronização com o GitHub) */}
+          <button className="neo-icon sm:hidden relative" title="Sincronizar" onClick={onCloud}>
+            <IconCloud /><SyncDot sync={sync} />
           </button>
-          <button className="neo-btn hidden sm:inline-flex" onClick={() => onNotice?.('A sincronização com a nuvem chega numa próxima fase ☁️')}>
-            <IconCloud /><span className="hidden lg:inline">Nuvem</span>
+          <button className="neo-btn hidden sm:inline-flex relative" onClick={onCloud}>
+            <span className="relative inline-flex"><IconCloud /><SyncDot sync={sync} /></span>
+            <span className="hidden lg:inline">Nuvem</span>
           </button>
 
-          {/* Capas em massa (próxima fase) */}
-          <button className="neo-icon sm:hidden" title="Enviar capas (em breve)" onClick={() => onNotice?.('O envio de capas em massa chega numa próxima fase 🖼️')}>
+          {/* Capas em massa */}
+          <button className="neo-icon sm:hidden" title="Enviar capas" onClick={onBulk}>
             <IconImage />
           </button>
-          <button className="neo-btn hidden sm:inline-flex" onClick={() => onNotice?.('O envio de capas em massa chega numa próxima fase 🖼️')}>
+          <button className="neo-btn hidden sm:inline-flex" onClick={onBulk}>
             <IconImage /><span className="hidden lg:inline">Capas</span>
           </button>
 
@@ -87,6 +88,11 @@ export default function Header({ onNotice }) {
 const IconCloud = () => (
   <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.5 19a4.5 4.5 0 1 0-1.4-8.8A6 6 0 1 0 6 16" /><path d="M8 16h9.5" /></svg>
 )
+const SyncDot = ({ sync }) => {
+  const c = { off: 'bg-[#b9b9a5]', ok: 'bg-moss', sync: 'bg-gold animate-pulse', pending: 'bg-gold animate-pulse', err: 'bg-rust' }[sync] || 'bg-[#b9b9a5]'
+  if (sync === 'off' || !sync) return null
+  return <span className={`absolute -right-1 -bottom-1 w-[9px] h-[9px] rounded-full border-2 border-paper ${c}`} />
+}
 const IconImage = () => (
   <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21" /></svg>
 )

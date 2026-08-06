@@ -9,13 +9,19 @@ import FiltersDrawer from './components/FiltersDrawer.jsx'
 import DetailSheet from './components/DetailSheet.jsx'
 import SearchOverlay from './components/SearchOverlay.jsx'
 import Editor from './components/Editor.jsx'
+import Stats from './components/Stats.jsx'
+import Cloud from './components/Cloud.jsx'
+import BulkCovers from './components/BulkCovers.jsx'
 
 export default function App() {
-  const { filters } = useStore()
+  const { filters, cloud: cloudCfg } = useStore()
   const [showFilters, setShowFilters] = useState(false)
   const [detail, setDetail] = useState(null)
   const [editor, setEditor] = useState(null)   // null = fechado | {} = nova | obra = editar
   const [search, setSearch] = useState(false)
+  const [stats, setStats] = useState(false)
+  const [cloud, setCloud] = useState(false)
+  const [bulk, setBulk] = useState(false)
   const [toast, setToast] = useState('')
 
   const say = (m) => { setToast(m); setTimeout(() => setToast(''), 2400) }
@@ -26,12 +32,17 @@ export default function App() {
 
   const openEditor = (obra) => { setDetail(null); setEditor(obra || {}) }
 
+  const openBulk = () => {
+    if (!cloudCfg.connected) { say('Conecte a nuvem primeiro para enviar as capas.'); setCloud(true); return }
+    setBulk(true)
+  }
+
   return (
     <>
-      <Header onNotice={say} />
+      <Header onNotice={say} onCloud={() => setCloud(true)} onBulk={openBulk} />
       <Toolbar
         onFilters={() => setShowFilters(true)}
-        onStats={() => say('As estatísticas chegam numa próxima fase 📊')}
+        onStats={() => setStats(true)}
         onSearch={() => setSearch(true)}
         filterCount={filterCount}
       />
@@ -49,6 +60,9 @@ export default function App() {
       <FiltersDrawer open={showFilters} onClose={() => setShowFilters(false)} />
       <DetailSheet obra={detail} onClose={() => setDetail(null)} onEdit={openEditor} />
       <SearchOverlay open={search} onClose={() => setSearch(false)} />
+      <Stats open={stats} onClose={() => setStats(false)} />
+      <Cloud open={cloud} onClose={() => setCloud(false)} onNotice={say} />
+      <BulkCovers open={bulk} onClose={() => setBulk(false)} onNotice={say} />
       <Editor target={editor} onClose={() => setEditor(null)} onSaved={say} />
 
       <AnimatePresence>

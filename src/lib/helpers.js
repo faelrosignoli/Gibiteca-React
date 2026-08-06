@@ -83,3 +83,7 @@ export function sortList(arr, sort){
 // --- valores monetários (mesma lógica da versão HTML) ---
 export function moneyToNumber(str){ const digits=(str||'').replace(/\D/g,''); return digits?parseInt(digits,10)/100:0; }
 export function moneyFormat(n){ return n?fmtBRL(n):''; }
+
+// --- casamento por nome / slug de arquivo (capas em massa) ---
+export function canon(s){ return (s||'').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim(); }
+export function slugify(s){ return (s||'obra').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60)||'obra'; }
