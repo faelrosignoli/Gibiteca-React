@@ -1,6 +1,8 @@
-# Minha Gibiteca — React (componentizado)
+# Minha Gibiteca — React
 
-**Fase 3 da migração:** além da visualização, agora tem o **Editor** — dá pra
+**Migração completa (v1.0):** todas as funcionalidades da versão HTML agora vivem em componentes React.
+
+**Última fase:** além da visualização, agora tem o **Editor** — dá pra
 **cadastrar, editar e excluir** obras (avulso, box e série), com volumes,
 gêneros, capa, status/urgência/lido/nota e valor. Interface em **componentes
 React reais** com **Tailwind CSS** + **Framer Motion**.
@@ -11,14 +13,24 @@ React reais** com **Tailwind CSS** + **Framer Motion**.
 - **Filtros** em gaveta (status, tipo, editora, país, autor, gênero, leitura,
   ordenação, importados/urgentes).
 - **Detalhe** da obra com botão **Editar**.
+- **Estatísticas** (novo): painel da coleção com investido, tenho/quero,
+  % lidos, nota média, valor médio, histograma de notas e barras por
+  editora, investimento, país e gênero — com escopo (coleção inteira ou
+  filtro atual).
 - **Editor** (novo): cadastro/edição/exclusão, com persistência automática no
   navegador (localStorage) e datalists de editora/país/autor.
 - **Backup:** baixar e restaurar `.json`.
+- **Capas em massa** (novo): envia várias capas de uma vez, casando cada
+  arquivo com a obra pelo nome, subindo para `covers/` no repositório e
+  vinculando a URL à obra.
+- **Nuvem**: sincroniza a coleção com o **seu repositório do GitHub**
+  (Contents API + token fine-grained). Ao conectar, puxa/cria o arquivo; a
+  cada alteração, envia automaticamente (com retry em conflito). Botões de
+  puxar/enviar/desconectar e indicador de status no botão Nuvem.
 
-## Próximas fases
-- **Estatísticas** (painel da coleção).
-- **Nuvem** (sincronização com o GitHub) e **Capas em massa**.
-  (os botões já existem no topo e avisam que chegam depois.)
+## Tudo migrado
+Coleção, filtros, busca, detalhe, editor, estatísticas, nuvem e capas em
+massa — paridade completa com a versão HTML, agora componentizado.
 
 ## Cores / estilo
 Fiéis à última versão HTML: `--ink #23271C`, selos moss/gold, importado em
@@ -39,3 +51,11 @@ coleção aparece e passa a ser salva automaticamente a cada alteração.
 ```bash
 npm run build   # gera /dist (site estático, base relativa — serve em qualquer pasta)
 ```
+
+## Nuvem — como funciona
+Conecte pelo botão **Nuvem** (topo): informe usuário, repositório e um **token
+fine-grained** do GitHub com permissão de **Contents: Read and write** no seu
+repositório. O app guarda a coleção em `data/gibiteca.json` (caminho editável)
+e passa a enviar automaticamente a cada mudança. Em outro aparelho, conecte uma
+vez e use **Puxar da nuvem**. O token fica salvo apenas **neste navegador**
+(localStorage); se vazar, revogue na página de tokens do GitHub.
