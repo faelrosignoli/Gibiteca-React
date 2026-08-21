@@ -7,7 +7,23 @@
 :root {
   color-scheme: light;
   --ink: #23271C;
+  --ink-2: #2c3124;
   --rust: #9C4A2E;
+  --surface: #FFFDF8;
+  /* veus de tinta, os mesmos nomes do tailwind.config.js */
+  --linha: rgba(35,39,28,.08);
+  --separador: rgba(35,39,28,.12);
+  --toque: rgba(35,39,28,.055);
+
+  /* Multiplicador da escala tipográfica. Mudar este número reescala a
+     tipografia inteira do app — truque do --scale-ratio do Son Daven. */
+  --escala: 1;
+
+  /* Durações. As cinco referências ficam entre 0,12s e 0,4s; a Gibiteca
+     estava em 0,7s, o dobro da mais lenta. Um valor de base e um lento para
+     superfícies grandes — não uma duração por componente. */
+  --dur: .22s;
+  --dur-lento: .34s;
 }
 
 html, body { margin: 0; }
@@ -24,41 +40,49 @@ body {
 #root { min-height: 100dvh; }
 
 @layer components {
+  /* Botões — linguagem premium: pílula, sem sombra dura, curva lenta.
+     Os nomes .neo-* foram mantidos para não quebrar os componentes. */
   .neo-btn {
-    @apply inline-flex items-center gap-2 rounded-[10px] border-[1.7px] border-ink bg-paper px-3.5 py-2 text-[13px] font-semibold text-ink shadow-neo transition;
+    @apply inline-flex items-center gap-2 rounded-full border border-separador bg-transparent px-4 py-2.5 text-corpo font-semibold text-ink;
+    transition: transform var(--dur) var(--ease-prem), background var(--dur) var(--ease-prem), border-color var(--dur) var(--ease-prem);
   }
-  .neo-btn:hover { @apply -translate-x-px -translate-y-px bg-paper-2; box-shadow: 4px 4px 0 var(--ink); }
-  .neo-btn:active { @apply translate-x-0.5 translate-y-0.5; box-shadow: 1px 1px 0 var(--ink); }
-  .neo-btn-moss { @apply bg-moss text-white; }
-  .neo-btn-moss:hover { @apply bg-moss-2; }
-  .neo-btn-rust { @apply border-rust text-rust; box-shadow: 3px 3px 0 var(--rust); }
-  .neo-btn-rust:hover { box-shadow: 4px 4px 0 var(--rust); }
-  .neo-btn-rust:active { box-shadow: 1px 1px 0 var(--rust); }
+  .neo-btn:hover { background: var(--toque); border-color: var(--separador); }
+  .neo-btn:active { transform: scale(.98); }
 
-  /* botão de ícone do cabeçalho (quadrado) */
-  .neo-icon {
-    @apply inline-flex items-center justify-center rounded-[10px] border-[1.7px] border-ink bg-paper text-ink shadow-neo transition;
-    width: 40px; height: 40px;
+  .neo-btn-moss {
+    @apply bg-moss text-white;
+    border-color: transparent;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 12px 26px -14px rgba(35,39,28,.7);
   }
-  .neo-icon:hover { @apply -translate-x-px -translate-y-px bg-paper-2; box-shadow: 4px 4px 0 var(--ink); }
-  .neo-icon:active { @apply translate-x-0.5 translate-y-0.5; box-shadow: 1px 1px 0 var(--ink); }
+  .neo-btn-moss:hover { @apply bg-moss-2; border-color: transparent; }
+
+  .neo-btn-rust { @apply text-rust; border-color: rgba(156,74,46,.3); }
+  .neo-btn-rust:hover { background: rgba(156,74,46,.07); border-color: rgba(156,74,46,.45); }
+
+  /* botão de ícone — círculo, sem borda */
+  .neo-icon {
+    @apply inline-flex items-center justify-center rounded-full border-0 bg-transparent text-ink-soft;
+    width: 40px; height: 40px;
+    transition: color var(--dur) var(--ease-prem), background var(--dur) var(--ease-prem), transform var(--dur) var(--ease-prem);
+  }
+  .neo-icon:hover { @apply text-ink; background: var(--toque); }
+  .neo-icon:active { transform: scale(.94); }
 
   /* selos (pills) — fiéis à referência */
-  .pill { @apply inline-flex items-center font-mono text-[9px] font-bold tracking-[.06em] uppercase px-2 py-[3px] rounded-full leading-none; }
+  /* borda transparente nos selos preenchidos: sem ela o .pill-quero (que tem
+     borda) fica 2px mais alto que os outros, e uma fileira de selos alinhada
+     pela base sai desalinhada por 2px. */
+  .pill { @apply inline-flex items-center font-mono text-rotulo font-bold uppercase px-2 py-0.5 rounded-full leading-none whitespace-nowrap border border-transparent; }
   .pill-tenho { @apply bg-moss text-white; }
   .pill-quero { @apply bg-paper-2 text-ink-soft border border-moss-line; }
   .pill-imp   { @apply bg-blue text-white; }
 
   /* select estilizado com seta */
-  .field-select {
-    appearance: none; -webkit-appearance: none; -moz-appearance: none;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23565b48' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>");
-    background-repeat: no-repeat; background-position: right 11px center;
-  }
   .field-input {
-    @apply w-full rounded-[10px] border-[1.5px] border-moss-line bg-surface px-3 py-2.5 text-[13.5px] text-ink outline-none transition;
+    @apply w-full rounded-medio border border-separador bg-surface px-3.5 py-2.5 text-corpo text-ink outline-none;
+    transition: border-color var(--dur) var(--ease-prem), box-shadow var(--dur) var(--ease-prem);
   }
-  .field-input:focus { @apply border-moss; box-shadow: 0 0 0 3px rgba(94,113,70,.15); }
+  .field-input:focus { @apply border-moss; box-shadow: 0 0 0 3px rgba(94,113,70,.14); }
 }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -66,3 +90,101 @@ body {
 
 @keyframes marquee { to { transform: translateX(-50%); } }
 @keyframes shine { to { background-position: -200% center; } }
+
+/* ============================================================
+   TRATAMENTO PREMIUM (tela principal)
+   Vibe: Editorial Luxury · Layout: bento assimétrico
+   Ver protótipo "Duas Gibitecas". Paleta e selos inalterados.
+   ============================================================ */
+:root { --ease-prem: cubic-bezier(0.32, 0.72, 0, 1); }
+
+/* brilho ambiente + grão de filme, presos à viewport (sem repaint ao rolar) */
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(58% 40% at 16% 0%,   rgba(75,93,58,.13),   transparent 70%),
+    radial-gradient(46% 36% at 92% 6%,   rgba(176,134,43,.10), transparent 72%),
+    radial-gradient(70% 48% at 50% 100%, rgba(138,106,69,.06), transparent 70%);
+}
+body::after {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+#root { position: relative; z-index: 1; }
+
+@layer components {
+  /* ---- pílula de ação com ícone aninhado (button-in-button) ---- */
+  .cta {
+    @apply inline-flex items-center gap-3 rounded-full border-0 bg-ink py-2 pl-5 pr-2
+           text-corpo font-semibold text-paper cursor-pointer;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 12px 26px -14px rgba(35,39,28,.75);
+    transition: transform var(--dur) var(--ease-prem), box-shadow var(--dur) var(--ease-prem), background var(--dur) var(--ease-prem);
+  }
+  .cta:hover { background: var(--ink-2); box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 18px 34px -14px rgba(35,39,28,.8); }
+  .cta:active { transform: scale(.98); }
+
+  .cta .knob {
+    @apply inline-flex w-8 h-8 shrink-0 items-center justify-center rounded-full;
+    background: rgba(255,255,255,.12);
+    transition: transform var(--dur) var(--ease-prem), background var(--dur) var(--ease-prem);
+  }
+  .cta:hover .knob { transform: translate(4px, -1px) scale(1.05); background: rgba(255,255,255,.2); }
+
+  /* variante clara, para ações secundárias */
+  .cta-ghost {
+    @apply bg-transparent text-ink pl-5;
+    border: 1px solid var(--separador);
+    box-shadow: none;
+  }
+  .cta-ghost:hover { background: var(--toque); box-shadow: none; }
+  .cta-ghost .knob { background: var(--linha); }
+  .cta-ghost:hover .knob { background: var(--separador); }
+
+  /* ---- bezel duplo: bandeja externa + placa interna ---- */
+  .bezel {
+    /* no celular o cartão é pequeno: 28px de raio deixava a casca com cara de
+       pastilha. Casca e núcleo descem juntos, senão a curva perde o encaixe. */
+    @apply rounded-medio sm:rounded-grande p-1 sm:p-1.5;
+    background: var(--toque);
+    border: 1px solid var(--linha);
+    /* transform fica com o framer-motion; aqui só a cor */
+    transition: background var(--dur) var(--ease-prem);
+  }
+  .bezel-core {
+    @apply rounded-core-medio sm:rounded-core h-full;
+    background: var(--surface);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,.9), 0 16px 34px -22px rgba(35,39,28,.45);
+    transition: box-shadow var(--dur) var(--ease-prem);
+  }
+
+  /* ---- etiqueta minúscula que antecede títulos ---- */
+  .eyebrow {
+    @apply inline-flex items-center gap-2 rounded-full px-3 py-1.5
+           font-mono text-rotulo font-medium uppercase text-moss-2;
+    background: rgba(75,93,58,.08);
+  }
+}
+
+@layer components {
+  /* ---- botões da ilha flutuante e da barra de ferramentas ---- */
+  .isl-btn {
+    @apply inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-corpo font-medium text-ink-soft;
+    transition: color var(--dur) var(--ease-prem), background var(--dur) var(--ease-prem);
+  }
+  .isl-btn:hover { @apply text-ink; background: var(--toque); }
+
+  .isl-icon {
+    @apply inline-flex items-center justify-center rounded-full w-10 h-10 text-ink-soft;
+    transition: color var(--dur) var(--ease-prem), background var(--dur) var(--ease-prem);
+  }
+  .isl-icon:hover { @apply text-ink; background: var(--toque); }
+
+  /* pílula de contorno, usada na barra de ferramentas */
+  .pill-btn {
+    @apply inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-corpo font-semibold text-ink bg-transparent;
+    border: 1px solid var(--separador);
+    transition: transform var(--dur) var(--ease-prem), background var(--dur) var(--ease-prem), border-color var(--dur) var(--ease-prem);
+  }
+  .pill-btn:hover { background: var(--toque); border-color: var(--separador); }
+  .pill-btn:active { transform: scale(.98); }
+}

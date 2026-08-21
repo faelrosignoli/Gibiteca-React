@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useStore } from './lib/store.jsx'
-import Header from './components/Header.jsx'
-import Toolbar from './components/Toolbar.jsx'
+import Header, { LogoMobile } from './components/Header.jsx'
 import Collection from './components/Collection.jsx'
 import Footer from './components/Footer.jsx'
 import FiltersDrawer from './components/FiltersDrawer.jsx'
@@ -27,7 +26,7 @@ export default function App() {
   const say = (m) => { setToast(m); setTimeout(() => setToast(''), 2400) }
 
   const f = filters
-  const filterCount = ['status', 'tipo', 'editora', 'pais', 'autor', 'genero'].reduce((n, k) => n + (k === 'status' ? (f.status !== 'todos' ? 1 : 0) : (f[k] ? 1 : 0)), 0)
+  const filterCount = ['status', 'tipo', 'editora', 'pais', 'autor'].reduce((n, k) => n + (k === 'status' ? (f.status !== 'todos' ? 1 : 0) : (f[k] ? 1 : 0)), 0)
     + (f.leitura !== 'todos' ? 1 : 0) + (f.importado ? 1 : 0) + (f.urgencia ? 1 : 0)
 
   const openEditor = (obra) => { setDetail(null); setEditor(obra || {}) }
@@ -39,22 +38,39 @@ export default function App() {
 
   return (
     <>
-      <Header onNotice={say} onCloud={() => setCloud(true)} onBulk={openBulk} />
-      <Toolbar
-        onFilters={() => setShowFilters(true)}
-        onStats={() => setStats(true)}
-        onSearch={() => setSearch(true)}
-        filterCount={filterCount}
-      />
+      {/* Cabeçalho, números e barra grudam juntos: numa coleção de 142
+          itens a barra de filtros não pode sumir ao rolar. As referências
+          usam sticky com muito mais liberdade (45 declarações no United
+          Carriers) do que só no topo da página. */}
+      {/* No celular o logo fica no topo da página e rola junto com o conteúdo;
+          só a pílula de botões acompanha a rolagem. No desktop o logo vive
+          dentro da própria pílula, no centro. */}
+      <LogoMobile />
+
+      {/* uma barra só: Busca · Filtros · Estatísticas · logo · Galeria/Lista · ☰
+          Sem faixa de fundo e sem desfoque: o que flutua é a pílula, e só ela. */}
+      <div className="sticky top-0 z-30 pt-3 pb-3">
+        <Header
+          onCloud={() => setCloud(true)}
+          onBulk={openBulk}
+          onFilters={() => setShowFilters(true)}
+          onStats={() => setStats(true)}
+          onSearch={() => setSearch(true)}
+          filterCount={filterCount}
+        />
+      </div>
       <Collection onOpen={setDetail} />
       <Footer />
 
       {/* FAB Nova obra */}
       <button
         onClick={() => openEditor(null)}
-        className="fixed right-5 bottom-5 z-40 inline-flex items-center gap-2 rounded-full border-[1.8px] border-ink bg-moss text-white px-5 py-3.5 font-bold text-[15px] shadow-neo-lg hover:-translate-x-px hover:-translate-y-px hover:bg-moss-2 active:translate-x-0.5 active:translate-y-0.5 transition"
+ className="cta group fixed right-5 bottom-5 z-40 !bg-moss hover:!bg-moss-2 !pl-6 !text-corpo"
       >
-        <span className="text-[22px] leading-none">＋</span> Nova obra
+        Nova obra
+        <span className="knob" aria-hidden="true">
+          <svg className="w-[15px] h-[15px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg>
+        </span>
       </button>
 
       <FiltersDrawer open={showFilters} onClose={() => setShowFilters(false)} />
@@ -68,7 +84,7 @@ export default function App() {
       <AnimatePresence>
         {toast && (
           <motion.div
-            className="fixed left-1/2 bottom-6 z-[90] -translate-x-1/2 bg-ink text-paper px-5 py-3 rounded-[10px] text-sm shadow-neo"
+ className="fixed left-1/2 bottom-6 z-[90] -translate-x-1/2 bg-ink text-paper px-6 py-3.5 rounded-full text-sm shadow-amb-lg"
             initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 20, opacity: 0 }}
           >{toast}</motion.div>
         )}

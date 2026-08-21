@@ -8,7 +8,7 @@ export const useStore = () => useContext(StoreCtx)
 
 const DEFAULT_FILTERS = {
   q: '', status: 'todos', tipo: '', editora: '', pais: '', autor: '',
-  genero: '', importado: false, urgencia: false, leitura: 'todos',
+  importado: false, urgencia: false, leitura: 'todos',
 }
 const CLOUD_KEY = 'gibiteca_cloud'
 const CLOUD_DEFAULT = { connected: false, owner: '', repo: '', branch: 'main', path: 'data/gibiteca.json', token: '', sha: null }
@@ -34,6 +34,26 @@ export function StoreProvider({ children }) {
   const [view, setView] = useState('galeria')
   const [page, setPage] = useState(1)
   const [pageSize, setPageSizeState] = useState(() => Number(localStorage.getItem('gibiteca_pagesize')) || 40)
+
+  // ---- obra fixada ----
+  // Guarda UM id, nunca uma lista: fixar outra troca a anterior, por
+  // construção. A obra fixada vai para o início da lista e vira o cartão em
+  // destaque da grade.
+  const [fixada, setFixada] = useState(() => {
+    const v = Number(localStorage.getItem('gibiteca_fixada'))
+    return Number.isFinite(v) && v > 0 ? v : null
+  })
+  const fixarObra = useCallback((id) => {
+    setFixada(atual => {
+      const nova = atual === id ? null : id   // clicar na mesma desafixa
+      try {
+        if (nova == null) localStorage.removeItem('gibiteca_fixada')
+        else localStorage.setItem('gibiteca_fixada', String(nova))
+      } catch (e) { /* */ }
+      return nova
+    })
+    setPage(1)
+  }, [])
 
   // ---- nuvem ----
   const cloudRef = useRef(loadCloud())
@@ -145,7 +165,10 @@ export function StoreProvider({ children }) {
     dirty.current = true; registerEditora(rec.editora)
     setObras(list => { const i = list.findIndex(o => o.id === rec.id); if (i === -1) return [...list, rec]; const c = list.slice(); c[i] = rec; return c })
   }, [registerEditora])
-  const deleteObra = useCallback((id) => { dirty.current = true; setObras(list => list.filter(o => o.id !== id)) }, [])
+  const deleteObra = useCallback((id) => {
+    // se a apagada era a fixada, o destaque some junto
+    setFixada(f => { if (f === id) { try { localStorage.removeItem('gibiteca_fixada') } catch (e) { /* */ } return null } return f })
+    dirty.current = true; setObras(list => list.filter(o => o.id !== id)) }, [])
 
   const setCovers = useCallback((updates) => {
     if (!updates || !updates.length) return
@@ -156,7 +179,13 @@ export function StoreProvider({ children }) {
   const filterSig = JSON.stringify([filters, sort])
   useEffect(() => { setPage(1) }, [filterSig])
 
-  const filtered = useMemo(() => sortList(obras.filter(o => passes(o, filters)), sort), [obras, filters, sort])
+  const filtered = useMemo(() => {
+    const lista = sortList(obras.filter(o => passes(o, filters)), sort)
+    if (fixada == null) return lista
+    const i = lista.findIndex(o => o.id === fixada)
+    if (i <= 0) return lista               // não está na lista, ou já é a primeira
+    return [lista[i], ...lista.slice(0, i), ...lista.slice(i + 1)]
+  }, [obras, filters, sort, fixada])
   const total = filtered.length
   const all = pageSize >= 99999
   const totalPages = all ? 1 : Math.max(1, Math.ceil(total / pageSize))
@@ -169,6 +198,7 @@ export function StoreProvider({ children }) {
     setSort, setView, setPage, setPageSize, setFilter, resetFilters, loadBackup,
     nextId, upsertObra, deleteObra, setCovers,
     filtered, total, totalPages, start, pageItems, all,
+    fixada, fixarObra,
     // nuvem
     cloud, sync, guessRepo, cloudConnect, cloudDisconnect, pullFromCloud, cloudPushNow,
   }

@@ -1,13 +1,17 @@
 import { AnimatePresence, motion } from 'framer-motion'
+import { MOLA_GAVETA, FADE } from '../lib/motion.js'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../lib/store.jsx'
-import { authorsOf, edOf, moneyToNumber, moneyFormat, tintFor, initials } from '../lib/helpers.js'
-import GenrePicker from './GenrePicker.jsx'
+import { authorsOf, paisesOf, edOf, moneyToNumber, moneyFormat, tintFor, initials } from '../lib/helpers.js'
+import Combo from './Combo.jsx'
+import { EstrelasInput } from './Estrelas.jsx'
 
 const emptyVol = () => ({ nome: '', imagem: null, roteirista: '', desenhista: '', status: 'wishlist', urgencia: false, valorPago: 0, lido: false, nota: 0, _open: true })
 
 function draftFromObra(o) {
   if (!o || !o.id) {
+    // 'genres' não tem mais campo na tela. Continua no rascunho só para
+    // atravessar uma edição sem apagar o que já estava gravado em obra.tags.
     return { id: null, tipo: 'avulso', nome: '', origem: 'nacional', editora: '', pais: '', genres: [], img: '', resenha: '',
       roteirista: '', desenhista: '', status: 'wishlist', urgencia: false, valorPago: 0, lido: false, nota: 0, vols: [] }
   }
@@ -26,38 +30,37 @@ function draftFromObra(o) {
 /* ---------- pequenos controles ---------- */
 function Switch({ options, value, onChange }) {
   return (
-    <div className="flex w-full rounded-[9px] border-[1.5px] border-moss-line overflow-hidden">
+    <div className="flex w-full rounded-full border border-separador overflow-hidden">
       {options.map(([v, l]) => (
         <button key={String(v)} type="button" onClick={() => onChange(v)}
-          className={`flex-1 text-[13px] font-semibold py-2 px-2 transition ${value === v ? 'bg-moss text-white' : 'bg-surface text-ink-soft hover:bg-paper-2'}`}>{l}</button>
+ className={`flex-1 text-corpo font-semibold py-2 px-2 transition ${value === v ? 'bg-moss text-white' : 'bg-surface text-ink-soft hover:bg-paper-2'}`}>{l}</button>
       ))}
     </div>
   )
 }
-function Stars({ value, onChange, size = 'text-[22px]' }) {
+const lbl ="font-mono text-rotulo uppercase text-ink-faint pl-0.5"
+const box ="flex flex-col gap-1"
+
+// checkbox estilizado com a mesma altura dos inputs (para alinhar em linha/coluna)
+function CheckTile({ checked, onChange, danger, children }) {
   return (
-    <div className="inline-flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map(i => (
-        <button key={i} type="button" onClick={() => onChange(value === i ? i - 0.5 : i)}
-          className={`${size} leading-none text-gold transition ${value >= i ? '' : value >= i - 0.5 ? 'opacity-60' : 'opacity-25'} hover:scale-110`}>★</button>
-      ))}
-      {value > 0 && <button type="button" onClick={() => onChange(0)} className="ml-2 text-[11px] text-ink-faint underline">limpar</button>}
-    </div>
+    <label className={`flex items-center gap-2.5 rounded-full border h-[42px] px-3.5 text-corpo font-semibold cursor-pointer transition select-none ${checked ? (danger ? 'border-rust text-rust bg-surface-2' : 'border-moss text-moss bg-surface-2') : 'border-separador text-ink-soft bg-surface hover:bg-paper-2'}`}>
+      <input type="checkbox" className={`w-[16px] h-[16px] ${danger ? 'accent-rust' : 'accent-moss'}`} checked={checked} onChange={onChange} />
+      {children}
+    </label>
   )
 }
-const lbl = "font-mono text-[10px] tracking-[.12em] uppercase text-ink-faint pl-0.5"
-const box = "flex flex-col gap-1"
 
 /* ---------- painel de volume ---------- */
-function VolPanel({ v, i, withCover, onChange, onCopyAll, onCover }) {
+function VolPanel({ v, i, withCover, autores, onChange, onCopyAll, onCover }) {
   const owned = v.status === 'biblioteca'
   const fileRef = useRef(null)
   const set = (patch) => onChange(i, patch)
   return (
-    <div className="rounded-[10px] border-[1.5px] border-moss-line bg-surface overflow-hidden">
+    <div className="rounded-medio border border-separador bg-surface overflow-hidden">
       <button type="button" onClick={() => set({ _open: !v._open })} className="w-full flex items-center gap-2 px-3 py-2 bg-paper-2 text-left">
-        <span className="font-mono text-[11px] font-bold text-moss">#{i + 1}</span>
-        <span className="text-[13px] text-ink truncate flex-1">{v.nome || `Vol. ${i + 1}`}</span>
+        <span className="font-mono text-apoio font-bold text-moss">#{i + 1}</span>
+        <span className="text-corpo text-ink truncate flex-1">{v.nome || `Vol. ${i + 1}`}</span>
         <span className={`pill ${owned ? 'pill-tenho' : 'pill-quero'}`}>{owned ? 'Tenho' : 'Quero'}</span>
         <svg className={`w-4 h-4 text-ink-faint transition ${v._open ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6" /></svg>
       </button>
@@ -71,23 +74,22 @@ function VolPanel({ v, i, withCover, onChange, onCopyAll, onCover }) {
             <div className={`${box} col-span-2`}>
               <label className={lbl}>Capa do volume</label>
               <div className="flex items-center gap-3">
-                <div className="w-14 h-[74px] rounded-md border-[1.5px] border-moss-line bg-white overflow-hidden flex items-center justify-center shrink-0">
-                  {v.imagem ? <img src={v.imagem} alt="" className="max-w-full max-h-full object-contain" />
-                    : <span className="font-serif text-[15px] text-white w-full h-full flex items-center justify-center" style={{ background: tintFor(v.nome || 'v') }}>{initials(v.nome || (i + 1) + '')}</span>}
-                </div>
+                {v.imagem
+                  ? <img src={v.imagem} alt="" className="h-[80px] w-auto max-w-[86px] rounded-pequeno shadow-[0_7px_18px_-8px_rgba(35,39,28,.5)] shrink-0" />
+                  : <div className="w-14 h-[74px] rounded-pequeno flex items-center justify-center font-display text-obra text-white shrink-0" style={{ background: tintFor(v.nome || 'v') }}>{initials(v.nome || (i + 1) + '')}</div>}
                 <input ref={fileRef} type="file" accept="image/*" hidden onChange={e => onCover(i, e)} />
-                <button type="button" className="neo-btn !text-[12px]" onClick={() => fileRef.current?.click()}>Enviar…</button>
-                {v.imagem && <button type="button" className="text-[12px] text-rust underline" onClick={() => set({ imagem: null })}>remover</button>}
+                <button type="button" className="neo-btn !text-apoio" onClick={() => fileRef.current?.click()}>Enviar…</button>
+                {v.imagem && <button type="button" className="text-apoio text-rust underline" onClick={() => set({ imagem: null })}>remover</button>}
               </div>
             </div>
           )}
           <div className={box}>
-            <label className={lbl}>Roteirista</label>
-            <input className="field-input" value={v.roteirista} onChange={e => set({ roteirista: e.target.value })} />
+            <label className={lbl}>Autor / Roteirista</label>
+            <Combo multi options={autores} value={v.roteirista} onChange={x => set({ roteirista: x })} placeholder="Use / p/ separar" />
           </div>
           <div className={box}>
-            <label className={lbl}>Desenhista</label>
-            <input className="field-input" value={v.desenhista} onChange={e => set({ desenhista: e.target.value })} />
+            <label className={lbl}>Desenhista / Colorista / Finalista</label>
+            <Combo multi options={autores} value={v.desenhista} onChange={x => set({ desenhista: x })} placeholder="Use / p/ separar" />
           </div>
           <div className={box}>
             <label className={lbl}>Status</label>
@@ -95,9 +97,10 @@ function VolPanel({ v, i, withCover, onChange, onCopyAll, onCover }) {
               onChange={val => set({ status: val, ...(val === 'biblioteca' ? { urgencia: false } : {}) })} />
           </div>
           {!owned ? (
-            <label className={`flex items-center justify-center gap-2 rounded-[9px] border-[1.5px] px-3 text-[13px] font-semibold cursor-pointer transition self-end h-[42px] ${v.urgencia ? 'border-rust text-rust bg-surface-2' : 'border-moss-line text-ink-soft'}`}>
-              <input type="checkbox" className="accent-rust w-[15px] h-[15px]" checked={v.urgencia} onChange={e => set({ urgencia: e.target.checked })} /> Urgente ⚠️
-            </label>
+            <div className={box}>
+              <label className={lbl}>Urgência</label>
+              <CheckTile danger checked={v.urgencia} onChange={e => set({ urgencia: e.target.checked })}>Urgente ⚠️</CheckTile>
+            </div>
           ) : (
             <div className={box}>
               <label className={lbl}>Valor pago</label>
@@ -108,22 +111,21 @@ function VolPanel({ v, i, withCover, onChange, onCopyAll, onCover }) {
           {owned && (
             <>
               <div className={box}>
-                <label className={lbl}>Lido</label>
-                <Switch options={[['sim', 'Sim'], ['nao', 'Não']]} value={v.lido ? 'sim' : 'nao'}
-                  onChange={val => set({ lido: val === 'sim', ...(val === 'nao' ? { nota: 0 } : {}) })} />
+                <label className={lbl}>Leitura</label>
+                <CheckTile checked={v.lido} onChange={e => set({ lido: e.target.checked, ...(e.target.checked ? {} : { nota: 0 }) })}>Lido</CheckTile>
               </div>
-              {v.lido && (
-                <div className={`${box} col-span-2`}>
+              {v.lido ? (
+                <div className={box}>
                   <label className={lbl}>Nota</label>
-                  <Stars value={v.nota} onChange={n => set({ nota: n })} size="text-[20px]" />
+                  <div className="h-[42px] flex items-center"><EstrelasInput value={v.nota} onChange={n => set({ nota: n })} /></div>
                 </div>
-              )}
+              ) : <div />}
             </>
           )}
           <div className="col-span-2 flex flex-wrap gap-1.5 pt-0.5">
             {['roteirista', 'desenhista', 'status'].map(f => (
               <button key={f} type="button" onClick={() => onCopyAll(i, f)}
-                className="text-[11px] font-semibold text-moss border border-moss-line rounded-full px-2.5 py-1 hover:bg-paper-2">
+ className="text-apoio font-semibold text-moss border border-separador rounded-full px-2.5 py-1 hover:bg-paper-2">
                 copiar {f} p/ todos
               </button>
             ))}
@@ -138,12 +140,11 @@ export default function Editor({ target, onClose, onSaved }) {
   const { obras, editoras, nextId, upsertObra, deleteObra } = useStore()
   const open = target != null
   const [d, setD] = useState(draftFromObra(null))
-  const [genreOpen, setGenreOpen] = useState(false)
   const coverRef = useRef(null)
 
   useEffect(() => { if (open) setD(draftFromObra(target && target.id ? target : null)) }, [open, target])
 
-  const paises = useMemo(() => Array.from(new Set(obras.map(o => o.pais).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt')), [obras])
+  const paises = useMemo(() => Array.from(new Set(obras.flatMap(paisesOf))).sort((a, b) => a.localeCompare(b, 'pt')), [obras])
   const autores = useMemo(() => Array.from(new Set(obras.flatMap(authorsOf))).sort((a, b) => a.localeCompare(b, 'pt')), [obras])
   const eds = useMemo(() => Array.from(new Set([...(editoras || []), ...obras.map(edOf)].filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt')), [editoras, obras])
 
@@ -173,11 +174,12 @@ export default function Editor({ target, onClose, onSaved }) {
     const f = e.target.files?.[0]; if (!f) return
     const r = new FileReader(); r.onload = () => patch({ img: r.result }); r.readAsDataURL(f); e.target.value = ''
   }
-  const toggleGenre = (g) => setD(s => ({ ...s, genres: s.genres.includes(g) ? s.genres.filter(x => x !== g) : [...s.genres, g] }))
 
   const save = () => {
     const title = d.nome.trim()
     if (!title) { alert(d.tipo === 'box' ? 'Dê um título ao box.' : d.tipo === 'serie' ? 'Dê um título à série.' : 'Dê um título à obra.'); return }
+    // tags entra igualzinho como saiu — editar uma obra antiga não apaga os
+    // gêneros que ela já tinha
     const base = { id: d.id ?? nextId(), nome: title, tipo: d.tipo, origem: d.origem, editora: d.editora.trim(), pais: d.pais.trim(), tags: d.genres.slice(), resenha: d.resenha.trim() }
     let rec
     if (isMulti) {
@@ -204,7 +206,7 @@ export default function Editor({ target, onClose, onSaved }) {
   }
   const remove = () => {
     if (!d.id) return
-    if (!confirm(`Excluir "${d.nome || 'esta obra'}" da coleção?`)) return
+    if (!confirm(`Excluir"${d.nome || 'esta obra'}" da coleção?`)) return
     deleteObra(d.id); onSaved?.('Excluído.'); onClose()
   }
 
@@ -215,18 +217,20 @@ export default function Editor({ target, onClose, onSaved }) {
       <AnimatePresence>
         {open && (
           <motion.div
-            className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center px-0 sm:px-3 py-0 sm:py-6 bg-ink/45 backdrop-blur-[2px]"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+ className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center px-0 sm:px-3 py-0 sm:py-6 bg-veu backdrop-blur-xl"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={FADE}
+            /* o clique fora NAO fecha: aqui tem formulario preenchido, e perder
+               o cadastro por um clique no vazio custa caro. Só o X, Cancelar
+               ou Salvar fecham. */
           >
             <motion.div
-              className="w-full sm:max-w-[640px] h-full sm:h-auto sm:max-h-[92vh] flex flex-col bg-paper sm:rounded-[16px] sm:border-[1.5px] sm:border-ink overflow-hidden sm:shadow-[0_30px_70px_-24px_rgba(35,39,28,.7)]"
+ className="w-full sm:max-w-[640px] h-full sm:h-auto sm:max-h-[92vh] flex flex-col bg-surface sm:rounded-grande sm:border sm:border-separador overflow-hidden sm:shadow-[0_40px_90px_-30px_rgba(35,39,28,.5)]"
               initial={{ y: 24, opacity: 0.4 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 24, opacity: 0 }}
-              transition={{ duration: 0.28, ease: [0.2, 0.8, 0.2, 1] }}
+              transition={MOLA_GAVETA}
             >
-              <div className="flex items-center justify-between px-5 py-3.5 border-b-[1.5px] border-moss-line">
-                <h3 className="font-serif text-[21px] text-moss">{d.id == null ? 'Nova obra' : 'Editar obra'}</h3>
-                <button className="w-9 h-9 rounded-lg border-[1.5px] border-ink bg-paper shadow-neo-sm hover:bg-paper-2" onClick={onClose}>×</button>
+              <div className="flex items-center justify-between px-5 py-3.5 border-b border-separador">
+                <h3 className="font-display text-secao text-moss">{d.id == null ? 'Nova obra' : 'Editar obra'}</h3>
+                <button className="neo-icon !w-9 !h-9" onClick={onClose}>×</button>
               </div>
 
               <div className="flex-1 overflow-auto px-5 py-4 grid grid-cols-2 gap-x-3 gap-y-3">
@@ -242,33 +246,17 @@ export default function Editor({ target, onClose, onSaved }) {
                 </div>
 
                 <div className={`${box} col-span-2`}>
-                  <label className={lbl}>Origem</label>
+                  <label className={lbl}>Origem da edição</label>
                   <Switch options={[['nacional', 'Nacional'], ['importado', 'Importado']]} value={d.origem} onChange={v => patch({ origem: v })} />
                 </div>
 
                 <div className={box}>
                   <label className={lbl}>{d.origem === 'importado' ? 'Editora' : 'Editora no Brasil'}</label>
-                  <input className="field-input" list="dlEds" value={d.editora} onChange={e => patch({ editora: e.target.value })} placeholder="Nome da editora" />
+                  <Combo options={eds} value={d.editora} onChange={x => patch({ editora: x })} placeholder="Nome da editora" />
                 </div>
                 <div className={box}>
                   <label className={lbl}>País de origem</label>
-                  <input className="field-input" list="dlPaises" value={d.pais} onChange={e => patch({ pais: e.target.value })} />
-                </div>
-
-                <div className={`${box} col-span-2`}>
-                  <label className={lbl}>Gêneros</label>
-                  <button type="button" onClick={() => setGenreOpen(true)} className="neo-btn justify-center">
-                    {d.genres.length ? `${d.genres.length} selecionado(s) — editar` : 'Selecionar gêneros'}
-                  </button>
-                  {d.genres.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-1">
-                      {d.genres.map(g => (
-                        <span key={g} className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-moss text-white">
-                          {g}<button type="button" onClick={() => toggleGenre(g)} className="opacity-80 hover:opacity-100">×</button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  <Combo multi options={paises} value={d.pais} onChange={x => patch({ pais: x })} placeholder="Use / p/ separar" />
                 </div>
 
                 {/* capa única (avulso / box) */}
@@ -276,15 +264,14 @@ export default function Editor({ target, onClose, onSaved }) {
                   <div className={`${box} col-span-2`}>
                     <label className={lbl}>Capa</label>
                     <div className="flex items-center gap-3">
-                      <div className="w-16 h-[84px] rounded-md border-[1.5px] border-moss-line bg-white overflow-hidden flex items-center justify-center shrink-0">
-                        {d.img ? <img src={d.img} alt="" className="max-w-full max-h-full object-contain" />
-                          : <span className="text-ink-faint text-[10px] text-center px-1">sem capa</span>}
-                      </div>
+                      {d.img
+                        ? <img src={d.img} alt="" className="h-[92px] w-auto max-w-[100px] rounded-pequeno shadow-[0_7px_18px_-8px_rgba(35,39,28,.5)] shrink-0" />
+                        : <div className="w-16 h-[84px] rounded-pequeno border border-dashed border-separador bg-surface-2 flex items-center justify-center text-ink-faint text-rotulo text-center px-1 shrink-0">sem capa</div>}
                       <div className="flex-1">
                         <input ref={coverRef} type="file" accept="image/*" hidden onChange={onCover} />
                         <button type="button" className="neo-btn w-full justify-center" onClick={() => coverRef.current?.click()}>Enviar imagem…</button>
-                        <div className="text-[11px] text-ink-faint mt-1">A imagem fica salva junto no seu backup.</div>
-                        {d.img && <button type="button" className="text-[12px] text-rust underline mt-1" onClick={() => patch({ img: '' })}>remover capa</button>}
+                        <div className="text-apoio text-ink-faint mt-1">A imagem fica salva junto no seu backup.</div>
+                        {d.img && <button type="button" className="text-apoio text-rust underline mt-1" onClick={() => patch({ img: '' })}>remover capa</button>}
                       </div>
                     </div>
                   </div>
@@ -299,11 +286,11 @@ export default function Editor({ target, onClose, onSaved }) {
                         onChange={e => setQtd(e.target.value)} placeholder="ex.: 3" />
                     </div>
                     {d.vols.length > 0 && (
-                      <div className="text-[11.5px] text-ink-faint -mt-1">Preencha cada volume. Use “copiar p/ todos” quando o valor se repetir.</div>
+                      <div className="text-apoio text-ink-faint -mt-1">Preencha cada volume. Use “copiar p/ todos” quando o valor se repetir.</div>
                     )}
                     <div className="flex flex-col gap-2">
                       {d.vols.map((v, i) => (
-                        <VolPanel key={i} v={v} i={i} withCover={withCover} onChange={setVol} onCopyAll={copyAll} onCover={volCover} />
+                        <VolPanel key={i} v={v} i={i} withCover={withCover} autores={autores} onChange={setVol} onCopyAll={copyAll} onCover={volCover} />
                       ))}
                     </div>
                   </div>
@@ -314,11 +301,11 @@ export default function Editor({ target, onClose, onSaved }) {
                   <>
                     <div className={box}>
                       <label className={lbl}>Autor / Roteirista</label>
-                      <input className="field-input" list="dlAutores" value={d.roteirista} onChange={e => patch({ roteirista: e.target.value })} />
+                      <Combo multi options={autores} value={d.roteirista} onChange={x => patch({ roteirista: x })} placeholder="Use / p/ separar" />
                     </div>
                     <div className={box}>
-                      <label className={lbl}>Desenhista / Arte</label>
-                      <input className="field-input" list="dlAutores" value={d.desenhista} onChange={e => patch({ desenhista: e.target.value })} placeholder="Use / p/ separar" />
+                      <label className={lbl}>Desenhista / Colorista / Finalista</label>
+                      <Combo multi options={autores} value={d.desenhista} onChange={x => patch({ desenhista: x })} placeholder="Use / p/ separar" />
                     </div>
                     <div className={box}>
                       <label className={lbl}>Status</label>
@@ -326,9 +313,10 @@ export default function Editor({ target, onClose, onSaved }) {
                         onChange={v => patch({ status: v, ...(v === 'biblioteca' ? { urgencia: false } : {}) })} />
                     </div>
                     {!ownedAvulso ? (
-                      <label className={`flex items-center justify-center gap-2 rounded-[9px] border-[1.5px] px-3 text-[13px] font-semibold cursor-pointer transition self-end h-[42px] ${d.urgencia ? 'border-rust text-rust bg-surface-2' : 'border-moss-line text-ink-soft'}`}>
-                        <input type="checkbox" className="accent-rust w-[15px] h-[15px]" checked={d.urgencia} onChange={e => patch({ urgencia: e.target.checked })} /> Urgente ⚠️
-                      </label>
+                      <div className={box}>
+                        <label className={lbl}>Urgência</label>
+                        <CheckTile danger checked={d.urgencia} onChange={e => patch({ urgencia: e.target.checked })}>Urgente ⚠️</CheckTile>
+                      </div>
                     ) : (
                       <div className={box}>
                         <label className={lbl}>Valor pago</label>
@@ -339,16 +327,15 @@ export default function Editor({ target, onClose, onSaved }) {
                     {ownedAvulso && (
                       <>
                         <div className={box}>
-                          <label className={lbl}>Lido</label>
-                          <Switch options={[['sim', 'Sim'], ['nao', 'Não']]} value={d.lido ? 'sim' : 'nao'}
-                            onChange={v => patch({ lido: v === 'sim', ...(v === 'nao' ? { nota: 0 } : {}) })} />
+                          <label className={lbl}>Leitura</label>
+                          <CheckTile checked={d.lido} onChange={e => patch({ lido: e.target.checked, ...(e.target.checked ? {} : { nota: 0 }) })}>Lido</CheckTile>
                         </div>
-                        {d.lido && (
-                          <div className={`${box} col-span-2`}>
+                        {d.lido ? (
+                          <div className={box}>
                             <label className={lbl}>Nota</label>
-                            <Stars value={d.nota} onChange={n => patch({ nota: n })} />
+                            <div className="h-[42px] flex items-center"><EstrelasInput value={d.nota} onChange={n => patch({ nota: n })} /></div>
                           </div>
-                        )}
+                        ) : <div />}
                       </>
                     )}
                   </>
@@ -360,7 +347,7 @@ export default function Editor({ target, onClose, onSaved }) {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 px-5 py-3.5 border-t-[1.5px] border-moss-line">
+              <div className="flex items-center gap-2 px-5 py-3.5 border-t border-separador">
                 {d.id != null && <button className="neo-btn neo-btn-rust" onClick={remove}>Excluir</button>}
                 <button className="neo-btn ml-auto" onClick={onClose}>Cancelar</button>
                 <button className="neo-btn neo-btn-moss" onClick={save}>Salvar</button>
@@ -370,12 +357,6 @@ export default function Editor({ target, onClose, onSaved }) {
         )}
       </AnimatePresence>
 
-      {/* datalists compartilhadas */}
-      <datalist id="dlEds">{eds.map(x => <option key={x} value={x} />)}</datalist>
-      <datalist id="dlPaises">{paises.map(x => <option key={x} value={x} />)}</datalist>
-      <datalist id="dlAutores">{autores.map(x => <option key={x} value={x} />)}</datalist>
-
-      <GenrePicker open={genreOpen} selected={d.genres} onToggle={toggleGenre} onClose={() => setGenreOpen(false)} />
     </>
   )
 }

@@ -1,24 +1,16 @@
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
+import { useStore } from '../lib/store.jsx'
+import Estrelas from './Estrelas.jsx'
+import { MOLA_TOQUE } from '../lib/motion.js'
 import {
-  coverOf, tipoOf, edOf, ownedCount, unitsOf, missingVols, avgNota,
-  anyUrg, statusMatch, initials, tintFor, isImp, volsOf,
+  coverOf, unidadeVitrine, urgenteNaVitrine, tipoOf, edOf, ownedCount, unitsOf, missingVols, avgNota,
+  anyUrg, statusMatch, initials, tintFor, isImp,
 } from '../lib/helpers.js'
 
-function Stars({ n }) {
-  if (!n) return null
-  return (
-    <span className="text-gold text-[11px] tracking-tight" aria-label={`nota ${n}`}>
-      {[1, 2, 3, 4, 5].map(i => (
-        <span key={i} className={n >= i ? '' : n >= i - 0.5 ? 'opacity-60' : 'opacity-25'}>★</span>
-      ))}
-    </span>
-  )
-}
-
-// selo de urgente — fiel à imagem: quadrado arredondado cor rust + triângulo branco
+// selo de urgente — quadrado arredondado cor rust + triângulo branco
 function UrgBadge() {
   return (
-    <span className="absolute top-1.5 right-1.5 z-[4] w-[26px] h-[26px] rounded-[8px] bg-rust text-white flex items-center justify-center shadow-[0_2px_8px_rgba(35,39,28,.3)]" title="Urgente">
+    <span className="absolute top-2.5 right-2.5 z-[4] w-[26px] h-[26px] rounded-pequeno bg-rust text-white flex items-center justify-center shadow-[0_2px_8px_rgba(35,39,28,.3)]" title="Urgente">
       <svg className="w-[15px] h-[15px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
         <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><path d="M12 9v4" /><path d="M12 17h.01" />
       </svg>
@@ -26,23 +18,38 @@ function UrgBadge() {
   )
 }
 
-// selo de tipo (série / box) — canto inferior esquerdo da capa
+/* Selo de tipo (série / box).
+ *
+ * Ficava no canto inferior esquerdo DA CAPA e tapava a arte — numa capa que
+ * preenche o quadrado não existe canto vazio para ele ocupar. Desceu para o
+ * corpo do cartão, onde não cobre nada.
+ *
+ * Ele já dizia a contagem ("Série 4"), a mesma coisa que a linha "4 volumes"
+ * logo abaixo. Agora que estão lado a lado, o selo ficou com o recado e a
+ * linha saiu — a informação não precisava aparecer duas vezes.
+ */
 function TypeBadge({ t, count }) {
+  const base = 'inline-flex items-center gap-1 shrink-0 font-mono text-rotulo font-extrabold uppercase px-1.5 py-0.5 rounded-pequeno text-white'
   if (t === 'box') return (
-    <span className="absolute bottom-1.5 left-1.5 z-[3] inline-flex items-center gap-1 font-mono text-[8px] font-extrabold tracking-wide uppercase px-1.5 py-[3px] rounded-[5px] bg-box text-white shadow-[0_2px_6px_rgba(35,39,28,.3)]">
+    <span className={`${base} bg-box`}>
       <svg className="w-[10px] h-[10px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M3 8l9-5 9 5-9 5-9-5zM3 8v8l9 5 9-5V8" /></svg>Box {count || ''}
     </span>
   )
   if (t === 'serie') return (
-    <span className="absolute bottom-1.5 left-1.5 z-[3] inline-flex items-center gap-1 font-mono text-[8px] font-extrabold tracking-wide uppercase px-1.5 py-[3px] rounded-[5px] bg-moss text-white shadow-[0_2px_6px_rgba(35,39,28,.3)]">
+    <span className={`${base} bg-moss`}>
       <svg className="w-[10px] h-[10px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M4 5h10v14H4zM17 7h3v12h-3" /></svg>Série {count || ''}
     </span>
   )
   return null
 }
 
-export default function Card({ obra, index = 0, onOpen }) {
-  const cover = coverOf(obra)
+export default function Card({ obra, index = 0, onOpen, feature = false }) {
+  // com o filtro em "Tenho"/"Quero", a capa vem do volume que combina — mas o
+  // título continua sendo o da série: é por ela que a obra é reconhecida
+  const { filters } = useStore()
+  const cover = coverOf(obra, filters.status)
+  const vitrine = unidadeVitrine(obra, filters.status)
+  const volDaVez = vitrine ? (vitrine.nome || '').trim() : ''
   const t = tipoOf(obra)
   const multi = t === 'serie' || t === 'box'
   const total = unitsOf(obra).length
@@ -54,8 +61,8 @@ export default function Card({ obra, index = 0, onOpen }) {
 
   // tilt 3D (sem brilho)
   const px = useMotionValue(0.5), py = useMotionValue(0.5)
-  const rotY = useSpring(useTransform(px, [0, 1], [6, -6]), { stiffness: 200, damping: 16 })
-  const rotX = useSpring(useTransform(py, [0, 1], [-6, 6]), { stiffness: 200, damping: 16 })
+  const rotY = useSpring(useTransform(px, [0, 1], [5, -5]), { stiffness: 200, damping: 16 })
+  const rotX = useSpring(useTransform(py, [0, 1], [-5, 5]), { stiffness: 200, damping: 16 })
   const onMove = (e) => {
     if (e.pointerType === 'touch') return
     const r = e.currentTarget.getBoundingClientRect()
@@ -66,61 +73,116 @@ export default function Card({ obra, index = 0, onOpen }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 14 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: Math.min(index * 0.02, 0.3), ease: [0.2, 0.8, 0.3, 1] }}
-      style={{ rotateX: rotX, rotateY: rotY, transformPerspective: 720, boxShadow: '3px 3px 0 var(--ink)' }}
-      whileHover={{ y: -3, boxShadow: '5px 5px 0 var(--ink)' }}
+      initial={{ opacity: 0, y: 24, filter: 'blur(6px)' }}
+      whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+      viewport={{ once: true, margin: '0px 0px -8% 0px' }}
+      transition={{ duration: 0.7, delay: Math.min(index * 0.045, 0.36), ease: [0.32, 0.72, 0, 1] }}
+      style={{ rotateX: rotX, rotateY: rotY, transformPerspective: 720 }}
+      whileHover={{ y: -4 }}
+      // whileTap dispara no pointerdown: o cartão reage ao encostar,
+      // não ao soltar. É a diferença entre parecer vivo e parecer atrasado.
+      whileTap={{ scale: 0.975, transition: MOLA_TOQUE }}
       onPointerMove={onMove}
       onPointerLeave={onLeave}
       onClick={() => onOpen?.(obra)}
-      className="relative cursor-pointer rounded-xl2 border-[1.5px] border-ink bg-surface overflow-hidden"
+      // grade de ate 30 cartoes animando entrada e hover: avisar o compositor
+      // evita repintura. So transform e opacity, as duas propriedades que ele
+      // acelera de graca (Oryzo declara will-change em 58 regras).
+      style={{ willChange: 'transform, opacity' }}
+      className="bezel group cursor-pointer h-full"
     >
-      {/* capa */}
-      <div className="relative aspect-square flex items-center justify-center overflow-hidden bg-white p-1.5">
-        {cover ? (
-          <img src={cover} alt="" loading="lazy" className="max-w-full max-h-full w-auto h-auto object-contain rounded-md" />
-        ) : (
-          <div className="w-full h-full rounded-md flex flex-col p-2.5 text-white"
-               style={{ background: `linear-gradient(160deg, ${tintFor(edOf(obra) || obra.nome)}, ${tintFor(edOf(obra) || obra.nome)}dd)` }}>
-            {(edOf(obra) || (isImp(obra) ? 'Importado' : '')) &&
-              <div className="font-mono text-[8.5px] tracking-[.14em] uppercase opacity-90 truncate">{edOf(obra) || 'Importado'}</div>}
-            <div className="font-serif font-bold text-[40px] leading-none my-auto text-center">{initials(obra.nome)}</div>
-            <div className="h-[2px] bg-white/50" />
-            <div className="font-serif text-[12px] leading-tight mt-1.5 line-clamp-2">{obra.nome}</div>
-          </div>
-        )}
-        {multi && <TypeBadge t={t} count={volsOf(obra).length} />}
-        {anyUrg(obra) && <UrgBadge />}
-      </div>
+      <div className="bezel-core group-hover:shadow-amb-lg p-2 sm:p-3 xl:p-3.5 flex flex-col">
+        {/* capa — caixa QUADRADA fixa, para todas as linhas alinharem.
+            A capa fica contida dentro dela: formato natural, sem recorte
+            (a regra do projeto permite "altura fixa + w-auto"). */}
+        <div className={`relative flex items-center justify-center aspect-square`}>
+          {cover ? (
+            /* absolute + inset-0 + m-auto: so assim o max-h-full tem uma
+               altura definida para resolver contra, senao a capa alta estica
+               a caixa e desalinha a linha inteira */
+            <img
+              src={cover} alt="" loading="lazy"
+ className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_18px_30px_-18px_rgba(35,39,28,.55)]"
+            />
+          ) : (
+            <div className={`w-full h-full rounded-medio p-3 sm:p-3.5 flex flex-col text-white shadow-[0_18px_30px_-18px_rgba(35,39,28,.55)] ${feature ? 'lg:min-h-[260px]' : ''}`}
+                 style={{ background: `linear-gradient(155deg, ${tintFor(edOf(obra) || obra.nome)}, ${tintFor(edOf(obra) || obra.nome)}cc)` }}>
+              {(edOf(obra) || (isImp(obra) ? 'Importado' : '')) &&
+                <div className="font-mono text-rotulo uppercase opacity-85 truncate">{edOf(obra) || 'Importado'}</div>}
+              <div className={`font-display font-semibold leading-none my-auto text-center  ${feature ? 'text-[clamp(22px,5vw,48px)] lg:text-[clamp(44px,6vw,86px)]' : 'text-[clamp(22px,5vw,48px)]'}`}>
+                {initials(obra.nome)}
+              </div>
+              <div className="font-display text-rotulo sm:text-apoio leading-snug opacity-95 line-clamp-2">{obra.nome}</div>
+            </div>
+          )}
+          {urgenteNaVitrine(obra, filters.status) && <UrgBadge />}
+        </div>
 
-      {/* corpo */}
-      <div className="p-2.5 flex flex-col gap-0.5">
-        {edOf(obra) && <div className="font-mono text-[8.5px] tracking-wide uppercase text-moss-2 font-bold truncate">{edOf(obra)}</div>}
-        <div className="font-serif text-[14px] leading-tight text-ink line-clamp-2">
-          {obra.nome}{hasNote && <span className="text-gold text-[11px] ml-1 align-middle" title="Tem anotação">✎</span>}
-        </div>
-        <div className="text-[11.5px] text-ink-faint truncate">
-          {multi ? `${total} ${t === 'box' ? 'livro(s)' : 'volume(s)'}` : (obra.roteirista || obra.desenhista || '—')}
-        </div>
-        {multi && total > 0 && (
-          <div className="mt-1.5">
-            <div className="h-1.5 rounded-full bg-paper-3 overflow-hidden">
-              <div className="h-full bg-moss rounded-full" style={{ width: `${Math.round(owned / total * 100)}%` }} />
+        {/* corpo */}
+        <div className={`pt-2.5 sm:pt-4 px-0.5 sm:px-1 pb-1 flex flex-col gap-1 sm:gap-1.5 flex-1`}>
+          {edOf(obra) && (
+            <div className="font-mono text-rotulo font-medium uppercase text-moss-2 truncate">{edOf(obra)}</div>
+          )}
+          <div className={`font-display font-semibold leading-tight text-ink line-clamp-2 ${feature ? 'text-corpo sm:text-obra lg:text-titulo' : 'text-corpo sm:text-obra xl:text-secao'}`}>
+            {obra.nome}{hasNote && <span className="text-gold text-corpo ml-1.5 align-middle" title="Tem anotação">✎</span>}
+          </div>
+          {/* contagem e informacao categorica: vira rotulo em caixa alta.
+              Nome de pessoa continua texto — rotulo so serve para categoria. */}
+          {multi ? (
+            <div className="flex items-center gap-2 min-w-0">
+              <TypeBadge t={t} count={total} />
+              {/* sob filtro a capa é de um volume específico — o nome dele
+                  entra ao lado do selo */}
+              {volDaVez && (
+                <span className="font-mono text-rotulo uppercase text-ink-faint truncate">{volDaVez}</span>
+              )}
             </div>
-            <div className="mt-1 text-[10px] font-semibold">
-              {owned >= total
-                ? <span className="text-moss">completa ✓</span>
-                : miss.length ? <span className="text-rust">faltam: {miss.slice(0, 6).join(', ')}{miss.length > 6 ? '…' : ''}</span> : null}
+          ) : (
+            <div className="text-apoio text-ink-faint truncate">
+              {obra.roteirista || obra.desenhista || '—'}
+            </div>
+          )}
+
+          {/* O destaque ocupa duas linhas da grade, mas a arte é quadrada —
+              sobra altura. Em vez de vão morto, a sobra recebe um trecho da
+              resenha. Só no destaque e só a partir de lg:, onde ela existe. */}
+          {feature && hasNote && (
+            <p className="hidden lg:block text-apoio text-ink-faint leading-relaxed line-clamp-4 pt-1">
+              {obra.resenha}
+            </p>
+          )}
+
+          <div className={`pt-2.5 sm:pt-3.5 mt-auto`}>
+            {/* a barra conta a série inteira — sob "Tenho"/"Quero" a grade
+                mostra um volume, e a barra falaria de outra coisa */}
+            {multi && total > 0 && filters.status === 'todos' && (
+              <>
+                <div className="h-[2px] rounded-full bg-linha overflow-hidden">
+                  <div className="h-full bg-moss rounded-full" style={{ width: `${Math.round(owned / total * 100)}%` }} />
+                </div>
+                <div className="mt-2 font-mono text-rotulo uppercase text-ink-faint">
+                  {owned >= total
+                    ? 'coleção completa'
+                    : miss.length ? `faltam ${total - owned} de ${total}` : ''}
+                </div>
+              </>
+            )}
+            <div className="mt-2 sm:mt-3 flex items-center gap-1.5 sm:gap-2 flex-wrap">
+              {/* sob filtro o cartão fala de um volume: o selo tem que ser o
+                  desse volume, não o da série inteira */}
+              {vitrine ? (
+                <span className={`pill ${vitrine.status === 'biblioteca' ? 'pill-tenho' : 'pill-quero'}`}>
+                  {vitrine.status === 'biblioteca' ? 'Tenho' : 'Quero'}
+                </span>
+              ) : (
+                <span className={`pill ${owns ? 'pill-tenho' : 'pill-quero'}`}>
+                  {multi && owns && owned < total ? `Tenho ${owned}/${total}` : owns ? 'Tenho' : 'Quero'}
+                </span>
+              )}
+              {isImp(obra) && <span className="pill pill-imp">Importado</span>}
+              {nota > 0 && <Estrelas n={nota} />}
             </div>
           </div>
-        )}
-        <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
-          <span className={`pill ${owns ? 'pill-tenho' : 'pill-quero'}`}>
-            {multi && owns && owned < total ? `Tenho ${owned}/${total}` : owns ? 'Tenho' : 'Quero'}
-          </span>
-          {isImp(obra) && <span className="pill pill-imp">Importado</span>}
-          {nota > 0 && <Stars n={nota} />}
         </div>
       </div>
     </motion.div>
