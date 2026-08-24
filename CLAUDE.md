@@ -175,6 +175,48 @@ não `.split('/')` solto.
 Os rótulos dizem o que cabe: **"Autor / Roteirista"** e **"Desenhista /
 Colorista / Finalista"**, ambos com o *placeholder* "Use / p/ separar".
 
+### Guia dos Quadrinhos — atalho, nunca raspagem
+Dois lugares abrem o Guia dos Quadrinhos em aba nova, com o título já na busca:
+**no Editor**, ao lado do campo de título (acompanha o que está sendo digitado),
+e **na gaveta de detalhe**, abaixo da ficha técnica. `linkDoGuia()` em
+`lib/catalogo.js` é a única peça — não há busca automática, e o app **não faz
+nenhuma chamada de rede** por causa disso.
+
+**Por que só um link, e não uma integração.** O Guia é o melhor acervo de HQ
+brasileira e o único lugar onde a editora da edição nacional está certa, mas
+não dá para consultar por código — verificado com `curl`:
+
+- responde **403** com `Cf-Mitigated: challenge` (desafio anti-bot da Cloudflare)
+- manda `Cross-Origin-Resource-Policy: same-origin` e **não** manda
+  `Access-Control-Allow-Origin` — CORS fechado de propósito
+- `robots.txt`: `search=yes, ai-train=no, use=reference` — e, explicitamente,
+  `User-agent: ClaudeBot` → `Disallow: /`
+
+Passar pelo desafio da Cloudflare seria burlar detecção de bot, e o robots.txt
+veta o acesso automatizado por nome. **Não fazer, nem para "só descobrir o
+formato da URL".** A regra vale para robô; a pessoa navegando no site e o link
+que o navegador dela abre não têm nada a ver com isso.
+
+O endereço é a **busca do próprio site**, e o formato veio de dois exemplos
+reais que o usuário tirou da barra de pesquisa:
+
+| digitado | endereço |
+|---|---|
+| `conan` | `/titulos/conan` |
+| `conan cimério` | `/titulos/conan%20cim%C3%A9rio` |
+
+`/titulos/` recebe o termo **cru, só percent-encoded** — espaço vira `%20` e o
+acento é preservado em UTF-8. Por isso `encodeURIComponent` e **não**
+`slugify`: virar "conan-cimerio" mandaria um termo que a pessoa não digitou.
+Sendo busca e não ficha fixa, título parcial funciona e não há 404 por apelido
+divergente. O termo vai como foi escrito, inclusive caixa e pontuação.
+
+**Houve aqui uma busca automática no Open Library.** Saiu a pedido: trazia
+título e autores, mas errava a editora — agrega todas as edições de uma obra e
+devolve a original ("Dark Horse" para Funny Creek). Um catálogo que acerta
+metade e erra a metade que importa custa mais conferência do que digitação.
+Não reintroduzir sem pedido.
+
 ### O selo de série/box não fica sobre a capa
 Ele morava no canto inferior esquerdo **da capa** e tapava a arte — numa capa
 que preenche o quadrado não existe canto vazio para ele ocupar. Desceu para o
