@@ -4,6 +4,7 @@ import {
   deveDispensar, useEhDesktop, usaMovimentoReduzido,
 } from '../lib/motion.js'
 import { useStore } from '../lib/store.jsx'
+import { linkDoGuia } from '../lib/catalogo.js'
 import { coverOf, tipoOf, edOf, authorsOf, paisesOf, unitsForStatus, avgNota, unitsOf, ownedCount, sumValor, fmtBRL, statusMatch, initials, tintFor } from '../lib/helpers.js'
 
 function Numero({ rotulo, valor, sub, capitalizar }) {
@@ -149,6 +150,12 @@ export default function DetailSheet({ obra, onClose, onEdit }) {
                     </div>
                   ))}
                 </dl>
+                {/* consultar a ficha da obra onde a edição brasileira está
+                    certa. Link, não consulta: o Guia não tem API. */}
+                <a href={linkDoGuia(obra.nome)} target="_blank" rel="noopener noreferrer"
+                   className="neo-btn w-full justify-center mt-3">
+                  Ver no Guia dos Quadrinhos ↗
+                </a>
               </div>
 
               {obra.resenha && (

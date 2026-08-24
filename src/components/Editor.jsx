@@ -5,6 +5,7 @@ import { useStore } from '../lib/store.jsx'
 import { authorsOf, paisesOf, edOf, moneyToNumber, moneyFormat, tintFor, initials } from '../lib/helpers.js'
 import Combo from './Combo.jsx'
 import { EstrelasInput } from './Estrelas.jsx'
+import { linkDoGuia } from '../lib/catalogo.js'
 
 const emptyVol = () => ({ nome: '', imagem: null, roteirista: '', desenhista: '', status: 'wishlist', urgencia: false, valorPago: 0, lido: false, nota: 0, _open: true })
 
@@ -241,8 +242,16 @@ export default function Editor({ target, onClose, onSaved }) {
 
                 <div className={`${box} col-span-2`}>
                   <label className={lbl}>{d.tipo === 'box' ? 'Título do box' : d.tipo === 'serie' ? 'Título da série' : 'Título'}</label>
-                  <input className="field-input" value={d.nome} onChange={e => patch({ nome: e.target.value })}
-                    placeholder={d.tipo === 'box' ? 'Nome do box / coleção' : d.tipo === 'serie' ? 'Nome da série' : 'Nome da obra'} />
+                  <div className="flex gap-2">
+                    <input className="field-input flex-1" value={d.nome} onChange={e => patch({ nome: e.target.value })}
+                      placeholder={d.tipo === 'box' ? 'Nome do box / coleção' : d.tipo === 'serie' ? 'Nome da série' : 'Nome da obra'} />
+                    {/* o Guia não tem API e fecha CORS: em vez de raspar o site,
+                        levamos a pessoa até ele com o título já na busca */}
+                    <a href={linkDoGuia(d.nome)} target="_blank" rel="noopener noreferrer"
+                      className="neo-btn shrink-0 whitespace-nowrap" title="Abrir no Guia dos Quadrinhos, em aba nova">
+                      Ver no Guia ↗
+                    </a>
+                  </div>
                 </div>
 
                 <div className={`${box} col-span-2`}>
