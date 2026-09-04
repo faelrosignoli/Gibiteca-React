@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useStore } from './lib/store.jsx'
 import Header, { LogoMobile } from './components/Header.jsx'
+import Abertura from './components/Abertura.jsx'
+import { usaMovimentoReduzido } from './lib/motion.js'
 import Collection from './components/Collection.jsx'
 import Footer from './components/Footer.jsx'
 import FiltersDrawer from './components/FiltersDrawer.jsx'
@@ -14,6 +16,17 @@ import BulkCovers from './components/BulkCovers.jsx'
 
 export default function App() {
   const { filters, cloud: cloudCfg } = useStore()
+  // Abertura: a marca aparece no meio e viaja até o cabeçalho encolhendo.
+  // Quem pediu menos movimento não vê tela nenhuma — entra direto na estante.
+  const semMovimento = usaMovimentoReduzido()
+  const [abrindo, setAbrindo] = useState(() => !semMovimento)
+  useEffect(() => {
+    if (!abrindo) return
+    // uma batida só: tempo de reconhecer a marca, não de esperar por ela
+    const t = setTimeout(() => setAbrindo(false), 550)
+    return () => clearTimeout(t)
+  }, [abrindo])
+
   const [showFilters, setShowFilters] = useState(false)
   const [detail, setDetail] = useState(null)
   const [editor, setEditor] = useState(null)   // null = fechado | {} = nova | obra = editar
@@ -45,7 +58,9 @@ export default function App() {
       {/* No celular o logo fica no topo da página e rola junto com o conteúdo;
           só a pílula de botões acompanha a rolagem. No desktop o logo vive
           dentro da própria pílula, no centro. */}
-      <LogoMobile />
+      <Abertura aberto={abrindo} />
+
+      <LogoMobile aberturaNoAr={abrindo} />
 
       {/* uma barra só: Busca · Filtros · Estatísticas · logo · Galeria/Lista · ☰
           Sem faixa de fundo e sem desfoque: o que flutua é a pílula, e só ela. */}
@@ -57,6 +72,7 @@ export default function App() {
           onStats={() => setStats(true)}
           onSearch={() => setSearch(true)}
           filterCount={filterCount}
+          aberturaNoAr={abrindo}
         />
       </div>
       <Collection onOpen={setDetail} />

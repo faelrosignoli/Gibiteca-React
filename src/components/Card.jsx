@@ -119,11 +119,17 @@ export default function Card({ obra, index = 0, onOpen, feature = false }) {
         </div>
 
         {/* corpo */}
-        <div className={`pt-2.5 sm:pt-4 px-0.5 sm:px-1 pb-1 flex flex-col gap-1 sm:gap-1.5 flex-1`}>
+        <div className={`pt-2.5 sm:pt-4 px-0.5 sm:px-1 pb-1 flex flex-col gap-1 sm:gap-1.5 flex-1 ${feature ? 'lg:justify-center' : ''}`}>
+          {/* No destaque a sobra de altura era um buraco só, embaixo do texto.
+              Com my-auto aqui e mt-auto no rodapé, a folga se divide em cima e
+              embaixo do bloco — vira respiro, não vão morto. */}
+          <div className="flex flex-col gap-1 sm:gap-1.5 min-w-0">
           {edOf(obra) && (
-            <div className="font-mono text-rotulo font-medium uppercase text-moss-2 truncate">{edOf(obra)}</div>
+            <div className={`font-mono font-medium uppercase text-moss-2 truncate ${feature ? 'text-rotulo lg:text-apoio' : 'text-rotulo'}`}>{edOf(obra)}</div>
           )}
-          <div className={`font-display font-semibold leading-tight text-ink line-clamp-2 ${feature ? 'text-corpo sm:text-obra lg:text-titulo' : 'text-corpo sm:text-obra xl:text-secao'}`}>
+          {/* o destaque é o cartão maior da grade: a tipografia sobe junto,
+              senão ele fica com corpo de cartaz e letra de miniatura */}
+          <div className={`font-display font-semibold leading-tight text-ink ${feature ? 'line-clamp-2 lg:line-clamp-3 text-obra sm:text-secao lg:text-display' : 'line-clamp-2 text-corpo sm:text-obra xl:text-secao'}`}>
             {obra.nome}{hasNote && <span className="text-gold text-corpo ml-1.5 align-middle" title="Tem anotação">✎</span>}
           </div>
           {/* contagem e informacao categorica: vira rotulo em caixa alta.
@@ -138,21 +144,24 @@ export default function Card({ obra, index = 0, onOpen, feature = false }) {
               )}
             </div>
           ) : (
-            <div className="text-apoio text-ink-faint truncate">
+            <div className={`text-ink-faint truncate ${feature ? 'text-apoio lg:text-obra' : 'text-apoio'}`}>
               {obra.roteirista || obra.desenhista || '—'}
             </div>
           )}
 
-          {/* O destaque ocupa duas linhas da grade, mas a arte é quadrada —
-              sobra altura. Em vez de vão morto, a sobra recebe um trecho da
-              resenha. Só no destaque e só a partir de lg:, onde ela existe. */}
+          {/* Quando há anotação, ela também ajuda a ocupar a altura sobrando. */}
           {feature && hasNote && (
-            <p className="hidden lg:block text-apoio text-ink-faint leading-relaxed line-clamp-4 pt-1">
+            <p className="hidden lg:block text-corpo text-ink-faint leading-relaxed line-clamp-4 pt-1">
               {obra.resenha}
             </p>
           )}
+          </div>
 
-          <div className={`pt-2.5 sm:pt-3.5 mt-auto`}>
+          {/* No cartão comum o rodapé fica colado embaixo, para os selos
+              alinharem entre os cartões da linha. No destaque não há linha para
+              alinhar — ele desgruda e acompanha o texto, senão sobra um buraco
+              entre os dois. */}
+          <div className={`pt-2.5 sm:pt-3.5 mt-auto ${feature ? 'lg:mt-0' : ''}`}>
             {/* a barra conta a série inteira — sob "Tenho"/"Quero" a grade
                 mostra um volume, e a barra falaria de outra coisa */}
             {multi && total > 0 && filters.status === 'todos' && (

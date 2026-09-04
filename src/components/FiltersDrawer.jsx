@@ -5,7 +5,7 @@ import {
 } from '../lib/motion.js'
 import { useMemo } from 'react'
 import { useStore } from '../lib/store.jsx'
-import { edOf, authorsOf, paisesOf } from '../lib/helpers.js'
+import { edOf, authorsOf, paisesOf, tipoOf, passes } from '../lib/helpers.js'
 import Selecao from './Selecao.jsx'
 
 function Field({ label, changed, children }) {
@@ -32,15 +32,47 @@ function Seg({ options, value, onChange }) {
   )
 }
 
+const TIPOS = [['', 'Todos'], ['avulso', 'Só avulsos'], ['box', 'Só boxes'], ['serie', 'Só séries']]
+
+// valor "sem filtro" de cada campo, para conseguir neutralizar um de cada vez
+const NEUTRO = { status: 'todos', tipo: '', editora: '', pais: '', autor: '', leitura: 'todos', importado: false, urgencia: false, q: '' }
+
+const ordenar = (conjunto) => Array.from(conjunto).sort((a, b) => a.localeCompare(b, 'pt'))
+
+/* O que está escolhido nunca some da própria lista.
+ *
+ * Sem isso, apertar dois filtros que se excluem faria o valor escolhido
+ * desaparecer das opções, e o campo passaria a mostrar "Todas" enquanto
+ * continua filtrando — a interface mentiria sobre o próprio estado. */
+const comOEscolhido = (lista, atual) => (atual && !lista.includes(atual) ? [atual, ...lista] : lista)
+
 export default function FiltersDrawer({ open, onClose }) {
-  const { obras, editoras, filters, sort, setFilter, setSort, resetFilters } = useStore()
+  const { obras, filters, sort, setFilter, setSort, resetFilters } = useStore()
   const reduzido = usaMovimentoReduzido()
   // o arrasto sai só do cabeçalho: a lista de filtros precisa continuar rolando
   const arrasto = useDragControls()
+
+  /* Filtros em cascata.
+   *
+   * As opções de um campo saem das obras que passam por TODOS OS OUTROS
+   * filtros — nunca por ele mesmo. Se o próprio campo entrasse na conta,
+   * escolher "Panini" deixaria a lista de editoras só com "Panini", e não
+   * daria para trocar de ideia sem limpar tudo.
+   *
+   * Com "Tenho" ligado, a lista de editoras mostra só as editoras de obras
+   * que você tem. Com "Quero", só as das que faltam. */
+  const sobraSem = (campo) => obras.filter(o => passes(o, { ...filters, [campo]: NEUTRO[campo] }))
+
   // "Argentina / Espanha" entra como dois paises, nao como um rotulo so
-  const paises = useMemo(() => Array.from(new Set(obras.flatMap(paisesOf))).sort((a, b) => a.localeCompare(b, 'pt')), [obras])
-  const autores = useMemo(() => Array.from(new Set(obras.flatMap(authorsOf))).sort((a, b) => a.localeCompare(b, 'pt')), [obras])
-  const eds = useMemo(() => Array.from(new Set([...(editoras || []), ...obras.map(edOf)].filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt')), [editoras, obras])
+  const paises = useMemo(() => comOEscolhido(ordenar(new Set(sobraSem('pais').flatMap(paisesOf))), filters.pais), [obras, filters])
+  const autores = useMemo(() => comOEscolhido(ordenar(new Set(sobraSem('autor').flatMap(authorsOf))), filters.autor), [obras, filters])
+  // a lista de editoras vem das OBRAS, não do catálogo fixo: filtrar por uma
+  // editora de que não se tem nada só serviria para esvaziar a estante
+  const eds = useMemo(() => comOEscolhido(ordenar(new Set(sobraSem('editora').map(edOf).filter(Boolean))), filters.editora), [obras, filters])
+  const tipos = useMemo(() => {
+    const sobra = sobraSem('tipo')
+    return TIPOS.filter(([v]) => !v || v === filters.tipo || sobra.some(o => tipoOf(o) === v))
+  }, [obras, filters])
 
   return (
     <AnimatePresence>
@@ -75,7 +107,7 @@ export default function FiltersDrawer({ open, onClose }) {
 
               <Field label="Tipo" changed={!!filters.tipo}>
                 <Selecao value={filters.tipo} onChange={v => setFilter('tipo', v)} changed={!!filters.tipo}
-                  options={[['', 'Todos'], ['avulso', 'Só avulsos'], ['box', 'Só boxes'], ['serie', 'Só séries']]} />
+                  options={tipos} />
               </Field>
               <Field label="Editora" changed={!!filters.editora}>
                 <Selecao value={filters.editora} onChange={v => setFilter('editora', v)} changed={!!filters.editora}

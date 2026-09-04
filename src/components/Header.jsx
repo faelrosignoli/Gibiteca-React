@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { MOLA_TOQUE } from '../lib/motion.js'
+import { MOLA_TOQUE, useEhDesktop } from '../lib/motion.js'
 import { useStore } from '../lib/store.jsx'
 import logo from '../assets/logo.png'
 
@@ -10,9 +10,11 @@ import logo from '../assets/logo.png'
  * o caminho de volta ficava escondido dentro da gaveta de Filtros.
  */
 function useVoltarAoInicio() {
-  const { resetFilters } = useStore()
+  const { resetFilters, setView } = useStore()
   return () => {
     resetFilters()
+    // recomeçar é voltar à estante: se estava no modo lista, volta pra galeria
+    setView('galeria')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 }
@@ -25,8 +27,9 @@ const ROTULO_LOGO = 'Início — limpar filtros e voltar ao topo'
  * ao rolar. Só a pílula de botões acompanha a rolagem — é o que precisa estar
  * sempre à mão numa coleção grande.
  */
-export function LogoMobile() {
+export function LogoMobile({ aberturaNoAr = false }) {
   const aoInicio = useVoltarAoInicio()
+  const ehDesktop = useEhDesktop()
   return (
     <div className="sm:hidden flex justify-center px-3 pt-8 pb-4">
       <button
@@ -35,7 +38,13 @@ export function LogoMobile() {
         aria-label={ROTULO_LOGO}
         className="rounded-full transition-transform duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[.97]"
       >
-        <img src={logo} alt="Minha Gibiteca" className="h-16 w-auto max-w-[78vw] object-contain pointer-events-none" />
+        {/* o layoutId só vai em UM dos dois logos — o que está visível.
+            Dois com o mesmo id ao mesmo tempo quebram a viagem da marca. */}
+        {!aberturaNoAr && (
+          <motion.img layoutId={ehDesktop ? undefined : 'marca'}
+            src={logo} alt="Minha Gibiteca"
+            className="h-16 w-auto max-w-[78vw] object-contain pointer-events-none" />
+        )}
       </button>
     </div>
   )
@@ -53,9 +62,10 @@ export function LogoMobile() {
  * estado da sincronização foi para o próprio ☰: a ação pode se esconder, o
  * aviso não pode.
  */
-export default function Header({ onCloud, onBulk, onFilters, onStats, onSearch, filterCount }) {
+export default function Header({ onCloud, onBulk, onFilters, onStats, onSearch, filterCount, aberturaNoAr = false }) {
   const { obras, editoras, loadBackup, sync, view, setView, filters } = useStore()
   const aoInicio = useVoltarAoInicio()
+  const ehDesktop = useEhDesktop()
   const fileRef = useRef(null)
   const [menu, setMenu] = useState(false)
   const wrapRef = useRef(null)
@@ -136,7 +146,11 @@ export default function Header({ onCloud, onBulk, onFilters, onStats, onSearch, 
               title={ROTULO_LOGO}
               className="shrink-0 rounded-full transition-transform duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-px active:scale-[.97]"
             >
-              <img src={logo} alt="Minha Gibiteca" className="h-9 sm:h-10 w-auto max-w-[56vw] sm:max-w-none object-contain pointer-events-none" />
+              {!aberturaNoAr && (
+                <motion.img layoutId={ehDesktop ? 'marca' : undefined}
+                  src={logo} alt="Minha Gibiteca"
+                  className="h-9 sm:h-10 w-auto max-w-[56vw] sm:max-w-none object-contain pointer-events-none" />
+              )}
             </button>
           </div>
 
