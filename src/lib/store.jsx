@@ -13,12 +13,29 @@ const DEFAULT_FILTERS = {
 const CLOUD_KEY = 'gibiteca_cloud'
 const CLOUD_DEFAULT = { connected: false, owner: '', repo: '', branch: 'main', path: 'data/gibiteca.json', token: '', sha: null }
 
+/* Quando esta cópia dos dados foi alterada pela última vez.
+ *
+ * É a peça que faltava na sincronização: sem ela nenhum aparelho sabe se a
+ * cópia dele é mais nova ou mais velha que a da nuvem, e qualquer envio
+ * atropela o que estiver lá. O carimbo antigo (`updated`, em texto ISO) é
+ * aceito na leitura, para os arquivos que já existem na nuvem continuarem
+ * valendo. */
+export function carimboDe(d) {
+  if (!d) return 0
+  if (Number.isFinite(d.atualizadoEm)) return d.atualizadoEm
+  const t = Date.parse(d.updated || d.exported || '')
+  return Number.isFinite(t) ? t : 0
+}
+
 function loadInitial() {
   try {
     const raw = localStorage.getItem('gibiteca_v1')
-    if (raw) { const d = JSON.parse(raw); if (Array.isArray(d.obras)) return { obras: d.obras, editoras: d.editoras || EDITORAS } }
+    if (raw) {
+      const d = JSON.parse(raw)
+      if (Array.isArray(d.obras)) return { obras: d.obras, editoras: d.editoras || EDITORAS, carimbo: carimboDe(d) }
+    }
   } catch (e) { /* */ }
-  return { obras: [], editoras: EDITORAS }
+  return { obras: [], editoras: EDITORAS, carimbo: 0 }
 }
 function loadCloud() {
   try { const r = localStorage.getItem(CLOUD_KEY); if (r) return { ...CLOUD_DEFAULT, ...JSON.parse(r) } } catch (e) { /* */ }
@@ -68,23 +85,40 @@ export function StoreProvider({ children }) {
 
   const pushTimer = useRef(null), pushing = useRef(false), pushAgain = useRef(false), skipPush = useRef(false)
 
+  // carimbo desta cópia. Toda alteração local o avança; o que vem da nuvem
+  // herda o carimbo de lá, para os dois lados ficarem comparáveis.
+  const carimbo = useRef(init.carimbo || 0)
+  const marcarAlterado = useCallback(() => { dirty.current = true; carimbo.current = Date.now() }, [])
+
   const pushToCloud = useCallback(async () => {
     const c = cloudRef.current
     if (!c.connected) return
     if (pushing.current) { pushAgain.current = true; return }
     pushing.current = true; setSync('sync')
     try {
-      const { obras, editoras } = dataRef.current
-      const json = JSON.stringify({ version: 1, updated: new Date().toISOString(), obras, editoras }, null, 1)
-      const b64 = b64enc(json)
-      try {
-        const res = await ghPut(c, c.path, b64, 'Atualiza coleção — ' + new Date().toLocaleString('pt-BR'), c.sha)
-        writeCloud({ ...cloudRef.current, sha: res.content.sha })
-      } catch (e) {
-        const f = await ghGet(c, c.path)
-        const res = await ghPut(c, c.path, b64, 'Atualiza coleção (retry)', f ? f.sha : null)
-        writeCloud({ ...cloudRef.current, sha: res.content.sha })
+      // Antes de gravar, olha o que está na nuvem. Sem isto o aparelho
+      // atrasado sobrescreve o adiantado sem ninguém perceber — foi assim que
+      // um backup restaurado no PC sumiu debaixo da cópia velha do celular.
+      const f = await ghGet(c, c.path)
+      if (f) {
+        const laFora = carimboDe(JSON.parse(b64dec(f.content)))
+        if (laFora > carimbo.current) {
+          // a nuvem está na frente: não grava por cima
+          writeCloud({ ...cloudRef.current, sha: f.sha })
+          setSync('conflito')
+          pushing.current = false
+          return
+        }
       }
+
+      const { obras, editoras } = dataRef.current
+      const agora = Date.now()
+      const json = JSON.stringify(
+        { version: 1, atualizadoEm: agora, updated: new Date(agora).toISOString(), obras, editoras }, null, 1)
+      const b64 = b64enc(json)
+      const res = await ghPut(c, c.path, b64, 'Atualiza coleção — ' + new Date().toLocaleString('pt-BR'), f ? f.sha : c.sha)
+      carimbo.current = agora
+      writeCloud({ ...cloudRef.current, sha: res.content.sha })
       setSync('ok')
     } catch (e) { setSync('err') }
     pushing.current = false
@@ -101,7 +135,7 @@ export function StoreProvider({ children }) {
   const dirty = useRef(false)
   useEffect(() => {
     if (!dirty.current) return
-    try { localStorage.setItem('gibiteca_v1', JSON.stringify({ version: 1, obras, editoras })) } catch (e) { /* */ }
+    try { localStorage.setItem('gibiteca_v1', JSON.stringify({ version: 1, atualizadoEm: carimbo.current, obras, editoras })) } catch (e) { /* */ }
     if (skipPush.current) { skipPush.current = false; return }
     scheduleCloudPush()
   }, [obras, editoras, scheduleCloudPush])
@@ -109,6 +143,9 @@ export function StoreProvider({ children }) {
   const applyData = useCallback((data, { fromCloud = false } = {}) => {
     if (!Array.isArray(data?.obras)) return
     dirty.current = true
+    // vindo da nuvem, herda o carimbo de lá: esta cópia passa a ser aquela.
+    // Vindo de um arquivo restaurado, é alteração local e ganha a hora de agora.
+    carimbo.current = fromCloud ? carimboDe(data) : Date.now()
     if (fromCloud) skipPush.current = true
     setObras(data.obras)
     if (Array.isArray(data.editoras) && data.editoras.length) setEditoras(data.editoras)
@@ -153,6 +190,42 @@ export function StoreProvider({ children }) {
 
   const cloudPushNow = useCallback(() => { clearTimeout(pushTimer.current); return pushToCloud() }, [pushToCloud])
 
+  /* Ao abrir o app, conferir a nuvem.
+   *
+   * Faltava isto: o app só falava com a nuvem quando alguém apertava um botão
+   * ou editava algo. Cada aparelho mostrava o próprio localStorage para
+   * sempre, e parecia que a nuvem não tinha salvado — quando na verdade
+   * ninguém tinha perguntado a ela.
+   *
+   * Quem decide é o carimbo, não quem chegou por último:
+   *   nuvem mais nova  -> puxa
+   *   local mais novo  -> envia
+   *   iguais           -> não faz nada
+   */
+  const conferido = useRef(false)
+  useEffect(() => {
+    if (conferido.current) return
+    conferido.current = true
+    const c = cloudRef.current
+    if (!c.connected) return
+    let vivo = true
+    ;(async () => {
+      setSync('sync')
+      try {
+        const f = await ghGet(c, c.path)
+        if (!vivo) return
+        if (!f) { setSync('ok'); return }
+        const dados = JSON.parse(b64dec(f.content))
+        writeCloud({ ...cloudRef.current, sha: f.sha })
+        const laFora = carimboDe(dados)
+        if (laFora > carimbo.current) applyData(dados, { fromCloud: true })
+        else if (carimbo.current > laFora) { setSync('ok'); scheduleCloudPush(); return }
+        setSync('ok')
+      } catch (e) { if (vivo) setSync('err') }
+    })()
+    return () => { vivo = false }
+  }, [applyData, writeCloud, scheduleCloudPush])
+
   // ---- filtros / ordenação / paginação ----
   const setFilter = useCallback((key, val) => { setFilters(f => ({ ...f, [key]: val })); setPage(1) }, [])
   const resetFilters = useCallback(() => { setFilters(DEFAULT_FILTERS); setPage(1) }, [])
@@ -162,17 +235,17 @@ export function StoreProvider({ children }) {
   const nextId = useCallback(() => obras.reduce((m, o) => Math.max(m, o.id || 0), 0) + 1, [obras])
   const registerEditora = useCallback((nome) => { if (nome) setEditoras(list => (list.includes(nome) ? list : [...list, nome])) }, [])
   const upsertObra = useCallback((rec) => {
-    dirty.current = true; registerEditora(rec.editora)
+    marcarAlterado(); registerEditora(rec.editora)
     setObras(list => { const i = list.findIndex(o => o.id === rec.id); if (i === -1) return [...list, rec]; const c = list.slice(); c[i] = rec; return c })
   }, [registerEditora])
   const deleteObra = useCallback((id) => {
     // se a apagada era a fixada, o destaque some junto
     setFixada(f => { if (f === id) { try { localStorage.removeItem('gibiteca_fixada') } catch (e) { /* */ } return null } return f })
-    dirty.current = true; setObras(list => list.filter(o => o.id !== id)) }, [])
+    marcarAlterado(); setObras(list => list.filter(o => o.id !== id)) }, [])
 
   const setCovers = useCallback((updates) => {
     if (!updates || !updates.length) return
-    dirty.current = true
+    marcarAlterado()
     setObras(list => list.map(o => { const u = updates.find(x => x.id === o.id); return u ? { ...o, imagem: u.imagem } : o }))
   }, [])
 
