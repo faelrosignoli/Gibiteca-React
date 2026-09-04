@@ -276,10 +276,58 @@ ainda aceita Home/End. Clique fora fecha a folha, nunca o modal.
 **Custo assumido:** no celular some o seletor nativo do sistema. Em troca vêm
 os tokens do app, o campo de busca e a folha que não vaza do modal.
 
+### Filtros em cascata
+As opções de cada campo saem das obras que passam por **todos os outros**
+filtros — nunca por ele mesmo. Com "Tenho" ligado, a lista de editoras mostra
+só as editoras de obras que você tem; com "Quero", só as das que faltam. Vale
+para Tipo, Editora, País e Autor.
+
+**Por que o campo não entra na própria conta.** Se entrasse, escolher "Panini"
+deixaria a lista de editoras só com "Panini", e não daria para trocar de ideia
+sem limpar tudo. É o `sobraSem(campo)` no `FiltersDrawer`.
+
+**O escolhido nunca some da própria lista** (`comOEscolhido`). Duas escolhas
+que se excluem — editora que só existe em "Quero" mais o status "Tenho" —
+fariam o valor sumir das opções enquanto continua filtrando: o campo mostraria
+"Todas" e a estante viria vazia, sem explicação. Ele fica lá, para poder ser
+desfeito.
+
+A lista de editoras vem das **obras**, não do catálogo fixo do `data.js`:
+filtrar por uma editora de que não se tem nada só serviria para esvaziar a
+estante. O Editor continua oferecendo o catálogo inteiro — lá o objetivo é
+outro, é cadastrar.
+
+Os segmentos (Tenho/Quero, Leitura) e as caixas (Importados, Urgentes) **não**
+entram na cascata: são a navegação principal, e escondê-los prenderia a pessoa
+num filtro sem saída.
+
+### Abertura: a marca viaja até o cabeçalho
+`components/Abertura.jsx`. O logo entra grande no meio da tela e, ao sair, vai
+até o cabeçalho encolhendo — é a **mesma marca mudando de lugar**, não uma que
+some e outra que aparece. Quem faz isso é `layoutId="marca"`.
+
+Duas regras que o resto do código precisa respeitar, ou a animação quebra:
+
+1. **o cabeçalho não desenha o logo enquanto a abertura está no ar**
+   (`aberturaNoAr`), porque dois elementos com o mesmo `layoutId` ao mesmo
+   tempo brigam;
+2. **só um dos dois logos do cabeçalho recebe o `layoutId`** — o visível,
+   decidido por `useEhDesktop()`. Os dois ficam montados, só que um está
+   escondido por CSS.
+
+A imagem da abertura **não tem animação de saída**: se tivesse, o
+`AnimatePresence` a seguraria montada e cairíamos no problema 1. Só o fundo
+faz fade — e leva `pointer-events-none`, para que um fade que não termine
+deixe a tela feia, não travada.
+
+A abertura dura **550ms**: uma batida para reconhecer a marca, não uma espera.
+Quem tem **movimento reduzido não vê abertura nenhuma** — entra direto.
+
 ### O logo é o botão de recomeçar
 Clicar no logo — nos dois, o do topo do celular e o da pílula no desktop —
-chama `resetFilters()` e sobe a página. Limpa **tudo**, inclusive a busca, e
-volta para a página 1.
+chama `resetFilters()`, devolve o **modo galeria** e sobe a página. Limpa
+**tudo**, inclusive a busca, e volta para a página 1: recomeçar é voltar à
+estante como ela é por padrão, e isso inclui sair do modo lista.
 
 Não é enfeite: com filtro apertado a estante fica vazia e o caminho de volta
 ficava escondido dentro da gaveta de Filtros. O logo é o lugar onde todo mundo
