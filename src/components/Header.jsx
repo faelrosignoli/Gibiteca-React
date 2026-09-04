@@ -235,6 +235,9 @@ function rotuloNuvem(sync) {
     sync: 'Nuvem — sincronizando',
     pending: 'Nuvem — envio pendente',
     err: 'Nuvem — erro ao sincronizar',
+    // conflito nao pode passar calado: e o aviso de que a nuvem tem algo mais
+    // novo, e que o envio foi barrado de proposito para nao apagar
+    conflito: 'Nuvem — há algo mais novo lá',
   }[sync] || 'Conectar à nuvem'
 }
 
@@ -252,7 +255,7 @@ function Hamburguer({ aberto }) {
 }
 
 const SyncDot = ({ sync }) => {
-  const c = { off: 'bg-ink-mute', ok: 'bg-moss', sync: 'bg-gold animate-pulse', pending: 'bg-gold animate-pulse', err: 'bg-rust' }[sync] || 'bg-ink-mute'
+  const c = { off: 'bg-ink-mute', ok: 'bg-moss', sync: 'bg-gold animate-pulse', pending: 'bg-gold animate-pulse', err: 'bg-rust', conflito: 'bg-rust animate-pulse' }[sync] || 'bg-ink-mute'
   if (sync === 'off' || !sync) return null
   return <span className={`absolute -right-1 -bottom-1 w-[9px] h-[9px] rounded-full border-2 border-paper ${c}`} />
 }
