@@ -8,7 +8,7 @@ const dotColor = { off: 'bg-ink-mute', ok: 'bg-moss', sync: 'bg-gold animate-pul
 const lbl = 'font-mono text-rotulo uppercase text-ink-faint pl-0.5'
 
 export default function Cloud({ open, onClose, onNotice }) {
-  const { cloud, sync, guessRepo, cloudConnect, cloudDisconnect, pullFromCloud, cloudPushNow } = useStore()
+  const { cloud, sync, syncErro, guessRepo, cloudConnect, cloudDisconnect, pullFromCloud, cloudPushNow } = useStore()
   const [f, setF] = useState({ owner: '', repo: '', branch: 'main', path: 'data/gibiteca.json', token: '' })
   const [help, setHelp] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -82,9 +82,16 @@ export default function Cloud({ open, onClose, onNotice }) {
                   <input className="field-input font-mono !text-apoio" type="password" value={f.token} onChange={e => set('token', e.target.value)} placeholder="github_pat_… ou ghp_…" autoComplete="off" spellCheck={false} /></div>
               </div>
 
-              <div className="flex items-center gap-2.5 text-corpo text-ink-soft bg-surface-2 border border-separador rounded-medio px-3.5 py-2.5">
-                <span className={`w-[11px] h-[11px] rounded-full shrink-0 ${dotColor[sync] || dotColor.off}`} />
-                {SYNC_TXT[sync] || SYNC_TXT.off}
+              <div className="flex flex-col gap-1.5 text-corpo text-ink-soft bg-surface-2 border border-separador rounded-medio px-3.5 py-2.5">
+                <div className="flex items-center gap-2.5">
+                  <span className={`w-[11px] h-[11px] rounded-full shrink-0 ${dotColor[sync] || dotColor.off}`} />
+                  {SYNC_TXT[sync] || SYNC_TXT.off}
+                </div>
+                {/* o que o GitHub respondeu, palavra por palavra: sem isto não
+                    dá para distinguir token errado de repositório errado */}
+                {sync === 'err' && syncErro && (
+                  <div className="font-mono text-apoio text-rust break-words pl-[21px]">{syncErro}</div>
+                )}
               </div>
             </div>
 
