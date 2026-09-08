@@ -90,7 +90,7 @@ export function StoreProvider({ children }) {
   const carimbo = useRef(init.carimbo || 0)
   const marcarAlterado = useCallback(() => { dirty.current = true; carimbo.current = Date.now() }, [])
 
-  const pushToCloud = useCallback(async () => {
+  const pushToCloud = useCallback(async (forcar = false) => {
     const c = cloudRef.current
     if (!c.connected) return
     if (pushing.current) { pushAgain.current = true; return }
@@ -102,7 +102,9 @@ export function StoreProvider({ children }) {
       const f = await ghGet(c, c.path)
       if (f) {
         const laFora = carimboDe(JSON.parse(b64dec(f.content)))
-        if (laFora > carimbo.current) {
+        // 'forcar' vem do botao 'Enviar agora': ali a pessoa esta mandando
+        // gravar por cima, sabendo disso. O envio automatico nunca forca.
+        if (!forcar && laFora > carimbo.current) {
           // a nuvem está na frente: não grava por cima
           writeCloud({ ...cloudRef.current, sha: f.sha })
           setSync('conflito')
@@ -188,7 +190,8 @@ export function StoreProvider({ children }) {
     writeCloud({ ...cloudRef.current, connected: false, token: '', sha: null }); setSync('off')
   }, [writeCloud])
 
-  const cloudPushNow = useCallback(() => { clearTimeout(pushTimer.current); return pushToCloud() }, [pushToCloud])
+  // 'Enviar agora' e uma decisao explicita: manda esta copia por cima
+  const cloudPushNow = useCallback(() => { clearTimeout(pushTimer.current); return pushToCloud(true) }, [pushToCloud])
 
   /* Ao abrir o app, conferir a nuvem.
    *
@@ -218,6 +221,24 @@ export function StoreProvider({ children }) {
         const dados = JSON.parse(b64dec(f.content))
         writeCloud({ ...cloudRef.current, sha: f.sha })
         const laFora = carimboDe(dados)
+
+        /* Carimbo local zero quer dizer DESCONHECIDO, não "muito antigo".
+         *
+         * É o caso de quem já usava o app antes desta mudança: os dados estão
+         * salvos aqui sem carimbo nenhum. Tratar isso como antigo faria a
+         * nuvem ganhar sempre — e foi exatamente assim que um backup
+         * restaurado no PC sumiu sozinho, toda vez que o app abria.
+         *
+         * Sem saber quem é mais novo, o app não escolhe: só puxa se aqui não
+         * houver nada a perder. Havendo, para e pergunta. */
+        const semCarimboLocal = !carimbo.current
+        const temCoisaAqui = (dataRef.current.obras || []).length > 0
+
+        if (semCarimboLocal && temCoisaAqui) {
+          // as duas cópias existem e não dá para ordená-las: quem decide é você
+          setSync(laFora ? 'conflito' : 'ok')
+          return
+        }
         if (laFora > carimbo.current) applyData(dados, { fromCloud: true })
         else if (carimbo.current > laFora) { setSync('ok'); scheduleCloudPush(); return }
         setSync('ok')

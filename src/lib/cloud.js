@@ -50,4 +50,6 @@ export function guessRepo() {
 export const SYNC_TXT = {
   off: 'Não conectado.', ok: 'Tudo sincronizado.', sync: 'Sincronizando…',
   pending: 'Alterações pendentes…', err: 'Erro de sincronização.',
+  // o envio foi barrado de proposito: a nuvem tem algo mais novo que esta copia
+  conflito: 'A nuvem tem uma versão mais nova. Puxe antes de enviar, ou o que está lá seria apagado.',
 }
