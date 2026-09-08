@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import { SYNC_TXT } from '../lib/cloud.js'
 
-const dotColor = { off: 'bg-ink-mute', ok: 'bg-moss', sync: 'bg-gold animate-pulse', pending: 'bg-gold animate-pulse', err: 'bg-rust' }
+const dotColor = { off: 'bg-ink-mute', ok: 'bg-moss', sync: 'bg-gold animate-pulse', pending: 'bg-gold animate-pulse', err: 'bg-rust', conflito: 'bg-rust animate-pulse' }
 const lbl = 'font-mono text-rotulo uppercase text-ink-faint pl-0.5'
 
 export default function Cloud({ open, onClose, onNotice }) {
