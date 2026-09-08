@@ -33,7 +33,19 @@ export async function ghPut(c, path, contentB64, message, sha) {
   if (sha) body.sha = sha
   const r = await fetch(`${GH}/repos/${c.owner}/${c.repo}/contents/${encPath(path)}`,
     { method: 'PUT', headers: { ...headers(c.token), 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-  if (!r.ok) { let t = ''; try { t = (await r.json()).message || '' } catch (e) { /* */ } throw new Error('PUT ' + r.status + (t ? ' — ' + t : '')) }
+  if (!r.ok) {
+    let t = ''; try { t = (await r.json()).message || '' } catch (e) { /* */ }
+    // Traduz o que o GitHub responde para o que a pessoa precisa fazer. Antes
+    // tudo virava "Erro de sincronização" e não dava para saber onde mexer.
+    const dica = {
+      401: 'Token inválido ou expirado — gere outro.',
+      403: 'O token não tem permissão de escrita. Em Permissions → Contents, use "Read and write".',
+      404: 'Repositório ou caminho não encontrado — e confira se o token dá acesso a ESTE repositório.',
+      409: 'A nuvem mudou no meio do envio. Tente de novo.',
+      422: 'O GitHub recusou a gravação (versão do arquivo fora de sincronia). Tente de novo.',
+    }[r.status]
+    throw new Error('Envio falhou (' + r.status + ')' + (dica ? ' — ' + dica : t ? ' — ' + t : ''))
+  }
   return r.json()
 }
 

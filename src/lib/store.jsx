@@ -76,6 +76,11 @@ export function StoreProvider({ children }) {
   const cloudRef = useRef(loadCloud())
   const [cloud, setCloudState] = useState(cloudRef.current)
   const [sync, setSync] = useState(cloudRef.current.connected ? 'ok' : 'off')
+  // O que o GitHub respondeu, em texto. Sem isto todo problema virava
+  // "Erro de sincronização" e não dava para saber se era token, repositório,
+  // permissão ou caminho — nem para quem escreveu o código.
+  const [syncErro, setSyncErro] = useState('')
+  const falhou = useCallback((e) => { setSyncErro(String(e && e.message || e || 'Erro desconhecido')); setSync('err') }, [])
   const dataRef = useRef({ obras: init.obras, editoras: init.editoras })
   useEffect(() => { dataRef.current = { obras, editoras } }, [obras, editoras])
   const writeCloud = useCallback((next) => {
@@ -118,14 +123,17 @@ export function StoreProvider({ children }) {
       const json = JSON.stringify(
         { version: 1, atualizadoEm: agora, updated: new Date(agora).toISOString(), obras, editoras }, null, 1)
       const b64 = b64enc(json)
-      const res = await ghPut(c, c.path, b64, 'Atualiza coleção — ' + new Date().toLocaleString('pt-BR'), f ? f.sha : c.sha)
+      // Sem arquivo na nuvem, NÃO se manda sha: ele só existe para atualizar
+      // algo que já está lá. Mandar um sha guardado de antes faz o GitHub
+      // recusar — era isto que virava "Erro de sincronização" no primeiro envio.
+      const res = await ghPut(c, c.path, b64, 'Atualiza coleção — ' + new Date().toLocaleString('pt-BR'), f ? f.sha : null)
       carimbo.current = agora
       writeCloud({ ...cloudRef.current, sha: res.content.sha })
-      setSync('ok')
-    } catch (e) { setSync('err') }
+      setSyncErro(''); setSync('ok')
+    } catch (e) { falhou(e) }
     pushing.current = false
     if (pushAgain.current) { pushAgain.current = false; scheduleCloudPush() }
-  }, [writeCloud])
+  }, [writeCloud, falhou])
 
   const scheduleCloudPush = useCallback(() => {
     if (!cloudRef.current.connected) return
@@ -165,8 +173,8 @@ export function StoreProvider({ children }) {
       const data = JSON.parse(b64dec(f.content))
       applyData(data, { fromCloud: true })
       setSync('ok'); return true
-    } catch (e) { setSync('err'); return false }
-  }, [applyData, writeCloud])
+    } catch (e) { falhou(e); return false }
+  }, [applyData, writeCloud, falhou])
 
   const cloudConnect = useCallback(async (cfg) => {
     const c = { ...cloudRef.current, ...cfg }
@@ -217,7 +225,13 @@ export function StoreProvider({ children }) {
       try {
         const f = await ghGet(c, c.path)
         if (!vivo) return
-        if (!f) { setSync('ok'); return }
+        if (!f) {
+          // O arquivo ainda não existe lá. Se aqui há coleção, o certo é
+          // criá-lo — antes o app dava "tudo certo" e não sincronizava nada,
+          // para sempre.
+          if ((dataRef.current.obras || []).length) { setSync('ok'); scheduleCloudPush(); return }
+          setSync('ok'); return
+        }
         const dados = JSON.parse(b64dec(f.content))
         writeCloud({ ...cloudRef.current, sha: f.sha })
         const laFora = carimboDe(dados)
@@ -242,7 +256,7 @@ export function StoreProvider({ children }) {
         if (laFora > carimbo.current) applyData(dados, { fromCloud: true })
         else if (carimbo.current > laFora) { setSync('ok'); scheduleCloudPush(); return }
         setSync('ok')
-      } catch (e) { if (vivo) setSync('err') }
+      } catch (e) { if (vivo) falhou(e) }
     })()
     return () => { vivo = false }
   }, [applyData, writeCloud, scheduleCloudPush])
@@ -294,7 +308,7 @@ export function StoreProvider({ children }) {
     filtered, total, totalPages, start, pageItems, all,
     fixada, fixarObra,
     // nuvem
-    cloud, sync, guessRepo, cloudConnect, cloudDisconnect, pullFromCloud, cloudPushNow,
+    cloud, sync, syncErro, guessRepo, cloudConnect, cloudDisconnect, pullFromCloud, cloudPushNow,
   }
   return <StoreCtx.Provider value={value}>{children}</StoreCtx.Provider>
 }
