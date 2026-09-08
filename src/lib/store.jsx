@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { passes, sortList } from './helpers.js'
 import { EDITORAS } from '../data.js'
-import { ghCheckRepo, ghGet, ghPut, b64enc, b64dec, guessRepo } from './cloud.js'
+import { ghCheckRepo, ghGet, ghPut, lerColecao, b64enc, b64dec, guessRepo } from './cloud.js'
 
 const StoreCtx = createContext(null)
 export const useStore = () => useContext(StoreCtx)
@@ -106,7 +106,7 @@ export function StoreProvider({ children }) {
       // um backup restaurado no PC sumiu debaixo da cópia velha do celular.
       const f = await ghGet(c, c.path)
       if (f) {
-        const laFora = carimboDe(JSON.parse(b64dec(f.content)))
+        const laFora = carimboDe(lerColecao(f))
         // 'forcar' vem do botao 'Enviar agora': ali a pessoa esta mandando
         // gravar por cima, sabendo disso. O envio automatico nunca forca.
         if (!forcar && laFora > carimbo.current) {
@@ -170,7 +170,7 @@ export function StoreProvider({ children }) {
       const f = await ghGet(c, c.path)
       if (!f) { setSync('ok'); return false }
       writeCloud({ ...cloudRef.current, sha: f.sha })
-      const data = JSON.parse(b64dec(f.content))
+      const data = lerColecao(f)
       applyData(data, { fromCloud: true })
       setSync('ok'); return true
     } catch (e) { falhou(e); return false }
@@ -232,7 +232,7 @@ export function StoreProvider({ children }) {
           if ((dataRef.current.obras || []).length) { setSync('ok'); scheduleCloudPush(); return }
           setSync('ok'); return
         }
-        const dados = JSON.parse(b64dec(f.content))
+        const dados = lerColecao(f)
         writeCloud({ ...cloudRef.current, sha: f.sha })
         const laFora = carimboDe(dados)
 

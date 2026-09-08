@@ -20,12 +20,46 @@ export async function ghCheckRepo(c) {
   return r.json()
 }
 
+/* Limite da Contents API: acima de ~1 MB ela responde com `content` VAZIO.
+ *
+ * Uma coleção com capas passa fácil disso — a do usuário tem 4 MB. O sintoma
+ * era "Unexpected end of JSON input": o app recebia string vazia e tentava
+ * fazer JSON.parse dela. Nada disso aparecia como erro de tamanho.
+ *
+ * Para esses arquivos o conteúdo vem pela API de blobs, que atende até 100 MB.
+ */
+const LIMITE_INLINE = 1024 * 1024
+
 export async function ghGet(c, path) {
   const r = await fetch(`${GH}/repos/${c.owner}/${c.repo}/contents/${encPath(path)}?ref=${encodeURIComponent(c.branch)}`,
     { headers: headers(c.token), cache: 'no-store' })
   if (r.status === 404) return null
   if (!r.ok) throw new Error('GET ' + r.status)
-  return r.json()
+  const meta = await r.json()
+
+  const veioVazio = !meta.content || !String(meta.content).trim()
+  if (veioVazio && meta.sha && meta.size > 0) {
+    const b = await fetch(`${GH}/repos/${c.owner}/${c.repo}/git/blobs/${meta.sha}`,
+      { headers: headers(c.token), cache: 'no-store' })
+    if (!b.ok) {
+      throw new Error('O arquivo na nuvem tem ' + (meta.size / 1048576).toFixed(1) +
+        ' MB e não deu para lê-lo (' + b.status + ').')
+    }
+    const blob = await b.json()
+    return { ...meta, content: blob.content }
+  }
+  return meta
+}
+
+/* Lê a coleção de uma resposta do GitHub, reclamando com clareza quando o
+   conteúdo não veio — em vez de estourar um "Unexpected end of JSON input". */
+export function lerColecao(f) {
+  const txt = b64dec(f && f.content)
+  if (!txt.trim()) {
+    const mb = f && f.size ? ' (' + (f.size / 1048576).toFixed(1) + ' MB)' : ''
+    throw new Error('Não foi possível ler o arquivo da nuvem' + mb + ' — ele veio vazio.')
+  }
+  return JSON.parse(txt)
 }
 
 export async function ghPut(c, path, contentB64, message, sha) {
