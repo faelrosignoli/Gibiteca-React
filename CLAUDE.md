@@ -276,6 +276,63 @@ ainda aceita Home/End. Clique fora fecha a folha, nunca o modal.
 **Custo assumido:** no celular some o seletor nativo do sistema. Em troca vêm
 os tokens do app, o campo de busca e a folha que não vaza do modal.
 
+### Nuvem: quem decide é o carimbo de tempo
+A sincronização tinha dois furos que, juntos, faziam parecer que a nuvem não
+salvava:
+
+1. **o app nunca falava com a nuvem ao abrir** — só quando alguém apertava um
+   botão ou editava algo. Cada aparelho mostrava o próprio `localStorage` para
+   sempre, e o celular exibia uma cópia velha achando que estava certo;
+2. **`updated` era escrito no arquivo da nuvem e nunca lido.** Sem comparar
+   nada, qualquer envio gravava por cima — o aparelho atrasado atropelava o
+   adiantado, em silêncio.
+
+**`carimboDe(dados)`** é a régua: lê `atualizadoEm` (número) e aceita o antigo
+`updated`/`exported` em texto ISO, para os arquivos que já existem
+continuarem valendo. O carimbo é gravado junto dos dados, local e na nuvem.
+
+- **Toda alteração local avança o carimbo** (`marcarAlterado()`). O que vem da
+  nuvem **herda o carimbo de lá** — a cópia passa a ser aquela.
+- **Ao abrir**, com a nuvem conectada: nuvem mais nova → puxa; local mais novo
+  → envia; iguais → nada.
+- **Antes de gravar**, o envio lê a nuvem. Se o que está lá for mais novo,
+  **não grava** e o estado vira `conflito` ("Nuvem — há algo mais novo lá",
+  ponto rust piscando). Conflito silencioso é o que causou o problema; ele
+  precisa aparecer.
+
+Restaurar um backup conta como alteração local: ganha a hora de agora e sobe.
+
+**Carimbo zero quer dizer DESCONHECIDO, não "muito antigo".** É o caso de quem
+já usava o app antes desta mudança: os dados estão salvos sem carimbo. Tratar
+isso como antigo faz a nuvem ganhar sempre — e apaga o que está no aparelho.
+Sem saber quem é mais novo, o app **só puxa se aqui não houver nada a perder**;
+havendo, para em `conflito` e deixa a escolha para a pessoa.
+
+**"Enviar agora" força.** É a saída do impasse: decisão explícita, grava por
+cima. O envio automático **nunca** força.
+
+**`sha` só existe para arquivo que já está lá.** Se a nuvem não tem o arquivo,
+o envio vai **sem sha** — mandar um guardado de antes faz o GitHub recusar. E
+se o arquivo não existe mas há coleção aqui, o app **cria** em vez de dizer
+"tudo certo" e não sincronizar nunca.
+
+**Coleção acima de 1 MB precisa da API de blobs.** A Contents API do GitHub
+devolve `content` **vazio** para arquivos maiores que ~1 MB — e uma coleção com
+capas em base64 passa disso fácil (a real tem 4 MB). O sintoma era
+*"Unexpected end of JSON input"*: o app recebia string vazia e tentava dar
+`JSON.parse` nela, sem nada indicando que era tamanho. `ghGet` agora percebe o
+corpo vazio e busca o conteúdo em `git/blobs/{sha}`, que atende até 100 MB.
+Toda leitura passa por `lerColecao(f)`, que reclama com o tamanho em vez de
+estourar um erro de JSON.
+
+**Erro tem nome.** `syncErro` guarda o que o GitHub respondeu e o modal mostra
+embaixo do estado. `ghPut` traduz os códigos: 401 token inválido, 403 falta
+`Contents: Read and write`, 404 repositório/caminho ou token sem acesso, 409/422
+versão fora de sincronia. "Erro de sincronização" sozinho não diz onde mexer.
+
+Limite conhecido: a comparação é por relógio de aparelho. Para uso pessoal
+resolve; não é um CRDT.
+
 ### Filtros em cascata
 As opções de cada campo saem das obras que passam por **todos os outros**
 filtros — nunca por ele mesmo. Com "Tenho" ligado, a lista de editoras mostra
