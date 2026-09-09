@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1788995906891,
- "updated": "2026-09-09T23:18:26.891Z",
+ "atualizadoEm": 1788995947156,
+ "updated": "2026-09-09T23:19:07.156Z",
  "obras": [
   {
    "id": 1,
@@ -9439,57 +9439,6 @@
    "origem": "importado",
    "editora": "",
    "pais": "Reino Unido",
-   "roteirista": "",
-   "desenhista": "",
-   "status": "wishlist",
-   "urgencia": false,
-   "valorPago": 0,
-   "lido": false,
-   "nota": 0
-  },
-  {
-   "id": 524,
-   "nome": "Todo Incal",
-   "tipo": "serie",
-   "imagem": null,
-   "volumes": [
-    {
-     "nome": "Todo Incal — Vol. 1",
-     "imagem": null,
-     "roteirista": "Alejandro Jodorowsky",
-     "desenhista": "Moebius/Zoran Janjetov/José Ladrönn",
-     "status": "wishlist",
-     "urgencia": false,
-     "valorPago": 0,
-     "lido": false,
-     "nota": 0
-    },
-    {
-     "nome": "Todo Incal — Vol. 2",
-     "imagem": null,
-     "roteirista": "Alejandro Jodorowsky",
-     "desenhista": "Moebius/Zoran Janjetov/José Ladrönn",
-     "status": "wishlist",
-     "urgencia": false,
-     "valorPago": 0,
-     "lido": false,
-     "nota": 0
-    },
-    {
-     "nome": "Todo Incal — Vol. 3",
-     "imagem": null,
-     "roteirista": "Alejandro Jodorowsky",
-     "desenhista": "Moebius/Zoran Janjetov/José Ladrönn",
-     "status": "wishlist",
-     "urgencia": false,
-     "valorPago": 0,
-     "lido": false,
-     "nota": 0
-    }
-   ],
-   "origem": "importado",
-   "editora": "",
-   "pais": "França",
    "roteirista": "",
    "desenhista": "",
    "status": "wishlist",
