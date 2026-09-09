@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1788954723934,
- "updated": "2026-09-09T11:52:03.934Z",
+ "atualizadoEm": 1788954782483,
+ "updated": "2026-09-09T11:53:02.483Z",
  "obras": [
   {
    "id": 1,
@@ -4602,22 +4602,6 @@
    "imagem": null,
    "roteirista": "Antonio Altarriba",
    "desenhista": "Antonio Altarriba",
-   "origem": "importado",
-   "editora": "",
-   "pais": "Espanha",
-   "urgencia": false,
-   "status": "wishlist",
-   "valorPago": 0,
-   "lido": false,
-   "nota": 0
-  },
-  {
-   "id": 287,
-   "nome": "O Kraken",
-   "tipo": "avulso",
-   "imagem": null,
-   "roteirista": "Antonio Segura",
-   "desenhista": "Jordi Bernet",
    "origem": "importado",
    "editora": "",
    "pais": "Espanha",
