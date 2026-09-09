@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1788996806103,
- "updated": "2026-09-09T23:33:26.103Z",
+ "atualizadoEm": 1788996816265,
+ "updated": "2026-09-09T23:33:36.265Z",
  "obras": [
   {
    "id": 1,
@@ -6371,22 +6371,6 @@
    "origem": "importado",
    "editora": "",
    "pais": "Japão",
-   "urgencia": false,
-   "status": "wishlist",
-   "valorPago": 0,
-   "lido": false,
-   "nota": 0
-  },
-  {
-   "id": 399,
-   "nome": "Espetaculare Meneghetti",
-   "tipo": "avulso",
-   "imagem": null,
-   "roteirista": "Kash Fyre",
-   "desenhista": "Kash Fyre",
-   "origem": "importado",
-   "editora": "",
-   "pais": "Brasil",
    "urgencia": false,
    "status": "wishlist",
    "valorPago": 0,
