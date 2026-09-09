@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1788997146804,
- "updated": "2026-09-09T23:39:06.804Z",
+ "atualizadoEm": 1788997197610,
+ "updated": "2026-09-09T23:39:57.610Z",
  "obras": [
   {
    "id": 1,
@@ -6536,22 +6536,6 @@
   {
    "id": 410,
    "nome": "Blast",
-   "tipo": "avulso",
-   "imagem": null,
-   "roteirista": "Manu Larcenet",
-   "desenhista": "Manu Larcenet",
-   "origem": "importado",
-   "editora": "",
-   "pais": "França",
-   "urgencia": false,
-   "status": "wishlist",
-   "valorPago": 0,
-   "lido": false,
-   "nota": 0
-  },
-  {
-   "id": 411,
-   "nome": "Le Combat Ordinaire",
    "tipo": "avulso",
    "imagem": null,
    "roteirista": "Manu Larcenet",
