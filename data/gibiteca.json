@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1788997197610,
- "updated": "2026-09-09T23:39:57.610Z",
+ "atualizadoEm": 1788997225022,
+ "updated": "2026-09-09T23:40:25.022Z",
  "obras": [
   {
    "id": 1,
@@ -7393,22 +7393,6 @@
    "origem": "importado",
    "editora": "",
    "pais": "Reino Unido",
-   "urgencia": false,
-   "status": "wishlist",
-   "valorPago": 0,
-   "lido": false,
-   "nota": 0
-  },
-  {
-   "id": 465,
-   "nome": "Lone Sloane",
-   "tipo": "avulso",
-   "imagem": null,
-   "roteirista": "Philippe Druillet",
-   "desenhista": "Philippe Druillet",
-   "origem": "importado",
-   "editora": "",
-   "pais": "França",
    "urgencia": false,
    "status": "wishlist",
    "valorPago": 0,
