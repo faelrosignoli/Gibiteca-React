@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1788996445280,
- "updated": "2026-09-09T23:27:25.280Z",
+ "atualizadoEm": 1788996528570,
+ "updated": "2026-09-09T23:28:48.570Z",
  "obras": [
   {
    "id": 1,
@@ -105,14 +105,16 @@
    "id": 7,
    "nome": "Boca do Diabo",
    "tipo": "avulso",
-   "imagem": null,
-   "roteirista": "",
-   "desenhista": "",
    "origem": "nacional",
    "editora": "Comix Zone",
-   "pais": "",
-   "urgencia": true,
+   "pais": "França",
+   "tags": [],
+   "resenha": "",
+   "imagem": null,
+   "roteirista": "Jerome Charyn",
+   "desenhista": "François Boucq",
    "status": "wishlist",
+   "urgencia": true,
    "valorPago": 0,
    "lido": false,
    "nota": 0
