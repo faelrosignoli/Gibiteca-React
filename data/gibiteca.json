@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1788996119374,
- "updated": "2026-09-09T23:21:59.374Z",
+ "atualizadoEm": 1788996169838,
+ "updated": "2026-09-09T23:22:49.838Z",
  "obras": [
   {
    "id": 1,
@@ -3242,22 +3242,6 @@
    "status": "biblioteca",
    "urgencia": false,
    "valorPago": 66,
-   "lido": false,
-   "nota": 0
-  },
-  {
-   "id": 201,
-   "nome": "Shamisen",
-   "tipo": "avulso",
-   "imagem": null,
-   "roteirista": "",
-   "desenhista": "",
-   "origem": "nacional",
-   "editora": "Pipoca & Nanquim",
-   "pais": "",
-   "urgencia": true,
-   "status": "wishlist",
-   "valorPago": 0,
    "lido": false,
    "nota": 0
   },
@@ -7692,7 +7676,7 @@
    "roteirista": "Thiago Minamisawa",
    "desenhista": "Guilherme Petreca",
    "status": "wishlist",
-   "urgencia": false,
+   "urgencia": true,
    "valorPago": 0,
    "lido": false,
    "nota": 0
