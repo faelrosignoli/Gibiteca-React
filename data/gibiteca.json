@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1788996649948,
- "updated": "2026-09-09T23:30:49.948Z",
+ "atualizadoEm": 1788996669970,
+ "updated": "2026-09-09T23:31:09.970Z",
  "obras": [
   {
    "id": 1,
@@ -11234,57 +11234,6 @@
    "origem": "importado",
    "editora": "",
    "pais": "Japão",
-   "roteirista": "",
-   "desenhista": "",
-   "status": "wishlist",
-   "urgencia": false,
-   "valorPago": 0,
-   "lido": false,
-   "nota": 0
-  },
-  {
-   "id": 554,
-   "nome": "Druuna",
-   "tipo": "serie",
-   "imagem": null,
-   "volumes": [
-    {
-     "nome": "Druuna — Vol. 1",
-     "imagem": null,
-     "roteirista": "Paolo Serpieri",
-     "desenhista": "Paolo Serpieri",
-     "status": "wishlist",
-     "urgencia": false,
-     "valorPago": 0,
-     "lido": false,
-     "nota": 0
-    },
-    {
-     "nome": "Druuna — Vol. 2",
-     "imagem": null,
-     "roteirista": "Paolo Serpieri",
-     "desenhista": "Paolo Serpieri",
-     "status": "wishlist",
-     "urgencia": false,
-     "valorPago": 0,
-     "lido": false,
-     "nota": 0
-    },
-    {
-     "nome": "Druuna — Vol. 3",
-     "imagem": null,
-     "roteirista": "Paolo Serpieri",
-     "desenhista": "Paolo Serpieri",
-     "status": "wishlist",
-     "urgencia": false,
-     "valorPago": 0,
-     "lido": false,
-     "nota": 0
-    }
-   ],
-   "origem": "importado",
-   "editora": "",
-   "pais": "Itália",
    "roteirista": "",
    "desenhista": "",
    "status": "wishlist",
