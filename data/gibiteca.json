@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1788995718806,
- "updated": "2026-09-09T23:15:18.806Z",
+ "atualizadoEm": 1788995750860,
+ "updated": "2026-09-09T23:15:50.860Z",
  "obras": [
   {
    "id": 1,
@@ -10614,7 +10614,11 @@
    "id": 544,
    "nome": "A Lanterna de Nix",
    "tipo": "serie",
-   "imagem": null,
+   "origem": "nacional",
+   "editora": "Pipoca & Nanquim",
+   "pais": "Japão",
+   "tags": [],
+   "resenha": "",
    "volumes": [
     {
      "nome": "A Lanterna de Nix — Vol. 1",
@@ -10650,9 +10654,7 @@
      "nota": 0
     }
    ],
-   "origem": "importado",
-   "editora": "",
-   "pais": "Japão",
+   "imagem": null,
    "roteirista": "",
    "desenhista": "",
    "status": "wishlist",
