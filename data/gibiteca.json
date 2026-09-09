@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1788996028633,
- "updated": "2026-09-09T23:20:28.633Z",
+ "atualizadoEm": 1788996091271,
+ "updated": "2026-09-09T23:21:31.271Z",
  "obras": [
   {
    "id": 1,
@@ -4928,15 +4928,41 @@
   {
    "id": 307,
    "nome": "Paracuellos",
-   "tipo": "avulso",
-   "imagem": null,
-   "roteirista": "Carlos Gimenez",
-   "desenhista": "Carlos Gimenez",
-   "origem": "importado",
-   "editora": "",
+   "tipo": "serie",
+   "origem": "nacional",
+   "editora": "Pipoca & Nanquim",
    "pais": "Espanha",
-   "urgencia": false,
+   "tags": [],
+   "resenha": "",
+   "volumes": [
+    {
+     "nome": "Paracuellos",
+     "imagem": null,
+     "roteirista": "Carlos Gimenez",
+     "desenhista": "Carlos Gimenez",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "Paracuellos 2",
+     "imagem": null,
+     "roteirista": "Carlos Gimenez",
+     "desenhista": "Carlos Gimenez",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    }
+   ],
+   "imagem": null,
+   "roteirista": "",
+   "desenhista": "",
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
