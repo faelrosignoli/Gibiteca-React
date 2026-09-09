@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1788954573641,
- "updated": "2026-09-09T11:49:33.641Z",
+ "atualizadoEm": 1788954723934,
+ "updated": "2026-09-09T11:52:03.934Z",
  "obras": [
   {
    "id": 1,
@@ -7713,22 +7713,6 @@
    "origem": "importado",
    "editora": "",
    "pais": "França",
-   "urgencia": false,
-   "status": "wishlist",
-   "valorPago": 0,
-   "lido": false,
-   "nota": 0
-  },
-  {
-   "id": 481,
-   "nome": "My Broken Hirako",
-   "tipo": "avulso",
-   "imagem": null,
-   "roteirista": "Waka Hirako",
-   "desenhista": "Waka Hirako",
-   "origem": "importado",
-   "editora": "",
-   "pais": "Japão",
    "urgencia": false,
    "status": "wishlist",
    "valorPago": 0,
