@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1788996816265,
- "updated": "2026-09-09T23:33:36.265Z",
+ "atualizadoEm": 1788996875711,
+ "updated": "2026-09-09T23:34:35.711Z",
  "obras": [
   {
    "id": 1,
@@ -2641,14 +2641,16 @@
    "id": 164,
    "nome": "Eu Sou o Seu Silêncio",
    "tipo": "avulso",
-   "imagem": null,
-   "roteirista": "",
-   "desenhista": "",
    "origem": "nacional",
    "editora": "Pipoca & Nanquim",
-   "pais": "",
-   "urgencia": false,
+   "pais": "França",
+   "tags": [],
+   "resenha": "",
+   "imagem": null,
+   "roteirista": "Jordi Lafebre",
+   "desenhista": "Jordi Lafebre",
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
