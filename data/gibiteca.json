@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1788996189332,
- "updated": "2026-09-09T23:23:09.332Z",
+ "atualizadoEm": 1788996246456,
+ "updated": "2026-09-09T23:24:06.456Z",
  "obras": [
   {
    "id": 1,
@@ -6193,22 +6193,6 @@
    "tipo": "avulso",
    "imagem": null,
    "roteirista": "Jillian Tamaki",
-   "desenhista": "Mariko Tamaki",
-   "origem": "importado",
-   "editora": "",
-   "pais": "Canadá",
-   "urgencia": false,
-   "status": "wishlist",
-   "valorPago": 0,
-   "lido": false,
-   "nota": 0
-  },
-  {
-   "id": 387,
-   "nome": "Aquele Verão",
-   "tipo": "avulso",
-   "imagem": null,
-   "roteirista": "Mariko Tamaki",
    "desenhista": "Mariko Tamaki",
    "origem": "importado",
    "editora": "",
