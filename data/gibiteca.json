@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1788997132948,
- "updated": "2026-09-09T23:38:52.948Z",
+ "atualizadoEm": 1788997146804,
+ "updated": "2026-09-09T23:39:06.804Z",
  "obras": [
   {
    "id": 1,
@@ -6231,14 +6231,16 @@
    "id": 390,
    "nome": "Guardiões do Louvre",
    "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Pipoca & Nanquim",
+   "pais": "Japão",
+   "tags": [],
+   "resenha": "",
    "imagem": null,
    "roteirista": "Jiro Taniguchi",
    "desenhista": "Jiro Taniguchi",
-   "origem": "importado",
-   "editora": "",
-   "pais": "Japão",
-   "urgencia": false,
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
