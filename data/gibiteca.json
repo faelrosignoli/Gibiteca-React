@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1788954470220,
- "updated": "2026-09-09T11:47:50.220Z",
+ "atualizadoEm": 1788954485698,
+ "updated": "2026-09-09T11:48:05.698Z",
  "obras": [
   {
    "id": 1,
@@ -5397,14 +5397,16 @@
    "id": 336,
    "nome": "5 por Infinito",
    "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Pipoca & Nanquim",
+   "pais": "Espanha",
+   "tags": [],
+   "resenha": "",
    "imagem": null,
    "roteirista": "Esteban Maroto",
    "desenhista": "Esteban Maroto",
-   "origem": "importado",
-   "editora": "",
-   "pais": "Espanha",
-   "urgencia": false,
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
