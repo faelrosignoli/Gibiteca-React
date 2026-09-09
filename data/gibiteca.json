@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1788954782483,
- "updated": "2026-09-09T11:53:02.483Z",
+ "atualizadoEm": 1788995599917,
+ "updated": "2026-09-09T23:13:19.917Z",
  "obras": [
   {
    "id": 1,
@@ -413,15 +413,17 @@
    "id": 26,
    "nome": "Little Tulip",
    "tipo": "avulso",
-   "imagem": null,
-   "roteirista": "",
-   "desenhista": "",
    "origem": "nacional",
    "editora": "Comix Zone",
-   "pais": "",
+   "pais": "EUA / França",
+   "tags": [],
+   "resenha": "",
+   "imagem": null,
+   "roteirista": "Jerome Charyn",
+   "desenhista": "Francois Boucq",
+   "status": "biblioteca",
    "urgencia": false,
-   "status": "wishlist",
-   "valorPago": 0,
+   "valorPago": 49.3,
    "lido": false,
    "nota": 0
   },
