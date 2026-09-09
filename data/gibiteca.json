@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1788996669970,
- "updated": "2026-09-09T23:31:09.970Z",
+ "atualizadoEm": 1788996750377,
+ "updated": "2026-09-09T23:32:30.377Z",
  "obras": [
   {
    "id": 1,
@@ -269,14 +269,16 @@
    "id": 17,
    "nome": "Enterrei Todos no Meu Quintal",
    "tipo": "avulso",
-   "imagem": null,
-   "roteirista": "",
-   "desenhista": "",
    "origem": "nacional",
    "editora": "Comix Zone",
-   "pais": "",
-   "urgencia": false,
+   "pais": "Brasil",
+   "tags": [],
+   "resenha": "",
+   "imagem": null,
+   "roteirista": "Luckas Iohanathan",
+   "desenhista": "Luckas Iohanathan",
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
