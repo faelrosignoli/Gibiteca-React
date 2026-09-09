@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1788995707420,
- "updated": "2026-09-09T23:15:07.420Z",
+ "atualizadoEm": 1788995718806,
+ "updated": "2026-09-09T23:15:18.806Z",
  "obras": [
   {
    "id": 1,
@@ -481,14 +481,16 @@
    "id": 30,
    "nome": "O Eternauta 1969",
    "tipo": "avulso",
-   "imagem": null,
-   "roteirista": "Héctor Osterheld",
-   "desenhista": "Alberto Breccia",
    "origem": "nacional",
    "editora": "Comix Zone",
    "pais": "Argentina",
+   "tags": [],
+   "resenha": "",
+   "imagem": null,
+   "roteirista": "Héctor Osterheld",
+   "desenhista": "Alberto Breccia",
+   "status": "biblioteca",
    "urgencia": false,
-   "status": "wishlist",
    "valorPago": 0,
    "lido": false,
    "nota": 0
