@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1788995989942,
- "updated": "2026-09-09T23:19:49.942Z",
+ "atualizadoEm": 1788996007965,
+ "updated": "2026-09-09T23:20:07.965Z",
  "obras": [
   {
    "id": 1,
@@ -4477,14 +4477,16 @@
    "id": 278,
    "nome": "Sangue Real",
    "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Comix Zone",
+   "pais": "França",
+   "tags": [],
+   "resenha": "",
    "imagem": null,
    "roteirista": "Alejandro Jodorowsky",
    "desenhista": "Dongzi Liu",
-   "origem": "importado",
-   "editora": "",
-   "pais": "França",
-   "urgencia": false,
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
