@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1788996308021,
- "updated": "2026-09-09T23:25:08.021Z",
+ "atualizadoEm": 1788996357823,
+ "updated": "2026-09-09T23:25:57.823Z",
  "obras": [
   {
    "id": 1,
@@ -10419,79 +10419,6 @@
    "origem": "importado",
    "editora": "",
    "pais": "EUA",
-   "roteirista": "",
-   "desenhista": "",
-   "status": "wishlist",
-   "urgencia": false,
-   "valorPago": 0,
-   "lido": false,
-   "nota": 0
-  },
-  {
-   "id": 541,
-   "nome": "Blacksad",
-   "tipo": "serie",
-   "imagem": null,
-   "volumes": [
-    {
-     "nome": "Blacksad — Vol. 1",
-     "imagem": null,
-     "roteirista": "Juan Diáz Canales",
-     "desenhista": "Juan Diáz Canales",
-     "status": "wishlist",
-     "urgencia": false,
-     "valorPago": 0,
-     "lido": false,
-     "nota": 0
-    },
-    {
-     "nome": "Blacksad — Vol. 2",
-     "imagem": null,
-     "roteirista": "Juan Diáz Canales",
-     "desenhista": "Juan Diáz Canales",
-     "status": "wishlist",
-     "urgencia": false,
-     "valorPago": 0,
-     "lido": false,
-     "nota": 0
-    },
-    {
-     "nome": "Blacksad — Vol. 3",
-     "imagem": null,
-     "roteirista": "Juan Diáz Canales",
-     "desenhista": "Juan Diáz Canales",
-     "status": "wishlist",
-     "urgencia": false,
-     "valorPago": 0,
-     "lido": false,
-     "nota": 0
-    },
-    {
-     "nome": "Blacksad — Vol. 4",
-     "imagem": null,
-     "roteirista": "Juan Diáz Canales",
-     "desenhista": "Juan Diáz Canales",
-     "status": "wishlist",
-     "urgencia": false,
-     "valorPago": 0,
-     "lido": false,
-     "nota": 0
-    },
-    {
-     "nome": "Blacksad — Vol. 5",
-     "imagem": null,
-     "roteirista": "Juan Diáz Canales",
-     "desenhista": "Juan Diáz Canales",
-     "status": "wishlist",
-     "urgencia": false,
-     "valorPago": 0,
-     "lido": false,
-     "nota": 0
-    }
-   ],
-   "origem": "importado",
-   "editora": "",
-   "pais": "Espanha",
    "roteirista": "",
    "desenhista": "",
    "status": "wishlist",
