@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1788996528570,
- "updated": "2026-09-09T23:28:48.570Z",
+ "atualizadoEm": 1788996552400,
+ "updated": "2026-09-09T23:29:12.400Z",
  "obras": [
   {
    "id": 1,
@@ -2477,22 +2477,6 @@
    "origem": "nacional",
    "editora": "Pipoca & Nanquim",
    "pais": "Brasil",
-   "urgencia": true,
-   "status": "wishlist",
-   "valorPago": 0,
-   "lido": false,
-   "nota": 0
-  },
-  {
-   "id": 153,
-   "nome": "Cinco por Infinito",
-   "tipo": "avulso",
-   "imagem": null,
-   "roteirista": "",
-   "desenhista": "",
-   "origem": "nacional",
-   "editora": "Pipoca & Nanquim",
-   "pais": "",
    "urgencia": true,
    "status": "wishlist",
    "valorPago": 0,
