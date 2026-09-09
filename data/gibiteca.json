@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1788997036059,
- "updated": "2026-09-09T23:37:16.059Z",
+ "atualizadoEm": 1788997044390,
+ "updated": "2026-09-09T23:37:24.390Z",
  "obras": [
   {
    "id": 1,
@@ -4397,14 +4397,16 @@
    "id": 275,
    "nome": "Garras de Anjo",
    "tipo": "avulso",
+   "origem": "importado",
+   "editora": "Nemo",
+   "pais": "França",
+   "tags": [],
+   "resenha": "",
    "imagem": null,
    "roteirista": "Alejandro Jodorowsky",
    "desenhista": "Moebius",
-   "origem": "importado",
-   "editora": "",
-   "pais": "França",
-   "urgencia": false,
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
