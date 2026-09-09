@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1788996436110,
- "updated": "2026-09-09T23:27:16.110Z",
+ "atualizadoEm": 1788996445280,
+ "updated": "2026-09-09T23:27:25.280Z",
  "obras": [
   {
    "id": 1,
@@ -3733,7 +3733,7 @@
   },
   {
    "id": 232,
-   "nome": "Blacksad Integral",
+   "nome": "Blacksad: Integral",
    "tipo": "avulso",
    "origem": "nacional",
    "editora": "SESI",
