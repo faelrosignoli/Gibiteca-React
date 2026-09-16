@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1789594235182,
- "updated": "2026-09-16T21:30:35.182Z",
+ "atualizadoEm": 1789594265563,
+ "updated": "2026-09-16T21:31:05.563Z",
  "obras": [
   {
    "id": 1,
@@ -1176,22 +1176,6 @@
    "status": "biblioteca",
    "urgencia": false,
    "valorPago": 24.9,
-   "lido": false,
-   "nota": 0
-  },
-  {
-   "id": 72,
-   "nome": "A Odisséia",
-   "tipo": "avulso",
-   "imagem": null,
-   "roteirista": "",
-   "desenhista": "",
-   "origem": "nacional",
-   "editora": "DarkSide",
-   "pais": "",
-   "urgencia": false,
-   "status": "wishlist",
-   "valorPago": 0,
    "lido": false,
    "nota": 0
   },
