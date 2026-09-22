@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1789594898215,
- "updated": "2026-09-16T21:41:38.215Z",
+ "atualizadoEm": 1790106608550,
+ "updated": "2026-09-22T19:50:08.550Z",
  "obras": [
   {
    "id": 1,
@@ -11605,6 +11605,103 @@
    "valorPago": 0,
    "lido": false,
    "nota": 0
+  },
+  {
+   "id": 567,
+   "nome": "Usagi Yojimbo",
+   "tipo": "serie",
+   "origem": "nacional",
+   "editora": "Hyperion Comics",
+   "pais": "EUA",
+   "tags": [],
+   "resenha": "",
+   "volumes": [
+    {
+     "nome": "Usagi Yojimbo: Ronin",
+     "imagem": null,
+     "roteirista": "Stan Sakai",
+     "desenhista": "Stan Sakai",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "Usagi Yojimbo: Samurai",
+     "imagem": null,
+     "roteirista": "Stan Sakai",
+     "desenhista": "Stan Sakai",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "Usagi Yojimbo: A Trilha do Guerreiro",
+     "imagem": null,
+     "roteirista": "Stan Sakai",
+     "desenhista": "Stan Sakai",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "Usagi Yojimbo: A Conspiração Rugido do Dragão",
+     "imagem": null,
+     "roteirista": "Stan Sakai",
+     "desenhista": "Stan Sakai",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "Usagi Yojimbo: Bode Solitário e Filhote",
+     "imagem": null,
+     "roteirista": "Stan Sakai",
+     "desenhista": "Stan Sakai",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "Usagi Yojimbo: Ciclos",
+     "imagem": null,
+     "roteirista": "Stan Sakai",
+     "desenhista": "Stan Sakai",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "Usagi Yojimbo: A História de Gen",
+     "imagem": null,
+     "roteirista": "Stan Sakai",
+     "desenhista": "Stan Sakai",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    }
+   ],
+   "imagem": null,
+   "roteirista": "",
+   "desenhista": "",
+   "status": "wishlist",
+   "urgencia": false,
+   "valorPago": 0,
+   "lido": false,
+   "nota": 0
   }
  ],
  "editoras": [
@@ -11737,6 +11834,7 @@
   "Zarabatana Books",
   "Éditions Delcourt",
   "Universo Guara",
-  "SESI"
+  "SESI",
+  "Hyperion Comics"
  ]
 }
