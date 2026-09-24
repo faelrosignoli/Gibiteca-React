@@ -99,3 +99,24 @@ export const SYNC_TXT = {
   // o envio foi barrado de proposito: a nuvem tem algo mais novo que esta copia
   conflito: 'A nuvem tem uma versão mais nova. Puxe antes de enviar, ou o que está lá seria apagado.',
 }
+
+/* Histórico de alterações do arquivo da coleção.
+ *
+ * Cada envio já era um commit; com as mensagens descritivas do `diario.js`,
+ * esta lista vira a linha do tempo do app. `path` restringe aos commits que
+ * tocaram a coleção — o repositório pode ter outras coisas.
+ */
+export async function ghCommits(c, path, limite = 40) {
+  const url = `${GH}/repos/${c.owner}/${c.repo}/commits`
+    + `?path=${encodeURIComponent(path)}&sha=${encodeURIComponent(c.branch)}&per_page=${limite}`
+  const r = await fetch(url, { headers: headers(c.token), cache: 'no-store' })
+  if (r.status === 404 || r.status === 409) return []   // repo/branch sem commits ainda
+  if (!r.ok) throw new Error('Não deu para ler o histórico (' + r.status + ').')
+  const lista = await r.json()
+  return (Array.isArray(lista) ? lista : []).map(c2 => ({
+    sha: c2.sha,
+    mensagem: (c2.commit && c2.commit.message) || '',
+    quando: (c2.commit && c2.commit.author && c2.commit.author.date) || null,
+    autor: (c2.commit && c2.commit.author && c2.commit.author.name) || '',
+  }))
+}

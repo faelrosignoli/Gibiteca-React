@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useMemo, useEffect, useCallback, u
 import { passes, sortList } from './helpers.js'
 import { EDITORAS } from '../data.js'
 import { ghCheckRepo, ghGet, ghPut, lerColecao, b64enc, b64dec, guessRepo } from './cloud.js'
+import { compararColecoes, mensagemDeCommit } from './diario.js'
 
 const StoreCtx = createContext(null)
 export const useStore = () => useContext(StoreCtx)
@@ -105,8 +106,10 @@ export function StoreProvider({ children }) {
       // atrasado sobrescreve o adiantado sem ninguém perceber — foi assim que
       // um backup restaurado no PC sumiu debaixo da cópia velha do celular.
       const f = await ghGet(c, c.path)
+      let anterior = null
       if (f) {
-        const laFora = carimboDe(lerColecao(f))
+        anterior = lerColecao(f)
+        const laFora = carimboDe(anterior)
         // 'forcar' vem do botao 'Enviar agora': ali a pessoa esta mandando
         // gravar por cima, sabendo disso. O envio automatico nunca forca.
         if (!forcar && laFora > carimbo.current) {
@@ -126,7 +129,10 @@ export function StoreProvider({ children }) {
       // Sem arquivo na nuvem, NÃO se manda sha: ele só existe para atualizar
       // algo que já está lá. Mandar um sha guardado de antes faz o GitHub
       // recusar — era isto que virava "Erro de sincronização" no primeiro envio.
-      const res = await ghPut(c, c.path, b64, 'Atualiza coleção — ' + new Date().toLocaleString('pt-BR'), f ? f.sha : null)
+      // A mensagem do commit conta o que mudou. Sem isto o histórico do
+      // repositório vira 200 linhas iguais, e não serve para conferir nada.
+      const recado = mensagemDeCommit(compararColecoes(anterior, { obras, editoras }), new Date(agora))
+      const res = await ghPut(c, c.path, b64, recado, f ? f.sha : null)
       carimbo.current = agora
       writeCloud({ ...cloudRef.current, sha: res.content.sha })
       setSyncErro(''); setSync('ok')
@@ -141,14 +147,29 @@ export function StoreProvider({ children }) {
     pushTimer.current = setTimeout(() => pushToCloud(), 1500)
   }, [pushToCloud])
 
-  // persistência local + agenda push na nuvem a cada alteração
+  /* Persistência local + envio para a nuvem a cada alteração.
+   *
+   * O `catch` vazio que estava aqui escondia o pior defeito do app: uma
+   * coleção com capas passa dos ~5 MB de cota do localStorage (o texto conta
+   * em UTF-16, então 4 MB de JSON pedem 8 MB), o `setItem` estoura, e nada
+   * era gravado. A obra aparecia na tela, o navegador recusava em silêncio, e
+   * ao recarregar ela tinha sumido.
+   *
+   * Agora a falha é dita em voz alta — e a nuvem vira envio imediato, porque
+   * passa a ser a única cópia que sobrevive a fechar a aba. */
   const dirty = useRef(false)
+  const [semEspaco, setSemEspaco] = useState(false)
   useEffect(() => {
     if (!dirty.current) return
-    try { localStorage.setItem('gibiteca_v1', JSON.stringify({ version: 1, atualizadoEm: carimbo.current, obras, editoras })) } catch (e) { /* */ }
+    let gravou = true
+    try {
+      localStorage.setItem('gibiteca_v1', JSON.stringify({ version: 1, atualizadoEm: carimbo.current, obras, editoras }))
+    } catch (e) { gravou = false }
+    setSemEspaco(!gravou)
     if (skipPush.current) { skipPush.current = false; return }
+    if (!gravou) { clearTimeout(pushTimer.current); pushToCloud(); return }
     scheduleCloudPush()
-  }, [obras, editoras, scheduleCloudPush])
+  }, [obras, editoras, scheduleCloudPush, pushToCloud])
 
   const applyData = useCallback((data, { fromCloud = false } = {}) => {
     if (!Array.isArray(data?.obras)) return
@@ -308,7 +329,7 @@ export function StoreProvider({ children }) {
     filtered, total, totalPages, start, pageItems, all,
     fixada, fixarObra,
     // nuvem
-    cloud, sync, syncErro, guessRepo, cloudConnect, cloudDisconnect, pullFromCloud, cloudPushNow,
+    cloud, sync, syncErro, semEspaco, guessRepo, cloudConnect, cloudDisconnect, pullFromCloud, cloudPushNow,
   }
   return <StoreCtx.Provider value={value}>{children}</StoreCtx.Provider>
 }
