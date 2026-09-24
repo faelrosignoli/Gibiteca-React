@@ -18,14 +18,20 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          # A MESMA versão da máquina de desenvolvimento. Estava em 20, abaixo
+          # do que o projeto declara (>= 22): o site publicado era construído
+          # num Node diferente do usado para escrevê-lo, e isso só aparece no
+          # dia em que quebra.
+          node-version: 24
           cache: npm
       - run: npm ci
       - run: npm run build
-      - uses: actions/upload-pages-artifact@v3
+      # upload-pages-artifact e deploy-pages andam em par: subir só um dos dois
+      # de versão costuma dar artefato que o outro não entende.
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
 
@@ -37,4 +43,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
