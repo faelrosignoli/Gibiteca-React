@@ -3,12 +3,14 @@ import { MOLA_GAVETA, FADE } from '../lib/motion.js'
 import { useEffect, useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import { SYNC_TXT } from '../lib/cloud.js'
+import { inventario, moverCapasParaNuvem } from '../lib/capas.js'
 
 const dotColor = { off: 'bg-ink-mute', ok: 'bg-moss', sync: 'bg-gold animate-pulse', pending: 'bg-gold animate-pulse', err: 'bg-rust', conflito: 'bg-rust animate-pulse' }
 const lbl = 'font-mono text-rotulo uppercase text-ink-faint pl-0.5'
 
 export default function Cloud({ open, onClose, onNotice }) {
-  const { cloud, sync, syncErro, guessRepo, cloudConnect, cloudDisconnect, pullFromCloud, cloudPushNow } = useStore()
+  const { cloud, sync, syncErro, obras, aplicarObras, guessRepo, cloudConnect, cloudDisconnect, pullFromCloud, cloudPushNow } = useStore()
+  const [movendo, setMovendo] = useState(null)   // { feitas, total } enquanto sobe
   const [f, setF] = useState({ owner: '', repo: '', branch: 'main', path: 'data/gibiteca.json', token: '' })
   const [help, setHelp] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -34,6 +36,23 @@ export default function Cloud({ open, onClose, onNotice }) {
   const pull = async () => { setBusy(true); const ok = await pullFromCloud(); setBusy(false); onNotice?.(ok ? 'Coleção puxada da nuvem.' : 'Nada para puxar ainda.') }
   const push = async () => { setBusy(true); await cloudPushNow(); setBusy(false); onNotice?.('Enviado para a nuvem.') }
   const disconnect = () => { cloudDisconnect(); onNotice?.('Nuvem desconectada. Seus dados continuam salvos neste navegador.') }
+
+  /* As capas embutidas são quase todo o peso da coleção. Movê-las para o
+     repositório é o que faz o arquivo caber no navegador de novo. */
+  const capas = inventario(obras)
+  const moverCapas = async () => {
+    setMovendo({ feitas: 0, total: capas.quantas })
+    try {
+      const r = await moverCapasParaNuvem(cloud, obras, (feitas, total) => setMovendo({ feitas, total }))
+      if (r.movidas) aplicarObras(r.obras)
+      onNotice?.(r.erros.length
+        ? r.movidas + ' capa(s) movida(s); ' + r.erros.length + ' falhou(ram) e continuam na coleção.'
+        : r.movidas + ' capa(s) movida(s) para o repositório.')
+    } catch (e) {
+      onNotice?.('Não deu para mover as capas: ' + (e && e.message))
+    }
+    setMovendo(null)
+  }
 
   return (
     <AnimatePresence>
@@ -81,6 +100,28 @@ export default function Cloud({ open, onClose, onNotice }) {
                 <div className="flex flex-col gap-1 col-span-2"><label className={lbl}>Token de acesso</label>
                   <input className="field-input font-mono !text-apoio" type="password" value={f.token} onChange={e => set('token', e.target.value)} placeholder="github_pat_… ou ghp_…" autoComplete="off" spellCheck={false} /></div>
               </div>
+
+              {/* Só aparece quando há o que mover — senão vira ruído fixo. */}
+              {on && capas.quantas > 0 && (
+                <div className="rounded-medio border border-gold bg-tinta-gold px-3.5 py-3">
+                  <div className="font-display text-obra text-ink">
+                    {capas.quantas} capa{capas.quantas > 1 ? 's' : ''} está{capas.quantas > 1 ? 'ão' : ''} dentro da coleção
+                  </div>
+                  <p className="text-corpo text-ink-soft leading-relaxed mt-0.5">
+                    Elas pesam <b>{capas.mb.toFixed(1)} MB</b> — e é esse peso que estoura o espaço do
+                    navegador e sobe inteiro a cada alteração. Movendo para o repositório, a coleção
+                    passa a guardar só o endereço delas.
+                  </p>
+                  <button
+                    type="button"
+                    className="neo-btn neo-btn-moss mt-2.5"
+                    onClick={moverCapas}
+                    disabled={busy || !!movendo}
+                  >
+                    {movendo ? 'Movendo ' + movendo.feitas + ' de ' + movendo.total + '…' : 'Mover capas para o repositório'}
+                  </button>
+                </div>
+              )}
 
               <div className="flex flex-col gap-1.5 text-corpo text-ink-soft bg-surface-2 border border-separador rounded-medio px-3.5 py-2.5">
                 <div className="flex items-center gap-2.5">

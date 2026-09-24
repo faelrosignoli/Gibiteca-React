@@ -29,14 +29,21 @@ export function carimboDe(d) {
 }
 
 function loadInitial() {
+  let bruto = null
+  try { bruto = localStorage.getItem('gibiteca_v1') } catch (e) { /* navegador sem storage */ }
+  if (!bruto) return { obras: [], editoras: EDITORAS, carimbo: 0, ilegivel: false }
   try {
-    const raw = localStorage.getItem('gibiteca_v1')
-    if (raw) {
-      const d = JSON.parse(raw)
-      if (Array.isArray(d.obras)) return { obras: d.obras, editoras: d.editoras || EDITORAS, carimbo: carimboDe(d) }
-    }
-  } catch (e) { /* */ }
-  return { obras: [], editoras: EDITORAS, carimbo: 0 }
+    const d = JSON.parse(bruto)
+    if (Array.isArray(d.obras)) return { obras: d.obras, editoras: d.editoras || EDITORAS, carimbo: carimboDe(d), ilegivel: false }
+  } catch (e) { /* cai no aviso abaixo */ }
+  /* HAVIA dado guardado e não deu para ler.
+   *
+   * Antes isto virava uma estante vazia, sem uma palavra: 554 obras viravam
+   * zero e parecia que tudo tinha sido perdido. E pior, o app seguia como se
+   * estivesse tudo bem. Agora a coleção continua vazia (não há o que mostrar),
+   * mas o app DIZ que o dado existe e está ilegível — e o carimbo fica em
+   * zero, então esse vazio nunca sobe para a nuvem por cima do que está lá. */
+  return { obras: [], editoras: EDITORAS, carimbo: 0, ilegivel: true }
 }
 function loadCloud() {
   try { const r = localStorage.getItem(CLOUD_KEY); if (r) return { ...CLOUD_DEFAULT, ...JSON.parse(r) } } catch (e) { /* */ }
@@ -86,7 +93,10 @@ export function StoreProvider({ children }) {
   useEffect(() => { dataRef.current = { obras, editoras } }, [obras, editoras])
   const writeCloud = useCallback((next) => {
     cloudRef.current = next; setCloudState(next)
-    try { localStorage.setItem(CLOUD_KEY, JSON.stringify(next)) } catch (e) { /* */ }
+    // se a configuração da nuvem não puder ser gravada, a pessoa vai
+    // reconectar amanhã sem entender por quê — melhor dizer
+    try { localStorage.setItem(CLOUD_KEY, JSON.stringify(next)) }
+    catch (e) { setSyncErro('A configuração da nuvem não pôde ser guardada neste navegador (sem espaço). Ela vale só nesta aba.') }
   }, [])
 
   const pushTimer = useRef(null), pushing = useRef(false), pushAgain = useRef(false), skipPush = useRef(false)
@@ -163,6 +173,8 @@ export function StoreProvider({ children }) {
   // falha NOVA o traz de volta: dispensar reconhece o estado de agora, não
   // desliga o alarme para sempre.
   const [falhasAoGuardar, setFalhasAoGuardar] = useState(0)
+  // dado guardado que não abriu: precisa ser dito, não escondido
+  const [dadoIlegivel] = useState(() => !!init.ilegivel)
   useEffect(() => {
     if (!dirty.current) return
     let gravou = true
@@ -292,6 +304,9 @@ export function StoreProvider({ children }) {
   const resetFilters = useCallback(() => { setFilters(DEFAULT_FILTERS); setPage(1) }, [])
   const setPageSize = useCallback((n) => { setPageSizeState(n); setPage(1); try { localStorage.setItem('gibiteca_pagesize', String(n)) } catch (e) { /* */ } }, [])
   const loadBackup = useCallback((data) => applyData(data), [applyData])
+  // troca a coleção inteira por uma versão já processada (ex.: capas movidas
+  // para o repositório). Conta como alteração local: carimba e envia.
+  const aplicarObras = useCallback((novas) => applyData({ obras: novas, editoras: dataRef.current.editoras }), [applyData])
 
   const nextId = useCallback(() => obras.reduce((m, o) => Math.max(m, o.id || 0), 0) + 1, [obras])
   const registerEditora = useCallback((nome) => { if (nome) setEditoras(list => (list.includes(nome) ? list : [...list, nome])) }, [])
@@ -329,12 +344,12 @@ export function StoreProvider({ children }) {
 
   const value = {
     obras, editoras, filters, sort, view, page: safePage, pageSize,
-    setSort, setView, setPage, setPageSize, setFilter, resetFilters, loadBackup,
+    setSort, setView, setPage, setPageSize, setFilter, resetFilters, loadBackup, aplicarObras,
     nextId, upsertObra, deleteObra, setCovers,
     filtered, total, totalPages, start, pageItems, all,
     fixada, fixarObra,
     // nuvem
-    cloud, sync, syncErro, semEspaco, falhasAoGuardar, guessRepo, cloudConnect, cloudDisconnect, pullFromCloud, cloudPushNow,
+    cloud, sync, syncErro, semEspaco, falhasAoGuardar, dadoIlegivel, guessRepo, cloudConnect, cloudDisconnect, pullFromCloud, cloudPushNow,
   }
   return <StoreCtx.Provider value={value}>{children}</StoreCtx.Provider>
 }

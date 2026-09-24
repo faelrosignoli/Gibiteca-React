@@ -139,7 +139,7 @@ export default function Collection({ onOpen }) {
               const feature = fixada != null && o.id === fixada && i === 0
               return (
                 <div key={o.id} className={feature ? 'lg:col-span-2 lg:row-span-2' : ''}>
-                  <Card obra={o} index={i} onOpen={onOpen} feature={feature} />
+                  <Card obra={o} index={i} onOpen={onOpen} feature={feature} animarEntrada={pageItems.length <= 60} />
                 </div>
               )
             })}

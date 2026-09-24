@@ -43,7 +43,7 @@ function TypeBadge({ t, count }) {
   return null
 }
 
-export default function Card({ obra, index = 0, onOpen, feature = false }) {
+export default function Card({ obra, index = 0, onOpen, feature = false, animarEntrada = true }) {
   // com o filtro em "Tenho"/"Quero", a capa vem do volume que combina — mas o
   // título continua sendo o da série: é por ela que a obra é reconhecida
   const { filters } = useStore()
@@ -71,12 +71,25 @@ export default function Card({ obra, index = 0, onOpen, feature = false }) {
   }
   const onLeave = () => { px.set(0.5); py.set(0.5) }
 
+  /* Animar a entrada custa caro: cada cartão anima opacity + y + BLUR, e o
+     blur não é de graça nem no compositor. Numa página de 40 dá para pagar;
+     com "Todas" e 554 obras, são 554 blurs disputando a mesma tela — é o
+     candidato mais forte para a aba morrer. Lista grande entra sem animação. */
+  const entrada = animarEntrada ? {
+    initial: { opacity: 0, y: 24, filter: 'blur(6px)' },
+    whileInView: { opacity: 1, y: 0, filter: 'blur(0px)' },
+    viewport: { once: true, margin: '0px 0px -8% 0px' },
+    transition: { duration: 0.7, delay: Math.min(index * 0.045, 0.36), ease: [0.32, 0.72, 0, 1] },
+  } : {}
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 24, filter: 'blur(6px)' }}
-      whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-      viewport={{ once: true, margin: '0px 0px -8% 0px' }}
-      transition={{ duration: 0.7, delay: Math.min(index * 0.045, 0.36), ease: [0.32, 0.72, 0, 1] }}
+    /* button, não div: com div a galeria inteira ficava fora do alcance do
+       teclado — não dava para abrir obra nenhuma sem mouse, enquanto o modo
+       lista (que já usa button) funcionava. A mesma ação não pode ser
+       acessível de um jeito e inacessível do outro. */
+    <motion.button
+      type="button"
+      {...entrada}
       // UM style só. Havia dois aqui, e em JSX o segundo apaga o primeiro —
       // o tilt 3D estava sendo descartado em silêncio. O `will-change` avisa o
       // compositor (grade de até 30 cartões animando entrada e hover), e só
@@ -89,7 +102,7 @@ export default function Card({ obra, index = 0, onOpen, feature = false }) {
       onPointerMove={onMove}
       onPointerLeave={onLeave}
       onClick={() => onOpen?.(obra)}
-      className="bezel group cursor-pointer h-full"
+      className="bezel group cursor-pointer h-full w-full text-left block"
     >
       <div className="bezel-core group-hover:shadow-amb-lg p-2 sm:p-3 xl:p-3.5 flex flex-col">
         {/* capa — caixa QUADRADA fixa, para todas as linhas alinharem.
@@ -194,6 +207,6 @@ export default function Card({ obra, index = 0, onOpen, feature = false }) {
           </div>
         </div>
       </div>
-    </motion.div>
+    </motion.button>
   )
 }
