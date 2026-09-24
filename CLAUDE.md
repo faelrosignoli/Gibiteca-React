@@ -331,9 +331,12 @@ tinha salvado, e ao recarregar tinha sumido. Nada avisava.
 
 Agora:
 
-- a falha vira `semEspaco` e um **aviso fixo** (`AvisoSemEspaco`), com botões
-  para a nuvem e para o backup. Não é dispensável: o risco não passa até os
-  dados irem para algum lugar durável;
+- a falha vira um **aviso** (`AvisoSemEspaco`), com botões para a nuvem e para
+  o backup. Ele **pode ser fechado** — aviso grudado na tela vira paisagem e
+  deixa de avisar —, mas fechar vale só para a falha de agora: o store conta
+  as falhas (`falhasAoGuardar`) em vez de guardar um sim/não, então **uma
+  falha nova traz o aviso de volta**. Respira 24px do topo no desktop (16 no
+  celular): colado na borda ele parecia parte do cabeçalho;
 - quando a gravação local falha, o envio para a nuvem **deixa de esperar os
   1,5s** e sai na hora — a nuvem passa a ser a única cópia que sobrevive a
   fechar a aba.
