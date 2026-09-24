@@ -12,7 +12,13 @@ navegador (localStorage) e, opcionalmente, sincronizam com um repositório do
 GitHub via Contents API. Idioma da interface e dos commits: **português (BR)**.
 
 ## Stack e comandos
-- Node **>= 22**. Gerenciador: npm.
+- Node **>= 22** (declarado em `package.json` → `engines`). Gerenciador: npm.
+- O CI builda em **Node 24**, a mesma versão da máquina de desenvolvimento.
+  Estava em 20 — abaixo do próprio mínimo do projeto — e o site publicado era
+  construído num Node diferente do usado para escrevê-lo.
+- As ações do workflow ficam nas majors atuais. `upload-pages-artifact` e
+  `deploy-pages` **andam em par**: subir só uma costuma gerar artefato que a
+  outra não entende.
 - `npm install` — instala dependências (React, framer-motion, tailwind, vite).
 - `npm run dev` — servidor de desenvolvimento (Vite, porta 5173).
 - `npm run build` — gera `/dist` (site estático, base relativa; serve em qualquer subpasta, inclusive GitHub Pages).
