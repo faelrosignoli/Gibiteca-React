@@ -13,9 +13,12 @@ import Editor from './components/Editor.jsx'
 import Stats from './components/Stats.jsx'
 import Cloud from './components/Cloud.jsx'
 import BulkCovers from './components/BulkCovers.jsx'
+import AvisoSemEspaco from './components/AvisoSemEspaco.jsx'
+import Atividades from './components/Atividades.jsx'
+import { baixarBackup } from './lib/backup.js'
 
 export default function App() {
-  const { filters, cloud: cloudCfg } = useStore()
+  const { filters, cloud: cloudCfg, obras, editoras } = useStore()
   // Abertura: a marca aparece no meio e viaja até o cabeçalho encolhendo.
   // Quem pediu menos movimento não vê tela nenhuma — entra direto na estante.
   const semMovimento = usaMovimentoReduzido()
@@ -34,6 +37,7 @@ export default function App() {
   const [stats, setStats] = useState(false)
   const [cloud, setCloud] = useState(false)
   const [bulk, setBulk] = useState(false)
+  const [atividades, setAtividades] = useState(false)
   const [toast, setToast] = useState('')
 
   const say = (m) => { setToast(m); setTimeout(() => setToast(''), 2400) }
@@ -64,10 +68,15 @@ export default function App() {
 
       {/* uma barra só: Busca · Filtros · Estatísticas · logo · Galeria/Lista · ☰
           Sem faixa de fundo e sem desfoque: o que flutua é a pílula, e só ela. */}
+      {/* Se o navegador recusou guardar, isto precisa aparecer antes de
+          qualquer outra coisa: as alterações só existem nesta aba. */}
+      <AvisoSemEspaco onNuvem={() => setCloud(true)} onBackup={() => baixarBackup(obras, editoras)} />
+
       <div className="sticky top-0 z-30 pt-3 pb-3">
         <Header
           onCloud={() => setCloud(true)}
           onBulk={openBulk}
+          onAtividades={() => setAtividades(true)}
           onFilters={() => setShowFilters(true)}
           onStats={() => setStats(true)}
           onSearch={() => setSearch(true)}
@@ -93,6 +102,8 @@ export default function App() {
       <DetailSheet obra={detail} onClose={() => setDetail(null)} onEdit={openEditor} />
       <SearchOverlay open={search} onClose={() => setSearch(false)} />
       <Stats open={stats} onClose={() => setStats(false)} />
+      <Atividades open={atividades} onClose={() => setAtividades(false)} />
+
       <Cloud open={cloud} onClose={() => setCloud(false)} onNotice={say} />
       <BulkCovers open={bulk} onClose={() => setBulk(false)} onNotice={say} />
       <Editor target={editor} onClose={() => setEditor(null)} onSaved={say} />
