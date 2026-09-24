@@ -321,6 +321,49 @@ O desenho vem do painel de Atividades do Drive, e as razões valem repetir:
 `lerMensagem` aceita as mensagens antigas ("Atualiza coleção — …"): elas viram
 uma entrada sem detalhe, em vez de sumirem do histórico.
 
+### Capas moram no repositório, não dentro da coleção
+**Medido na coleção real:** 3,78 MB dos 3,94 MB eram **80 imagens em base64**
+(49 obras + 31 volumes). Todo o resto — 554 obras, 238 volumes, nomes,
+editoras, autores, preços, notas — somava **115 KB**. Ou seja, 98% do peso
+vinha de 9% das obras.
+
+`lib/capas.js` move as embutidas para `covers/` e troca por endereço
+`raw.githubusercontent.com` — o mesmo esquema que o "Enviar capas" já usava.
+O botão aparece no modal da Nuvem **só quando há o que mover**, com o peso em
+MB, e some depois.
+
+Regras: capa que falha ao subir **continua embutida** (melhor pesada do que
+sumida); o caminho leva o id da obra e o número do volume, senão dois volumes
+da mesma série disputam o mesmo arquivo.
+
+**Isto exige repositório público** para as imagens abrirem via URL direta.
+O do usuário é público — o que também significa que a coleção inteira é.
+
+### Salvaguarda: erro de render não apaga a tela
+`components/Salvaguarda.jsx`, por **fora** do `StoreProvider` em `main.jsx`:
+se o erro vier do próprio store, a tela de resgate ainda precisa desenhar.
+Mostra o erro e oferece **baixar backup lendo o localStorage direto** — sem
+passar pelo store, que pode ser justamente o que quebrou.
+
+### Lista grande entra sem animação
+Cada cartão anima opacity + y + **blur**. Em 40 dá para pagar; com "Todas" e
+554 obras são 554 blurs na mesma tela. Acima de **60 itens** a entrada é
+estática (`animarEntrada`). `loading="lazy"` não ajudava: capa em `data:` já
+está na memória, não há download a adiar.
+
+### Galeria é operável pelo teclado
+O cartão era `<div onClick>` — a galeria inteira ficava fora do alcance do
+teclado, enquanto o modo lista (que usa `<button>`) funcionava. Virou
+`motion.button`. **Ação não pode ser acessível de um jeito e inacessível de
+outro no mesmo app.**
+
+### Falha guardada é falha dita
+`loadInitial` distingue "não havia nada" de "havia e não abriu": o segundo
+caso vira `dadoIlegivel` e um aviso. Antes virava estante vazia sem uma
+palavra — o susto de achar que 554 obras sumiram. O carimbo fica em zero,
+então esse vazio nunca sobe por cima do que está na nuvem. `writeCloud`
+também deixou de falhar calado.
+
 ### O localStorage não cabe uma coleção com capas
 **Medido:** a coleção real tem 4,03 MB de texto. O `localStorage` conta em
 UTF-16, então ela pede **8,07 MB** de cota — contra um limite típico de **5 MB**.
