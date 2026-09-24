@@ -276,6 +276,68 @@ ainda aceita Home/End. Clique fora fecha a folha, nunca o modal.
 **Custo assumido:** no celular some o seletor nativo do sistema. Em troca vêm
 os tokens do app, o campo de busca e a folha que não vaza do modal.
 
+### Diário: o commit conta o que mudou
+Cada envio para a nuvem sempre foi um commit — mas todos se chamavam
+"Atualiza coleção", o que torna o histórico inútil justamente quando ele
+seria preciso ("o que eu mudei?", "perdi alguma coisa?").
+
+`lib/diario.js` compara a coleção que está na nuvem com a que vai subir e
+transforma a diferença em frase. Como o envio **já busca** o arquivo de lá
+para conferir o carimbo, a comparação não custa nenhuma requisição a mais.
+
+| mudança | frase |
+|---|---|
+| obra nova | `Adicionou “Conan, o Cimério”` |
+| obra apagada | `Removeu “Blast”` |
+| nome trocado | `Renomeou “Sandman” para “Sandman — Edição Definitiva”` |
+| volume marcado | `Marcou como Tenho: 1 volume de “Sandman” (2 de 3)` |
+| capa | `Pôs capa em “A”` |
+| resto | `Editou “A”` |
+
+**Uma mudança vira o assunto do commit; várias viram "N alterações" com a
+lista embaixo** — é o formato que o git espera, e o que deixa o histórico
+legível direto no GitHub, sem app nenhum.
+
+### Atividades: linha do tempo lida do repositório
+`components/Atividades.jsx`, no menu ☰. **Não guarda histórico nenhum**: lê os
+commits com `ghCommits` e desenha. A fonte da verdade continua sendo o GitHub.
+
+O desenho vem do painel de Atividades do Drive, e as razões valem repetir:
+
+- **o evento é a ação, não o item**: um envio com 5 mudanças é uma entrada só,
+  com as 5 aninhadas embaixo. Por obra, um dia de arrumação enterraria o resto;
+- as mudanças aparecem como fichas indentadas, ligadas por um fio — a relação
+  é mostrada pelo espaço, em vez de repetir a data em cada linha;
+- agrupado por período (Hoje · Ontem · Nos últimos 7 dias · Este ano · ano);
+- **é leitura, não controle**: sem desfazer, sem botão por item. É isso que
+  permite ser denso sem assustar.
+
+`lerMensagem` aceita as mensagens antigas ("Atualiza coleção — …"): elas viram
+uma entrada sem detalhe, em vez de sumirem do histórico.
+
+### O localStorage não cabe uma coleção com capas
+**Medido:** a coleção real tem 4,03 MB de texto. O `localStorage` conta em
+UTF-16, então ela pede **8,07 MB** de cota — contra um limite típico de **5 MB**.
+O `setItem` estoura, e havia um `catch (e) { /* */ }` engolindo a falha.
+
+O efeito era o pior possível: a obra aparecia na tela, a pessoa achava que
+tinha salvado, e ao recarregar tinha sumido. Nada avisava.
+
+Agora:
+
+- a falha vira `semEspaco` e um **aviso fixo** (`AvisoSemEspaco`), com botões
+  para a nuvem e para o backup. Não é dispensável: o risco não passa até os
+  dados irem para algum lugar durável;
+- quando a gravação local falha, o envio para a nuvem **deixa de esperar os
+  1,5s** e sai na hora — a nuvem passa a ser a única cópia que sobrevive a
+  fechar a aba.
+
+**Isto é remendo, não cura.** A cura é parar de guardar a imagem da capa
+dentro da coleção: com o endereço em vez do base64, o JSON cai para poucos KB
+e o problema some — junto com os 4 MB que sobem a cada sincronização. O app já
+tem 'Enviar capas', que põe as imagens como arquivos no repositório. Mexer
+nisso muda o modelo de dados do usuário, então não fazer sem pedido.
+
 ### Nuvem: quem decide é o carimbo de tempo
 A sincronização tinha dois furos que, juntos, faziam parecer que a nuvem não
 salvava:
