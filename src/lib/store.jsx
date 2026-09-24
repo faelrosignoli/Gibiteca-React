@@ -159,6 +159,10 @@ export function StoreProvider({ children }) {
    * passa a ser a única cópia que sobrevive a fechar a aba. */
   const dirty = useRef(false)
   const [semEspaco, setSemEspaco] = useState(false)
+  // Conta as falhas, não só se há uma. O aviso pode ser dispensado, mas uma
+  // falha NOVA o traz de volta: dispensar reconhece o estado de agora, não
+  // desliga o alarme para sempre.
+  const [falhasAoGuardar, setFalhasAoGuardar] = useState(0)
   useEffect(() => {
     if (!dirty.current) return
     let gravou = true
@@ -166,6 +170,7 @@ export function StoreProvider({ children }) {
       localStorage.setItem('gibiteca_v1', JSON.stringify({ version: 1, atualizadoEm: carimbo.current, obras, editoras }))
     } catch (e) { gravou = false }
     setSemEspaco(!gravou)
+    if (!gravou) setFalhasAoGuardar(n => n + 1)
     if (skipPush.current) { skipPush.current = false; return }
     if (!gravou) { clearTimeout(pushTimer.current); pushToCloud(); return }
     scheduleCloudPush()
@@ -329,7 +334,7 @@ export function StoreProvider({ children }) {
     filtered, total, totalPages, start, pageItems, all,
     fixada, fixarObra,
     // nuvem
-    cloud, sync, syncErro, semEspaco, guessRepo, cloudConnect, cloudDisconnect, pullFromCloud, cloudPushNow,
+    cloud, sync, syncErro, semEspaco, falhasAoGuardar, guessRepo, cloudConnect, cloudDisconnect, pullFromCloud, cloudPushNow,
   }
   return <StoreCtx.Provider value={value}>{children}</StoreCtx.Provider>
 }
