@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { MOLA_TOQUE, useEhDesktop } from '../lib/motion.js'
 import { useStore } from '../lib/store.jsx'
 import logo from '../assets/logo.png'
+import { baixarBackup } from '../lib/backup.js'
 
 /* O logo é o botão de "começar de novo": limpa os filtros (inclusive a busca)
  * e sobe para o topo. É o que se espera da marca em qualquer site — e aqui
@@ -62,7 +63,7 @@ export function LogoMobile({ aberturaNoAr = false }) {
  * estado da sincronização foi para o próprio ☰: a ação pode se esconder, o
  * aviso não pode.
  */
-export default function Header({ onCloud, onBulk, onFilters, onStats, onSearch, filterCount, aberturaNoAr = false }) {
+export default function Header({ onCloud, onBulk, onAtividades, onFilters, onStats, onSearch, filterCount, aberturaNoAr = false }) {
   const { obras, editoras, loadBackup, sync, view, setView, filters } = useStore()
   const aoInicio = useVoltarAoInicio()
   const ehDesktop = useEhDesktop()
@@ -89,17 +90,13 @@ export default function Header({ onCloud, onBulk, onFilters, onStats, onSearch, 
     r.readAsText(f); e.target.value = ''
   }
   const exportJSON = () => {
-    const data = { version: 1, exported: new Date().toISOString(), obras, editoras }
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url; a.download = 'gibiteca-backup-' + new Date().toISOString().slice(0, 10) + '.json'
-    a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000)
+    baixarBackup(obras, editoras)
     setMenu(false)
   }
 
   const acoes = [
     { rotulo: rotuloNuvem(sync), icone: <IconCloud />, ponto: sync, aoClicar: () => { setMenu(false); onCloud?.() } },
+    { rotulo: 'Atividades', icone: <IconRelogio />, aoClicar: () => { setMenu(false); onAtividades?.() } },
     { rotulo: 'Enviar capas', icone: <IconImage />, aoClicar: () => { setMenu(false); onBulk?.() } },
     { rotulo: 'Baixar backup (.json)', icone: <IconBaixar />, aoClicar: exportJSON },
     { rotulo: 'Restaurar backup (.json)', icone: <IconRestaurar />, aoClicar: () => { setMenu(false); fileRef.current?.click() } },
@@ -277,6 +274,9 @@ const IconLista = () => (
 )
 const IconCloud = () => (
   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.5 19a4.5 4.5 0 1 0-1.4-8.8A6 6 0 1 0 6 16" /><path d="M8 16h9.5" /></svg>
+)
+const IconRelogio = () => (
+  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
 )
 const IconImage = () => (
   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21" /></svg>

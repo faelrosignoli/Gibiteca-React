@@ -77,7 +77,11 @@ export default function Card({ obra, index = 0, onOpen, feature = false }) {
       whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
       viewport={{ once: true, margin: '0px 0px -8% 0px' }}
       transition={{ duration: 0.7, delay: Math.min(index * 0.045, 0.36), ease: [0.32, 0.72, 0, 1] }}
-      style={{ rotateX: rotX, rotateY: rotY, transformPerspective: 720 }}
+      // UM style só. Havia dois aqui, e em JSX o segundo apaga o primeiro —
+      // o tilt 3D estava sendo descartado em silêncio. O `will-change` avisa o
+      // compositor (grade de até 30 cartões animando entrada e hover), e só
+      // transform/opacity, que ele acelera de graça.
+      style={{ rotateX: rotX, rotateY: rotY, transformPerspective: 720, willChange: 'transform, opacity' }}
       whileHover={{ y: -4 }}
       // whileTap dispara no pointerdown: o cartão reage ao encostar,
       // não ao soltar. É a diferença entre parecer vivo e parecer atrasado.
@@ -85,10 +89,6 @@ export default function Card({ obra, index = 0, onOpen, feature = false }) {
       onPointerMove={onMove}
       onPointerLeave={onLeave}
       onClick={() => onOpen?.(obra)}
-      // grade de ate 30 cartoes animando entrada e hover: avisar o compositor
-      // evita repintura. So transform e opacity, as duas propriedades que ele
-      // acelera de graca (Oryzo declara will-change em 58 regras).
-      style={{ willChange: 'transform, opacity' }}
       className="bezel group cursor-pointer h-full"
     >
       <div className="bezel-core group-hover:shadow-amb-lg p-2 sm:p-3 xl:p-3.5 flex flex-col">
