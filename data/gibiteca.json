@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790699131502,
- "updated": "2026-09-29T16:25:31.502Z",
+ "atualizadoEm": 1790699140118,
+ "updated": "2026-09-29T16:25:40.118Z",
  "obras": [
   {
    "id": 1,
@@ -8820,7 +8820,7 @@
     {
      "nome": "O Eternauta",
      "imagem": "https://raw.githubusercontent.com/faelrosignoli/Gibiteca-React/main/covers/o-eternauta-510-v1.jpg",
-     "roteirista": "Héctor Osterheld",
+     "roteirista": "Héctor Oesterheld",
      "desenhista": "Francisco Solano López",
      "status": "wishlist",
      "urgencia": true,
@@ -8831,7 +8831,7 @@
     {
      "nome": "O Eternauta - Segunda Parte",
      "imagem": "https://raw.githubusercontent.com/faelrosignoli/Gibiteca-React/main/covers/o-eternauta-510-v2.jpg",
-     "roteirista": "Héctor Osterheld",
+     "roteirista": "Héctor Oesterheld",
      "desenhista": "Francisco Solano López",
      "status": "biblioteca",
      "urgencia": false,
@@ -8840,7 +8840,7 @@
      "nota": 0
     }
    ],
-   "imagem": "https://raw.githubusercontent.com/faelrosignoli/Gibiteca-React/main/covers/o-eternauta-510.jpg",
+   "imagem": "https://raw.githubusercontent.com/faelrosignoli/Gibiteca-React/main/covers/o-eternauta-510-v1.jpg",
    "roteirista": "",
    "desenhista": "",
    "status": "wishlist",
