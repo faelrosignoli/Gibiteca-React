@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790700141444,
- "updated": "2026-09-29T16:42:21.444Z",
+ "atualizadoEm": 1790700396705,
+ "updated": "2026-09-29T16:46:36.705Z",
  "obras": [
   {
    "id": 1,
@@ -8033,13 +8033,17 @@
    "id": 493,
    "nome": "Minha Coisa Favorita É Monstro",
    "tipo": "serie",
-   "imagem": null,
+   "origem": "nacional",
+   "editora": "Companhia das Letras",
+   "pais": "",
+   "tags": [],
+   "resenha": "",
    "volumes": [
     {
      "nome": "Minha Coisa Favorita É Monstro — Vol. 1",
      "imagem": null,
-     "roteirista": "",
-     "desenhista": "",
+     "roteirista": "Emil Ferris",
+     "desenhista": "Emil Ferris",
      "status": "wishlist",
      "urgencia": false,
      "valorPago": 0,
@@ -8049,8 +8053,8 @@
     {
      "nome": "Minha Coisa Favorita É Monstro — Vol. 2",
      "imagem": null,
-     "roteirista": "",
-     "desenhista": "",
+     "roteirista": "Emil Ferris",
+     "desenhista": "Emil Ferris",
      "status": "wishlist",
      "urgencia": false,
      "valorPago": 0,
@@ -8058,9 +8062,7 @@
      "nota": 0
     }
    ],
-   "origem": "nacional",
-   "editora": "Companhia",
-   "pais": "",
+   "imagem": null,
    "roteirista": "",
    "desenhista": "",
    "status": "wishlist",
