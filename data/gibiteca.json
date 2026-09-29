@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790699259865,
- "updated": "2026-09-29T16:27:39.865Z",
+ "atualizadoEm": 1790699304892,
+ "updated": "2026-09-29T16:28:24.892Z",
  "obras": [
   {
    "id": 1,
@@ -177,14 +177,16 @@
    "id": 11,
    "nome": "Cidade",
    "tipo": "avulso",
-   "imagem": null,
-   "roteirista": "Ricardo Barreiro",
-   "desenhista": "Juán Gimenez",
    "origem": "nacional",
    "editora": "Comix Zone",
    "pais": "Argentina",
-   "urgencia": true,
+   "tags": [],
+   "resenha": "",
+   "imagem": null,
+   "roteirista": "Ricardo Barreiro",
+   "desenhista": "Juan Giménez",
    "status": "wishlist",
+   "urgencia": true,
    "valorPago": 0,
    "lido": false,
    "nota": 0
