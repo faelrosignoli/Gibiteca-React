@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790700396705,
- "updated": "2026-09-29T16:46:36.705Z",
+ "atualizadoEm": 1790700400893,
+ "updated": "2026-09-29T16:46:40.893Z",
  "obras": [
   {
    "id": 1,
@@ -949,14 +949,16 @@
    "id": 57,
    "nome": "Notas Sobre Gaza",
    "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Companhia das Letras",
+   "pais": "",
+   "tags": [],
+   "resenha": "",
    "imagem": null,
    "roteirista": "",
    "desenhista": "",
-   "origem": "nacional",
-   "editora": "Companhia",
-   "pais": "",
-   "urgencia": false,
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
