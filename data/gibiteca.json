@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790700039111,
- "updated": "2026-09-29T16:40:39.111Z",
+ "atualizadoEm": 1790700043637,
+ "updated": "2026-09-29T16:40:43.637Z",
  "obras": [
   {
    "id": 1,
@@ -2761,7 +2761,7 @@
    "tipo": "avulso",
    "origem": "nacional",
    "editora": "Pipoca & Nanquim",
-   "pais": "EUA",
+   "pais": "França",
    "tags": [],
    "resenha": "",
    "imagem": null,
