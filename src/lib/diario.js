@@ -1,4 +1,4 @@
-import { unitsOf, ownedCount, coverOf, edOf } from './helpers.js'
+import { unitsOf, ownedCount, coverOf, edOf, avgNota, sumValor, fmtBRL, authorsOf } from './helpers.js'
 
 /* Diário da coleção.
  *
@@ -9,11 +9,13 @@ import { unitsOf, ownedCount, coverOf, edOf } from './helpers.js'
  * Aqui a coleção antiga é comparada com a nova e a mudança vira frase. O
  * resultado é o texto do commit, então o histórico do repositório passa a ser
  * legível direto no GitHub, mesmo sem abrir o app.
+ *
+ * Cada obra pode render VÁRIAS frases: marcar como lido e dar nota na mesma
+ * edição são duas coisas, e o histórico tem que dizer as duas. O genérico
+ * "Editou X" só sobra para o que nenhuma regra soube nomear.
  */
 
 const nomeDe = (o) => (o && o.nome ? String(o.nome).trim() : 'obra sem nome')
-
-// aspas tipográficas para o nome não se confundir com o resto da frase
 const aspas = (s) => '“' + s + '”'
 
 function porId(lista) {
@@ -22,38 +24,119 @@ function porId(lista) {
   return m
 }
 
-/* Descreve o que mudou DENTRO de uma obra que existe dos dois lados.
- * Devolve null quando nada digno de nota mudou. */
-function mudancaInterna(antes, depois) {
-  const nome = nomeDe(depois)
+/* "a obra" ou "2 volumes de a obra": séries falam em volumes, avulsos não. */
+function alvo(obra, quantos) {
+  const total = unitsOf(obra).length
+  const nome = aspas(nomeDe(obra))
+  if (total <= 1 || quantos == null) return nome
+  return quantos + ' volume' + (quantos > 1 ? 's' : '') + ' de ' + nome
+}
 
-  if (nomeDe(antes) !== nome) return { tipo: 'renomeada', texto: 'Renomeou ' + aspas(nomeDe(antes)) + ' para ' + aspas(nome) }
+const naEstante = (o) => unitsOf(o).filter(u => u && u.status === 'biblioteca')
+const lidos = (o) => naEstante(o).filter(u => u.lido).length
+const urgentes = (o) => unitsOf(o).filter(u => u && u.urgencia && u.status !== 'biblioteca').length
+const nota = (o) => avgNota(o)
+const limpo = (s) => String(s == null ? '' : s).trim()
 
-  const tinha = ownedCount(antes), tem = ownedCount(depois)
+const estrelas = (n) => String(n).replace('.', ',') + (n === 1 ? ' estrela' : ' estrelas')
+
+/* Todas as mudanças dentro de uma obra que existe dos dois lados. */
+function mudancasInternas(antes, depois) {
+  const fora = []
+  const nome = aspas(nomeDe(depois))
+  const push = (tipo, texto) => fora.push({ tipo, texto })
+
+  if (nomeDe(antes) !== nomeDe(depois)) {
+    push('renomeada', 'Renomeou ' + aspas(nomeDe(antes)) + ' para ' + nome)
+  }
+
+  // ---- volumes e posse ----
   const totalAntes = unitsOf(antes).length, total = unitsOf(depois).length
-
   if (total !== totalAntes) {
     const d = total - totalAntes
-    return { tipo: 'volumes', texto: (d > 0 ? 'Acrescentou ' + d + ' volume' + (d > 1 ? 's' : '') : 'Tirou ' + (-d) + ' volume' + (-d > 1 ? 's' : '')) + ' de ' + aspas(nome) }
+    push('volumes', (d > 0 ? 'Acrescentou ' + d + ' volume' + (d > 1 ? 's' : '') : 'Tirou ' + (-d) + ' volume' + (-d > 1 ? 's' : '')) + ' de ' + nome)
+  } else {
+    const tinha = ownedCount(antes), tem = ownedCount(depois)
+    if (tem !== tinha) {
+      const d = tem - tinha
+      push('status', (d > 0 ? 'Marcou como Tenho: ' : 'Voltou para Quero: ') + alvo(depois, Math.abs(d)) +
+        (total > 1 ? ' (' + tem + ' de ' + total + ')' : ''))
+    }
   }
-  if (tem !== tinha) {
-    const d = tem - tinha
-    const acao = d > 0 ? 'Marcou como Tenho' : 'Voltou para Quero'
-    const quantos = Math.abs(d)
-    const alvo = total > 1 ? quantos + ' volume' + (quantos > 1 ? 's' : '') + ' de ' + aspas(nome) : aspas(nome)
-    return { tipo: 'status', texto: acao + ': ' + alvo + (total > 1 ? ' (' + tem + ' de ' + total + ')' : '') }
+
+  // ---- leitura ----
+  const lidoAntes = lidos(antes), lidoDepois = lidos(depois)
+  if (lidoDepois !== lidoAntes) {
+    const d = lidoDepois - lidoAntes
+    push('leitura', (d > 0 ? 'Marcou como lido: ' : 'Marcou como não lido: ') + alvo(depois, Math.abs(d)))
   }
+
+  // ---- urgência ----
+  const urgAntes = urgentes(antes), urgDepois = urgentes(depois)
+  if (urgDepois !== urgAntes) {
+    push('urgencia', urgDepois > urgAntes
+      ? 'Marcou ' + alvo(depois, urgDepois - urgAntes) + ' como urgente'
+      : 'Tirou a urgência de ' + alvo(depois, urgAntes - urgDepois))
+  }
+
+  // ---- nota ----
+  const nAntes = nota(antes), nDepois = nota(depois)
+  if (nDepois !== nAntes) {
+    if (!nDepois) push('nota', 'Tirou a nota de ' + nome)
+    else push('nota', 'Deu ' + estrelas(nDepois) + ' para ' + nome)
+  }
+
+  // ---- dinheiro ----
+  const vAntes = sumValor(antes), vDepois = sumValor(depois)
+  if (vDepois !== vAntes) {
+    if (!vDepois) push('valor', 'Apagou o valor pago de ' + nome)
+    else if (!vAntes) push('valor', 'Anotou ' + fmtBRL(vDepois) + ' pago em ' + nome)
+    else push('valor', 'Mudou o valor de ' + nome + ' para ' + fmtBRL(vDepois))
+  }
+
+  // ---- capa ----
   if (!!coverOf(antes) !== !!coverOf(depois)) {
-    return { tipo: 'capa', texto: (coverOf(depois) ? 'Pôs capa em ' : 'Tirou a capa de ') + aspas(nome) }
+    push('capa', (coverOf(depois) ? 'Pôs capa em ' : 'Tirou a capa de ') + nome)
+  } else if (coverOf(antes) !== coverOf(depois)) {
+    push('capa', 'Trocou a capa de ' + nome)
   }
-  if (edOf(antes) !== edOf(depois)) {
-    return { tipo: 'editora', texto: 'Mudou a editora de ' + aspas(nome) + ' para ' + (edOf(depois) || '—') }
+
+  // ---- campos de texto, todos com a mesma forma ----
+  const campos = [
+    ['editora', 'a editora', edOf(antes), edOf(depois)],
+    ['pais', 'o país', limpo(antes.pais), limpo(depois.pais)],
+    ['origem', 'a origem', limpo(antes.origem), limpo(depois.origem)],
+  ]
+  campos.forEach(([tipo, rotulo, a, b]) => {
+    if (a === b) return
+    if (!b) push(tipo, 'Apagou ' + rotulo + ' de ' + nome)
+    else if (!a) push(tipo, 'Pôs ' + rotulo + ' de ' + nome + ': ' + b)
+    else push(tipo, 'Mudou ' + rotulo + ' de ' + nome + ' para ' + b)
+  })
+
+  // autoria: roteirista e desenhista juntos, porque é assim que se lê
+  const autoriaAntes = authorsOf(antes).join(', ')
+  const autoriaDepois = authorsOf(depois).join(', ')
+  if (autoriaAntes !== autoriaDepois) {
+    if (!autoriaDepois) push('autoria', 'Apagou a autoria de ' + nome)
+    else if (!autoriaAntes) push('autoria', 'Pôs a autoria de ' + nome + ': ' + autoriaDepois)
+    else push('autoria', 'Mudou a autoria de ' + nome + ' para ' + autoriaDepois)
   }
-  // qualquer outro campo: nota, valor, resenha, país, autoria…
-  if (JSON.stringify(antes) !== JSON.stringify(depois)) {
-    return { tipo: 'editada', texto: 'Editou ' + aspas(nome) }
+
+  // anotação: o texto em si não vai para o histórico, só o fato
+  const rAntes = limpo(antes.resenha), rDepois = limpo(depois.resenha)
+  if (rAntes !== rDepois) {
+    push('resenha', !rDepois ? 'Apagou a anotação de ' + nome
+      : !rAntes ? 'Escreveu uma anotação em ' + nome
+      : 'Mudou a anotação de ' + nome)
   }
-  return null
+
+  // nada disso pegou, mas alguma coisa mudou: melhor dizer que houve edição
+  // do que fingir que nada aconteceu
+  if (!fora.length && JSON.stringify(antes) !== JSON.stringify(depois)) {
+    push('editada', 'Editou ' + nome)
+  }
+  return fora
 }
 
 /* Lista de mudanças entre duas versões da coleção. */
@@ -70,8 +153,7 @@ export function compararColecoes(antes, depois) {
   })
   d.forEach((obra, id) => {
     if (!a.has(id)) return
-    const m = mudancaInterna(a.get(id), obra)
-    if (m) mudancas.push(m)
+    mudancasInternas(a.get(id), obra).forEach(m => mudancas.push(m))
   })
 
   return mudancas
