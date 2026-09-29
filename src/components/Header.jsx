@@ -155,8 +155,12 @@ export default function Header({ onCloud, onBulk, onAtividades, onFilters, onSta
           <div className="order-3 flex items-center gap-1.5 sm:justify-self-end shrink-0" ref={wrapRef}>
             <div className="relative inline-flex rounded-full border border-separador p-1">
               {[['galeria', 'Galeria'], ['lista', 'Lista']].map(([v, l]) => (
-                <button key={v} onClick={() => setView(v)}
-                  className={`relative inline-flex items-center justify-center gap-1.5 rounded-full px-3 sm:px-4 py-1.5 text-corpo font-semibold transition-colors ${view === v ? 'text-paper' : 'text-ink-soft hover:text-ink'}`}>
+                /* No celular o rótulo some e sobra só o ícone: sem uma altura
+                   mínima, o botão encolhia para 39x27 — abaixo do alvo de
+                   toque confortável (~44px), e errar aqui troca o modo de
+                   exibição sem querer. */
+                <button key={v} onClick={() => setView(v)} aria-label={l} aria-pressed={view === v}
+                  className={`relative inline-flex items-center justify-center gap-1.5 rounded-full min-w-[44px] min-h-[40px] sm:min-w-0 sm:min-h-0 px-3 sm:px-4 py-1.5 text-corpo font-semibold transition-colors ${view === v ? 'text-paper' : 'text-ink-soft hover:text-ink'}`}>
                   {view === v && (
                     <motion.span
                       layoutId="viewToggleActive"

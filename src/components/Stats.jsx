@@ -10,8 +10,19 @@ import Ticker from './Ticker.jsx'
 /* ---------- barra horizontal (itens ou dinheiro) ---------- */
 function BarRow({ nm, v, max, money, i }) {
   return (
-    <div className="flex items-center gap-3.5">
-      <span className="w-[120px] shrink-0 text-apoio text-ink-soft truncate" title={nm}>{nm}</span>
+    /* EMPILHA SEMPRE: rótulo em cima, barra e número embaixo.
+     *
+     * Em linha, as duas larguras fixas (120 do rótulo + 86 do número + gaps)
+     * comiam 206px. No celular sobravam ~100px para a barra; no desktop,
+     * MENOS — 78px — porque a partir de `sm:` os gráficos ficam em duas
+     * colunas e a coluna nunca passa de ~316px. O gráfico era a menor parte
+     * da linha nos dois tamanhos.
+     *
+     * Empilhado, a barra fica com ~70% da largura em qualquer tela e o rótulo
+     * ganha a linha toda — nome de editora longo para de ser cortado. */
+    <div className="flex flex-col gap-1.5">
+      <span className="text-apoio text-ink-soft truncate" title={nm}>{nm}</span>
+      <div className="flex items-center gap-3 flex-1 min-w-0">
       <span className="flex-1 h-[8px] rounded-pequeno bg-linha overflow-hidden">
         <motion.span
  className="block h-full rounded-pequeno bg-moss"
@@ -20,6 +31,7 @@ function BarRow({ nm, v, max, money, i }) {
         />
       </span>
       <span className="w-[86px] shrink-0 text-right font-mono text-apoio font-medium tabular-nums whitespace-nowrap text-ink">{money ? fmtBRL(v) : v}</span>
+      </div>
     </div>
   )
 }
