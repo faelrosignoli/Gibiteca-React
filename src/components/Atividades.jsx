@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { MOLA_GAVETA, FADE } from '../lib/motion.js'
+import { MOLA_GAVETA, FADE, MOLA_TOQUE } from '../lib/motion.js'
 import { useStore } from '../lib/store.jsx'
 import { ghCommits } from '../lib/cloud.js'
 import { lerMensagem } from '../lib/diario.js'
@@ -34,6 +34,82 @@ function grupoDe(data, agora) {
 }
 
 const hora = (d) => new Date(d).toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' })
+
+/* Uma entrada da linha do tempo, com o detalhe FECHADO por padrão.
+ *
+ * Aberto, um envio de 110 capas jogava 110 fichas na tela e enterrava todo o
+ * resto do histórico — a linha do tempo deixava de servir para o que existe,
+ * que é olhar de relance o que aconteceu. O título já responde ("Subiu 110
+ * capas para a nuvem"); a lista é para quem quiser conferir. */
+function Entrada({ item }) {
+  const { assunto, itens: detalhes } = lerMensagem(item.mensagem)
+  const [aberto, setAberto] = useState(false)
+  const temDetalhe = detalhes.length > 0
+
+  return (
+    <div className="flex gap-3">
+      {/* marcador da linha do tempo */}
+      <div className="flex flex-col items-center shrink-0 pt-1">
+        <span className="w-2.5 h-2.5 rounded-full bg-moss shrink-0" />
+        <span className="w-px flex-1 bg-linha mt-1" />
+      </div>
+
+      <div className="min-w-0 flex-1 pb-1">
+        {temDetalhe ? (
+          <button
+            type="button"
+            onClick={() => setAberto(a => !a)}
+            aria-expanded={aberto}
+            className="w-full text-left flex items-start gap-2 group"
+          >
+            <span className="min-w-0 flex-1">
+              <span className="block text-corpo text-ink leading-snug break-words">{assunto}</span>
+              <span className="block font-mono text-rotulo uppercase text-ink-faint mt-1">
+                {hora(item.quando)} · {detalhes.length} {detalhes.length > 1 ? 'itens' : 'item'}
+              </span>
+            </span>
+            <motion.svg
+              className="w-4 h-4 shrink-0 mt-0.5 text-ink-faint group-hover:text-ink transition-colors"
+              viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"
+              animate={{ rotate: aberto ? 180 : 0 }} transition={MOLA_TOQUE}
+            >
+              <path d="M6 9l6 6 6-6" />
+            </motion.svg>
+          </button>
+        ) : (
+          <>
+            <div className="text-corpo text-ink leading-snug break-words">{assunto}</div>
+            <div className="font-mono text-rotulo uppercase text-ink-faint mt-1">{hora(item.quando)}</div>
+          </>
+        )}
+
+        <AnimatePresence initial={false}>
+          {aberto && temDetalhe && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={MOLA_TOQUE}
+              className="overflow-hidden"
+            >
+              <div className="mt-2 flex flex-col gap-1.5">
+                {detalhes.map((d, i) => (
+                  <div key={i} className="flex items-start gap-2">
+                    <span className="mt-2 w-3 h-px bg-separador shrink-0" />
+                    <span className="rounded-pequeno border border-linha bg-paper px-2.5 py-1 text-apoio text-ink-soft break-words">
+                      {d}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  )
+}
 
 export default function Atividades({ open, onClose }) {
   const { cloud } = useStore()
@@ -112,38 +188,7 @@ export default function Atividades({ open, onClose }) {
                   <div className="font-display text-obra text-ink mb-3">{g.titulo}</div>
 
                   <div className="flex flex-col gap-4">
-                    {g.itens.map(it => {
-                      const { assunto, itens: detalhes } = lerMensagem(it.mensagem)
-                      return (
-                        <div key={it.sha} className="flex gap-3">
-                          {/* marcador da linha do tempo */}
-                          <div className="flex flex-col items-center shrink-0 pt-1">
-                            <span className="w-2.5 h-2.5 rounded-full bg-moss shrink-0" />
-                            <span className="w-px flex-1 bg-linha mt-1" />
-                          </div>
-
-                          <div className="min-w-0 flex-1 pb-1">
-                            <div className="text-corpo text-ink leading-snug break-words">{assunto}</div>
-                            <div className="font-mono text-rotulo uppercase text-ink-faint mt-1">{hora(it.quando)}</div>
-
-                            {/* as mudanças da leva, aninhadas — uma entrada por
-                                envio, não uma por obra */}
-                            {detalhes.length > 0 && (
-                              <div className="mt-2 flex flex-col gap-1.5">
-                                {detalhes.map((d, i) => (
-                                  <div key={i} className="flex items-start gap-2">
-                                    <span className="mt-2 w-3 h-px bg-separador shrink-0" />
-                                    <span className="rounded-pequeno border border-linha bg-paper px-2.5 py-1 text-apoio text-ink-soft break-words">
-                                      {d}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )
-                    })}
+                    {g.itens.map(it => <Entrada key={it.sha} item={it} />)}
                   </div>
                 </div>
               ))}
