@@ -94,12 +94,28 @@ function mudancasInternas(antes, depois) {
     else push('valor', 'Mudou o valor de ' + nome + ' para ' + fmtBRL(vDepois))
   }
 
-  // ---- capa ----
-  if (!!coverOf(antes) !== !!coverOf(depois)) {
-    push('capa', (coverOf(depois) ? 'Pôs capa em ' : 'Tirou a capa de ') + nome)
-  } else if (coverOf(antes) !== coverOf(depois)) {
-    push('capa', 'Trocou a capa de ' + nome)
+  /* ---- capas ----
+   *
+   * Volume a volume, não por `coverOf`: numa série ele só olha o volume 1, e
+   * mover a capa dos outros caía no genérico "Editou" — foi o que encheu o
+   * histórico de 110 linhas iguais quando as capas subiram para a nuvem.
+   *
+   * Mover para a nuvem é troca de `data:` por endereço. É um tipo próprio,
+   * porque é arrumação e não uma capa nova. */
+  const uA = unitsOf(antes), uD = unitsOf(depois)
+  let postas = 0, tiradas = 0, trocadas = 0, movidas = 0
+  for (let i = 0; i < Math.min(uA.length, uD.length); i++) {
+    const a = (uA[i] && uA[i].imagem) || '', b = (uD[i] && uD[i].imagem) || ''
+    if (a === b) continue
+    if (!a && b) postas++
+    else if (a && !b) tiradas++
+    else if (/^data:/i.test(a) && /^https?:/i.test(b)) movidas++
+    else trocadas++
   }
+  if (movidas) push('capa-nuvem', 'Subiu para a nuvem a capa de ' + alvo(depois, movidas))
+  if (postas) push('capa', 'Pôs capa em ' + alvo(depois, postas))
+  if (tiradas) push('capa', 'Tirou a capa de ' + alvo(depois, tiradas))
+  if (trocadas) push('capa', 'Trocou a capa de ' + alvo(depois, trocadas))
 
   // ---- campos de texto, todos com a mesma forma ----
   const campos = [
@@ -160,7 +176,32 @@ export function compararColecoes(antes, depois) {
 }
 
 const LIMITE_ASSUNTO = 72
-const MAX_NO_CORPO = 20
+const MAX_NO_CORPO = 200
+
+/* Quando a leva inteira é da mesma natureza, o título diz O QUE foi feito.
+ *
+ * "110 alterações na coleção" não informa nada — foi o que apareceu quando as
+ * capas subiram para a nuvem. "Subiu 110 capas para a nuvem" responde sozinho,
+ * e a lista fica para quem quiser abrir. */
+const RESUMOS = {
+  'capa-nuvem': (n) => 'Subiu ' + n + ' capas para a nuvem',
+  capa: (n) => 'Mexeu na capa de ' + n + ' obras',
+  adicionada: (n) => 'Adicionou ' + n + ' obras',
+  removida: (n) => 'Removeu ' + n + ' obras',
+  leitura: (n) => 'Marcou a leitura de ' + n + ' obras',
+  status: (n) => 'Mudou o status de ' + n + ' obras',
+  editada: (n) => 'Editou ' + n + ' obras',
+}
+
+function resumoDe(mudancas) {
+  const tipos = new Set(mudancas.map(m => m.tipo))
+  if (tipos.size === 1) {
+    const tipo = [...tipos][0]
+    const resumo = RESUMOS[tipo]
+    if (resumo) return resumo(mudancas.length)
+  }
+  return mudancas.length + ' alterações na coleção'
+}
 
 /* O texto do commit: uma primeira linha que se lê de relance e, quando há
  * muita coisa, o detalhe embaixo. É o formato que o git espera e o que faz o
@@ -175,10 +216,9 @@ export function mensagemDeCommit(mudancas, quando = new Date()) {
     return t.length <= LIMITE_ASSUNTO ? t : t.slice(0, LIMITE_ASSUNTO - 1) + '…'
   }
 
-  const assunto = mudancas.length + ' alterações na coleção'
   const corpo = mudancas.slice(0, MAX_NO_CORPO).map(m => '- ' + m.texto)
   if (mudancas.length > MAX_NO_CORPO) corpo.push('- …e mais ' + (mudancas.length - MAX_NO_CORPO))
-  return assunto + '\n\n' + corpo.join('\n')
+  return resumoDe(mudancas) + '\n\n' + corpo.join('\n')
 }
 
 /* Lê de volta o que `mensagemDeCommit` escreveu, para a tela de Atividades.
