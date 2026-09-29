@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790695909528,
- "updated": "2026-09-29T15:31:49.528Z",
+ "atualizadoEm": 1790695925861,
+ "updated": "2026-09-29T15:32:05.861Z",
  "obras": [
   {
    "id": 1,
@@ -2659,7 +2659,7 @@
    "desenhista": "Thierry Olivier",
    "status": "biblioteca",
    "urgencia": false,
-   "valorPago": 11111.11,
+   "valorPago": 0,
    "lido": false,
    "nota": 0
   },
