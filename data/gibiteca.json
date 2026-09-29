@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790699186960,
- "updated": "2026-09-29T16:26:26.960Z",
+ "atualizadoEm": 1790699259865,
+ "updated": "2026-09-29T16:27:39.865Z",
  "obras": [
   {
    "id": 1,
@@ -504,7 +504,7 @@
    "resenha": "",
    "imagem": "https://raw.githubusercontent.com/faelrosignoli/Gibiteca-React/main/covers/o-grande-poder-do-chninkel-31.jpg",
    "roteirista": "Jean Van Hamme",
-   "desenhista": "Grzegorz Rosinski / Graza",
+   "desenhista": "Grzegorz Rosiński / Graza",
    "status": "wishlist",
    "urgencia": false,
    "valorPago": 0,
