@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790699907530,
- "updated": "2026-09-29T16:38:27.530Z",
+ "atualizadoEm": 1790699912651,
+ "updated": "2026-09-29T16:38:32.651Z",
  "obras": [
   {
    "id": 1,
@@ -2795,7 +2795,7 @@
    "tipo": "avulso",
    "origem": "nacional",
    "editora": "Pipoca & Nanquim",
-   "pais": "",
+   "pais": "EUA",
    "tags": [],
    "resenha": "",
    "imagem": "https://raw.githubusercontent.com/faelrosignoli/Gibiteca-React/main/covers/incal-psicoverso-173.jpg",
