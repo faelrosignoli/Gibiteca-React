@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790700403831,
- "updated": "2026-09-29T16:46:43.831Z",
+ "atualizadoEm": 1790700407107,
+ "updated": "2026-09-29T16:46:47.107Z",
  "obras": [
   {
    "id": 1,
@@ -985,14 +985,16 @@
    "id": 59,
    "nome": "O Filme Perdido",
    "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Companhia das Letras",
+   "pais": "",
+   "tags": [],
+   "resenha": "",
    "imagem": null,
    "roteirista": "",
    "desenhista": "",
-   "origem": "nacional",
-   "editora": "Companhia",
-   "pais": "",
-   "urgencia": false,
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
