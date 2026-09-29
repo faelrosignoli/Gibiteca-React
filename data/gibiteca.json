@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790699705272,
- "updated": "2026-09-29T16:35:05.272Z",
+ "atualizadoEm": 1790699726621,
+ "updated": "2026-09-29T16:35:26.621Z",
  "obras": [
   {
    "id": 1,
@@ -4523,7 +4523,7 @@
    "id": 277,
    "nome": "Gilles Hamesh: Detetive (totalmente) particular",
    "tipo": "avulso",
-   "origem": "importado",
+   "origem": "nacional",
    "editora": "Veneta",
    "pais": "França",
    "tags": [],
