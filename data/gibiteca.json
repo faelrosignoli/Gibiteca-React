@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790699155343,
- "updated": "2026-09-29T16:25:55.343Z",
+ "atualizadoEm": 1790699163014,
+ "updated": "2026-09-29T16:26:03.014Z",
  "obras": [
   {
    "id": 1,
@@ -739,7 +739,7 @@
    "tags": [],
    "resenha": "",
    "imagem": "https://raw.githubusercontent.com/faelrosignoli/Gibiteca-React/main/covers/sherlock-time-45.jpg",
-   "roteirista": "Héctor Osterheld",
+   "roteirista": "Héctor Oesterheld",
    "desenhista": "Alberto Breccia",
    "status": "biblioteca",
    "urgencia": false,
