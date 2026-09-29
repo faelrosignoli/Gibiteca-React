@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790699163014,
- "updated": "2026-09-29T16:26:03.014Z",
+ "atualizadoEm": 1790699186960,
+ "updated": "2026-09-29T16:26:26.960Z",
  "obras": [
   {
    "id": 1,
@@ -420,7 +420,7 @@
    "resenha": "",
    "imagem": "https://raw.githubusercontent.com/faelrosignoli/Gibiteca-React/main/covers/little-tulip-26.jpg",
    "roteirista": "Jerome Charyn",
-   "desenhista": "Francois Boucq",
+   "desenhista": "François Boucq",
    "status": "biblioteca",
    "urgencia": false,
    "valorPago": 49.3,
