@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790699304892,
- "updated": "2026-09-29T16:28:24.892Z",
+ "atualizadoEm": 1790699368095,
+ "updated": "2026-09-29T16:29:28.095Z",
  "obras": [
   {
    "id": 1,
@@ -3011,14 +3011,16 @@
    "id": 186,
    "nome": "O Anel do Nibelungo",
    "tipo": "avulso",
-   "imagem": null,
-   "roteirista": "P. Craig Russel",
-   "desenhista": "P. Craig Russel",
    "origem": "nacional",
    "editora": "Pipoca & Nanquim",
    "pais": "EUA",
-   "urgencia": true,
+   "tags": [],
+   "resenha": "",
+   "imagem": null,
+   "roteirista": "P. Craig Russell",
+   "desenhista": "P. Craig Russell",
    "status": "wishlist",
+   "urgencia": true,
    "valorPago": 0,
    "lido": false,
    "nota": 0
