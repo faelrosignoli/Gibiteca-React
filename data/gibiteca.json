@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790699726621,
- "updated": "2026-09-29T16:35:26.621Z",
+ "atualizadoEm": 1790699733888,
+ "updated": "2026-09-29T16:35:33.888Z",
  "obras": [
   {
    "id": 1,
@@ -4489,7 +4489,7 @@
    "id": 275,
    "nome": "Garras de Anjo",
    "tipo": "avulso",
-   "origem": "importado",
+   "origem": "nacional",
    "editora": "Nemo",
    "pais": "França",
    "tags": [],
