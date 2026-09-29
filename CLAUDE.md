@@ -304,6 +304,29 @@ para conferir o carimbo, a comparação não custa nenhuma requisição a mais.
 lista embaixo** — é o formato que o git espera, e o que deixa o histórico
 legível direto no GitHub, sem app nenhum.
 
+### O diário nomeia cada tipo de alteração
+`mudancasInternas` devolve uma LISTA, não a primeira mudança que encontra:
+marcar como lido e dar nota na mesma edição são duas coisas, e o histórico diz
+as duas. Frases próprias para leitura, urgência, nota (`Deu 3,5 estrelas`),
+valor pago, editora, país, origem, autoria, anotação e capa. O genérico
+`Editou “X”` só sobra para o que nenhuma regra soube nomear.
+
+Duas decisões: **roteirista e desenhista viram uma frase só** ("a autoria"),
+porque é assim que se lê; e **o texto da anotação não vai para o histórico**,
+só o fato de ter mudado — o commit é público.
+
+### Barras das estatísticas empilham sempre
+O rótulo tinha 120px fixos e o número 86px. Sobravam ~100px de barra no
+celular e **78px no desktop** — pior lá, porque a partir de `sm:` os gráficos
+ficam em duas colunas e a coluna nunca passa de ~316px. Empilhado (rótulo em
+cima, barra e número embaixo) a barra fica com ~70% em qualquer tela, e nome
+de editora longo para de ser cortado.
+
+### Alvo de toque do Galeria/Lista
+No celular o rótulo some e sobra só o ícone; sem `min-w-[44px] min-h-[40px]`
+o botão encolhia para 39x27, abaixo do alvo confortável — e errar ali troca o
+modo de exibição sem querer.
+
 ### Atividades: linha do tempo lida do repositório
 `components/Atividades.jsx`, no menu ☰. **Não guarda histórico nenhum**: lê os
 commits com `ghCommits` e desenha. A fonte da verdade continua sendo o GitHub.
@@ -379,7 +402,11 @@ Agora:
   deixa de avisar —, mas fechar vale só para a falha de agora: o store conta
   as falhas (`falhasAoGuardar`) em vez de guardar um sim/não, então **uma
   falha nova traz o aviso de volta**. Respira 24px do topo no desktop (16 no
-  celular): colado na borda ele parecia parte do cabeçalho;
+  celular): colado na borda ele parecia parte do cabeçalho. **No celular
+  empilha** — texto em cima, botões embaixo na largura toda, e o × sai do
+  fluxo (absolute) no canto: em linha, o grupo de botões não encolhia e
+  espremia o texto numa coluna de uma palavra por linha. Os dois avisos usam
+  a mesma `Faixa`, porque a cópia quebrou no celular sem ninguém notar;
 - quando a gravação local falha, o envio para a nuvem **deixa de esperar os
   1,5s** e sai na hora — a nuvem passa a ser a única cópia que sobrevive a
   fechar a aba.
