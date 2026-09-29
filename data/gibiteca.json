@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790696488061,
- "updated": "2026-09-29T15:41:28.061Z",
+ "atualizadoEm": 1790699067593,
+ "updated": "2026-09-29T16:24:27.593Z",
  "obras": [
   {
    "id": 1,
@@ -8980,15 +8980,30 @@
   },
   {
    "id": 514,
-   "nome": "Sgt. Kirk",
+   "nome": "Sargento Kirk",
    "tipo": "serie",
-   "imagem": null,
+   "origem": "nacional",
+   "editora": "Pipoca & Nanquim",
+   "pais": "Argentina",
+   "tags": [],
+   "resenha": "",
    "volumes": [
     {
-     "nome": "Sgt. Kirk",
+     "nome": "Sargento Kirk - Volume 1",
      "imagem": null,
-     "roteirista": "",
-     "desenhista": "",
+     "roteirista": "Héctor Osterheld",
+     "desenhista": "Hugo Pratt",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "Sargento Kirk - Volume 2",
+     "imagem": null,
+     "roteirista": "Héctor Osterheld",
+     "desenhista": "Hugo Pratt",
      "status": "wishlist",
      "urgencia": false,
      "valorPago": 0,
@@ -8996,9 +9011,7 @@
      "nota": 0
     }
    ],
-   "origem": "nacional",
-   "editora": "Pipoca & Nanquim",
-   "pais": "",
+   "imagem": null,
    "roteirista": "",
    "desenhista": "",
    "status": "wishlist",
