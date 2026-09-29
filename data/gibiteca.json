@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790699912651,
- "updated": "2026-09-29T16:38:32.651Z",
+ "atualizadoEm": 1790699949592,
+ "updated": "2026-09-29T16:39:09.592Z",
  "obras": [
   {
    "id": 1,
@@ -2759,14 +2759,16 @@
    "id": 171,
    "nome": "Incal: Estrela Moribunda",
    "tipo": "avulso",
-   "imagem": null,
-   "roteirista": "",
-   "desenhista": "",
    "origem": "nacional",
    "editora": "Pipoca & Nanquim",
-   "pais": "",
-   "urgencia": false,
+   "pais": "EUA",
+   "tags": [],
+   "resenha": "",
+   "imagem": null,
+   "roteirista": "Dan Watters",
+   "desenhista": "Jon Davis-Hunt",
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
