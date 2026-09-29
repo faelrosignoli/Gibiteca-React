@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790699144962,
- "updated": "2026-09-29T16:25:44.962Z",
+ "atualizadoEm": 1790699155343,
+ "updated": "2026-09-29T16:25:55.343Z",
  "obras": [
   {
    "id": 1,
@@ -8995,7 +8995,7 @@
     {
      "nome": "Sargento Kirk - Volume 1",
      "imagem": null,
-     "roteirista": "Héctor Osterheld",
+     "roteirista": "Héctor Oesterheld",
      "desenhista": "Hugo Pratt",
      "status": "wishlist",
      "urgencia": false,
@@ -9006,7 +9006,7 @@
     {
      "nome": "Sargento Kirk - Volume 2",
      "imagem": null,
-     "roteirista": "Héctor Osterheld",
+     "roteirista": "Héctor Oesterheld",
      "desenhista": "Hugo Pratt",
      "status": "wishlist",
      "urgencia": false,
