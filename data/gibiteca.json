@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790699580257,
- "updated": "2026-09-29T16:33:00.257Z",
+ "atualizadoEm": 1790699705272,
+ "updated": "2026-09-29T16:35:05.272Z",
  "obras": [
   {
    "id": 1,
@@ -4446,15 +4446,41 @@
   {
    "id": 274,
    "nome": "Os Cavaleiros de Heliópolis",
-   "tipo": "avulso",
-   "imagem": null,
-   "roteirista": "Alejandro Jodorowsky",
-   "desenhista": "Juan Giménez",
-   "origem": "importado",
-   "editora": "",
+   "tipo": "serie",
+   "origem": "nacional",
+   "editora": "Mythos",
    "pais": "França",
-   "urgencia": false,
+   "tags": [],
+   "resenha": "",
+   "volumes": [
+    {
+     "nome": "Os Cavaleiros de Heliópolis - N°1",
+     "imagem": null,
+     "roteirista": "Alejandro Jodorowsky",
+     "desenhista": "Jérémy Petiqueux",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "Os Cavaleiros de Heliópolis - N°2",
+     "imagem": null,
+     "roteirista": "Alejandro Jodorowsky",
+     "desenhista": "Jérémy Petiqueux",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    }
+   ],
+   "imagem": null,
+   "roteirista": "",
+   "desenhista": "",
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
