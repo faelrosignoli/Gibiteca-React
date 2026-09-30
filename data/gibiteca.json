@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790769038172,
- "updated": "2026-09-30T11:50:38.172Z",
+ "atualizadoEm": 1790769341793,
+ "updated": "2026-09-30T11:55:41.793Z",
  "obras": [
   {
    "id": 1,
@@ -7079,22 +7079,6 @@
    "origem": "importado",
    "editora": "",
    "pais": "França",
-   "urgencia": false,
-   "status": "wishlist",
-   "valorPago": 0,
-   "lido": false,
-   "nota": 0
-  },
-  {
-   "id": 438,
-   "nome": "Sandman",
-   "tipo": "avulso",
-   "imagem": null,
-   "roteirista": "Neil Gaiman",
-   "desenhista": "Neil Gaiman",
-   "origem": "importado",
-   "editora": "",
-   "pais": "Reino Unido",
    "urgencia": false,
    "status": "wishlist",
    "valorPago": 0,
