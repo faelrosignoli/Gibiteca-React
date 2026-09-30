@@ -7,5 +7,6 @@ export const TIPOS_EDICAO = [
   ['absoluta', 'Absoluta'],
   ['definitiva', 'Definitiva'],
   ['integral', 'Integral'],
+  ['omnibus', 'Omnibus'],
   ['bolso', 'Bolso'],
 ]
