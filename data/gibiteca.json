@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790742650181,
- "updated": "2026-09-30T04:30:50.181Z",
+ "atualizadoEm": 1790769000578,
+ "updated": "2026-09-30T11:50:00.578Z",
  "obras": [
   {
    "id": 1,
@@ -8285,7 +8285,7 @@
   },
   {
    "id": 498,
-   "nome": "Sandman Absolute",
+   "nome": "Sandman Absoluta",
    "tipo": "serie",
    "origem": "nacional",
    "editora": "Panini",
