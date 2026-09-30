@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790776482605,
- "updated": "2026-09-30T13:54:42.605Z",
+ "atualizadoEm": 1790776498516,
+ "updated": "2026-09-30T13:54:58.516Z",
  "obras": [
   {
    "id": 1,
@@ -9096,6 +9096,7 @@
    "pais": "Argentina",
    "tags": [],
    "resenha": "",
+   "tipoEdicao": "definitiva",
    "volumes": [
     {
      "nome": "Sargento Kirk - Volume 1",
