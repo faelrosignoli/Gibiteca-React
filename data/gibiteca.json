@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790776162091,
- "updated": "2026-09-30T13:49:22.091Z",
+ "atualizadoEm": 1790776180527,
+ "updated": "2026-09-30T13:49:40.527Z",
  "obras": [
   {
    "id": 1,
@@ -3371,6 +3371,7 @@
    "pais": "Bélgica",
    "tags": [],
    "resenha": "",
+   "tipoEdicao": "integral",
    "imagem": "https://raw.githubusercontent.com/faelrosignoli/Gibiteca-React/main/covers/veroes-felizes-207.jpg",
    "roteirista": "Zidrou",
    "desenhista": "Jordi Lafebre",
