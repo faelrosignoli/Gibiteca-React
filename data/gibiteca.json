@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790776498516,
- "updated": "2026-09-30T13:54:58.516Z",
+ "atualizadoEm": 1790776988658,
+ "updated": "2026-09-30T14:03:08.658Z",
  "obras": [
   {
    "id": 1,
@@ -11890,6 +11890,25 @@
    "imagem": "https://raw.githubusercontent.com/faelrosignoli/Gibiteca-React/main/covers/muito-alem-daqui-570.jpg",
    "roteirista": "Christophe Chabouté",
    "desenhista": "Christophe Chabouté",
+   "status": "wishlist",
+   "urgencia": false,
+   "valorPago": 0,
+   "lido": false,
+   "nota": 0
+  },
+  {
+   "id": 571,
+   "nome": "Watchmen",
+   "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Panini",
+   "pais": "Reino Unido",
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "bolso",
+   "imagem": null,
+   "roteirista": "Alan Moore",
+   "desenhista": "Dave Gibbons",
    "status": "wishlist",
    "urgencia": false,
    "valorPago": 0,
