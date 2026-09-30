@@ -8,7 +8,7 @@ const StoreCtx = createContext(null)
 export const useStore = () => useContext(StoreCtx)
 
 const DEFAULT_FILTERS = {
-  q: '', status: 'todos', tipo: '', editora: '', pais: '', autor: '',
+  q: '', status: 'todos', tipo: '', tipoEdicao: '', editora: '', pais: '', autor: '',
   importado: false, urgencia: false, leitura: 'todos',
 }
 const CLOUD_KEY = 'gibiteca_cloud'

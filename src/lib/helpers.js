@@ -1,3 +1,4 @@
+import { TIPOS_EDICAO } from '../data.js'
 // Funções puras do modelo de dados — reaproveitadas do app original (mesma lógica).
 export const PLACEHOLDER_TINTS = ['#4B5D3A','#5E7146','#6b6a3a','#7a6a48','#556b5a','#4a5a63','#7d5a44','#63583f'];
 export function fmtBRL(n){ n = Number(n)||0; return 'R$ ' + n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
@@ -19,6 +20,8 @@ export function authorsOf(o){
 }
 export function tipoOf(o){ let t=o.tipo; if(t==='avulsa') t='avulso'; return t || (o.serie?'serie':'avulso'); }
 export function edOf(o){ return o.editora || o.editoraBR || ''; }
+/* Rotulo do formato da edicao (Absoluta, Integral...), ou vazio. */
+export function edicaoDe(o){ const k=o&&o.tipoEdicao; if(!k) return ''; const t=TIPOS_EDICAO.find(x=>x[0]===k); return t?t[1]:''; }
 export function isImp(o){ return o.origem ? o.origem==='importado' : !(o.editoraBR); }
 export function volsOf(o){
   if(Array.isArray(o.volumes)) return o.volumes;
@@ -73,6 +76,7 @@ export function gNorm(s){ return (s||'').normalize('NFD').replace(/[\u0300-\u036
 export function passes(o, f){
   if(f.status!=='todos' && !statusMatch(o,f.status)) return false;
   if(f.tipo && tipoOf(o)!==f.tipo) return false;
+  if(f.tipoEdicao && (o.tipoEdicao||'')!==f.tipoEdicao) return false;
   if(f.editora && edOf(o)!==f.editora) return false;
   if(f.pais && !paisesOf(o).includes(f.pais)) return false;
   if(f.autor && !authorsOf(o).includes(f.autor)) return false;
