@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790742320463,
- "updated": "2026-09-30T04:25:20.463Z",
+ "atualizadoEm": 1790742546715,
+ "updated": "2026-09-30T04:29:06.715Z",
  "obras": [
   {
    "id": 1,
@@ -8296,7 +8296,7 @@
     {
      "nome": "Sandman - Vol. 1",
      "imagem": null,
-     "roteirista": "Neil Gaiman",
+     "roteirista": "",
      "desenhista": "",
      "status": "wishlist",
      "urgencia": false,
@@ -8307,7 +8307,7 @@
     {
      "nome": "Sandman - Vol. 2",
      "imagem": null,
-     "roteirista": "Neil Gaiman",
+     "roteirista": "",
      "desenhista": "",
      "status": "wishlist",
      "urgencia": false,
@@ -8318,7 +8318,7 @@
     {
      "nome": "Sandman - Vol. 3",
      "imagem": null,
-     "roteirista": "Neil Gaiman",
+     "roteirista": "",
      "desenhista": "",
      "status": "wishlist",
      "urgencia": false,
@@ -8329,7 +8329,7 @@
     {
      "nome": "Sandman - Vol. 4",
      "imagem": null,
-     "roteirista": "Neil Gaiman",
+     "roteirista": "",
      "desenhista": "",
      "status": "wishlist",
      "urgencia": false,
@@ -8340,18 +8340,7 @@
     {
      "nome": "Sandman - Vol. 5",
      "imagem": null,
-     "roteirista": "Neil Gaiman",
-     "desenhista": "",
-     "status": "wishlist",
-     "urgencia": false,
-     "valorPago": 0,
-     "lido": false,
-     "nota": 0
-    },
-    {
-     "nome": "Sandman - Vol. 6",
-     "imagem": null,
-     "roteirista": "Neil Gaiman",
+     "roteirista": "",
      "desenhista": "",
      "status": "wishlist",
      "urgencia": false,
