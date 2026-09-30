@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790776131977,
- "updated": "2026-09-30T13:48:51.977Z",
+ "atualizadoEm": 1790776162091,
+ "updated": "2026-09-30T13:49:22.091Z",
  "obras": [
   {
    "id": 1,
@@ -3794,13 +3794,14 @@
   },
   {
    "id": 232,
-   "nome": "Blacksad: Integral",
+   "nome": "Blacksad",
    "tipo": "avulso",
    "origem": "nacional",
    "editora": "SESI",
    "pais": "Espanha",
    "tags": [],
    "resenha": "",
+   "tipoEdicao": "integral",
    "imagem": null,
    "roteirista": "Juan Díaz Canales",
    "desenhista": "Juanjo Guarnido",
