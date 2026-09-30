@@ -6,6 +6,7 @@ import {
 import { useMemo } from 'react'
 import { useStore } from '../lib/store.jsx'
 import { edOf, authorsOf, paisesOf, tipoOf, passes } from '../lib/helpers.js'
+import { TIPOS_EDICAO } from '../data.js'
 import Selecao from './Selecao.jsx'
 
 function Field({ label, changed, children }) {
@@ -21,21 +22,35 @@ function Field({ label, changed, children }) {
 // lista de opções no formato que o Selecao espera: [valor, rótulo]
 const comTodos = (rotulo, itens) => [['', rotulo], ...itens.map(x => [x, x])]
 
-function Seg({ options, value, onChange }) {
+function Seg({ options, value, onChange, claro, vazios }) {
+  /* Duas variantes: verde cheio (status, leitura) e clara. A clara existe
+   * porque o tipo fica logo abaixo do status — dois seletores verdes
+   * empilhados brigariam pela atenção. Nela o sinal de "marcado" é o
+   * contorno de moss sobre branco, não o preenchimento. */
+  const ativo = claro
+    ? 'bg-surface-pure text-moss font-bold shadow-amb ring-1 ring-moss-2'
+    : 'bg-moss text-white'
+  // a variante clara vira pastilha DENTRO da trilha: sem a folga, o contorno
+  // do marcado bate no arredondado da borda e sai cortado nas pontas
   return (
-    <div className="flex w-full rounded-full border border-separador overflow-hidden">
-      {options.map(([v, l]) => (
-        <button key={v} onClick={() => onChange(v)}
- className={`flex-1 text-corpo font-semibold py-2 px-2 transition ${value === v ? 'bg-moss text-white' : 'bg-surface text-ink-soft hover:bg-paper-2'}`}>{l}</button>
-      ))}
+    <div className={`flex w-full rounded-full border border-separador overflow-hidden ${claro ? 'bg-paper-2 p-1 gap-1' : 'bg-surface'}`}>
+      {options.map(([v, l]) => {
+        // tipo sem nenhuma obra no recorte atual: fica visível, mas apagado
+        const morto = !!(vazios && vazios.includes(v)) && value !== v
+        return (
+          <button key={v} type="button" onClick={() => onChange(v)} disabled={morto}
+            className={`flex-1 text-corpo font-semibold py-2 px-2 transition ${claro ? 'rounded-full' : ''}
+              ${value === v ? ativo : morto ? 'text-ink-mute cursor-default' : 'text-ink-soft hover:bg-toque'}`}>{l}</button>
+        )
+      })}
     </div>
   )
 }
 
-const TIPOS = [['', 'Todos'], ['avulso', 'Só avulsos'], ['box', 'Só boxes'], ['serie', 'Só séries']]
+const TIPOS = [['avulso', 'Avulsos'], ['box', 'Boxes'], ['serie', 'Séries']]
 
 // valor "sem filtro" de cada campo, para conseguir neutralizar um de cada vez
-const NEUTRO = { status: 'todos', tipo: '', editora: '', pais: '', autor: '', leitura: 'todos', importado: false, urgencia: false, q: '' }
+const NEUTRO = { status: 'todos', tipo: '', tipoEdicao: '', editora: '', pais: '', autor: '', leitura: 'todos', importado: false, urgencia: false, q: '' }
 
 const ordenar = (conjunto) => Array.from(conjunto).sort((a, b) => a.localeCompare(b, 'pt'))
 
@@ -69,9 +84,14 @@ export default function FiltersDrawer({ open, onClose }) {
   // a lista de editoras vem das OBRAS, não do catálogo fixo: filtrar por uma
   // editora de que não se tem nada só serviria para esvaziar a estante
   const eds = useMemo(() => comOEscolhido(ordenar(new Set(sobraSem('editora').map(edOf).filter(Boolean))), filters.editora), [obras, filters])
-  const tipos = useMemo(() => {
+  const tiposVazios = useMemo(() => {
     const sobra = sobraSem('tipo')
-    return TIPOS.filter(([v]) => !v || v === filters.tipo || sobra.some(o => tipoOf(o) === v))
+    return TIPOS.map(([v]) => v).filter(v => !sobra.some(o => tipoOf(o) === v))
+  }, [obras, filters])
+  const edicoes = useMemo(() => {
+    const sobra = sobraSem('tipoEdicao')
+    const tem = TIPOS_EDICAO.filter(([v]) => v === filters.tipoEdicao || sobra.some(o => (o.tipoEdicao || '') === v))
+    return [['', 'Todas'], ...tem]
   }, [obras, filters])
 
   return (
@@ -105,9 +125,16 @@ export default function FiltersDrawer({ open, onClose }) {
             <div className="flex-1 overflow-auto px-5 py-4 grid grid-cols-2 gap-x-3 gap-y-3 content-start">
               <div className="col-span-2"><Seg options={[['todos', 'Todos'], ['biblioteca', 'Tenho'], ['wishlist', 'Quero']]} value={filters.status} onChange={v => setFilter('status', v)} /></div>
 
-              <Field label="Tipo" changed={!!filters.tipo}>
-                <Selecao value={filters.tipo} onChange={v => setFilter('tipo', v)} changed={!!filters.tipo}
-                  options={tipos} />
+              <div className="col-span-2"><Field label="Tipo" changed={!!filters.tipo}>
+                {/* clicar no que já está marcado desmarca: sem isso faltaria
+                    um quarto botão "Todos" e o seletor não bateria com o de cima */}
+                <Seg claro vazios={tiposVazios} options={TIPOS} value={filters.tipo}
+                  onChange={v => setFilter('tipo', filters.tipo === v ? '' : v)} />
+              </Field></div>
+
+              <Field label="Tipo de edição" changed={!!filters.tipoEdicao}>
+                <Selecao value={filters.tipoEdicao} onChange={v => setFilter('tipoEdicao', v)} changed={!!filters.tipoEdicao}
+                  options={edicoes} />
               </Field>
               <Field label="Editora" changed={!!filters.editora}>
                 <Selecao value={filters.editora} onChange={v => setFilter('editora', v)} changed={!!filters.editora}

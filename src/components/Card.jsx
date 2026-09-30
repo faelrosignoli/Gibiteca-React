@@ -1,9 +1,13 @@
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import { useStore } from '../lib/store.jsx'
 import Estrelas from './Estrelas.jsx'
+import Selos from './Selos.jsx'
+
+// 640px = o mesmo corte do 'sm:' do Tailwind e do useEhDesktop()
+const SO_DESKTOP = 'hidden sm:inline-flex'
 import { MOLA_TOQUE } from '../lib/motion.js'
 import {
-  coverOf, unidadeVitrine, urgenteNaVitrine, tipoOf, edOf, ownedCount, unitsOf, missingVols, avgNota,
+  coverOf, unidadeVitrine, urgenteNaVitrine, tipoOf, edOf, edicaoDe, ownedCount, unitsOf, missingVols, avgNota,
   anyUrg, statusMatch, initials, tintFor, isImp,
 } from '../lib/helpers.js'
 
@@ -189,21 +193,37 @@ export default function Card({ obra, index = 0, onOpen, feature = false, animarE
                 </div>
               </>
             )}
-            <div className="mt-2 sm:mt-3 flex items-center gap-1.5 sm:gap-2 flex-wrap">
+            {/* Ordem = prioridade: o que não couber em duas linhas cai no
+                "+N", então o mais importante vem primeiro. */}
+            <Selos>
               {/* sob filtro o cartão fala de um volume: o selo tem que ser o
                   desse volume, não o da série inteira */}
               {vitrine ? (
-                <span className={`pill ${vitrine.status === 'biblioteca' ? 'pill-tenho' : 'pill-quero'}`}>
+                <span key="status" className={`pill ${vitrine.status === 'biblioteca' ? 'pill-tenho' : 'pill-quero'}`}>
                   {vitrine.status === 'biblioteca' ? 'Tenho' : 'Quero'}
                 </span>
               ) : (
-                <span className={`pill ${owns ? 'pill-tenho' : 'pill-quero'}`}>
+                <span key="status" className={`pill ${owns ? 'pill-tenho' : 'pill-quero'}`}>
                   {multi && owns && owned < total ? `Tenho ${owned}/${total}` : owns ? 'Tenho' : 'Quero'}
                 </span>
               )}
-              {isImp(obra) && <span className="pill pill-imp">Importado</span>}
-              {nota > 0 && <Estrelas n={nota} />}
-            </div>
+              {/* Importado, nota e tipo da edição SÓ no desktop. No celular o
+                  cartão tem ~141px: esses três não cabem na linha e o que
+                  sobrava era um "+N" em todo cartão, que informa nada. Eles
+                  continuam inteiros no painel de detalhe, a um toque.
+                  Escondidos por CSS (display:none), não por JS: assim não é
+                  preciso um matchMedia por cartão, e o <Selos> os mede como
+                  largura zero — ou seja, no celular nunca sobra "+N". */}
+              {isImp(obra) && (
+                <span key="imp" className={SO_DESKTOP}><span className="pill pill-imp">Importado</span></span>
+              )}
+              {nota > 0 && (
+                <span key="nota" className={SO_DESKTOP}><Estrelas n={nota} /></span>
+              )}
+              {edicaoDe(obra) && (
+                <span key="edicao" className={SO_DESKTOP}><span className="pill pill-edicao">{edicaoDe(obra)}</span></span>
+              )}
+            </Selos>
           </div>
         </div>
       </div>

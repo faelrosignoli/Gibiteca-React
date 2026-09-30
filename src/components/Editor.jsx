@@ -3,6 +3,7 @@ import { MOLA_GAVETA, FADE } from '../lib/motion.js'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import { authorsOf, paisesOf, edOf, moneyToNumber, moneyFormat, tintFor, initials } from '../lib/helpers.js'
+import { TIPOS_EDICAO } from '../data.js'
 import Combo from './Combo.jsx'
 import { EstrelasInput } from './Estrelas.jsx'
 import { linkDoGuia } from '../lib/catalogo.js'
@@ -13,13 +14,13 @@ function draftFromObra(o) {
   if (!o || !o.id) {
     // 'genres' não tem mais campo na tela. Continua no rascunho só para
     // atravessar uma edição sem apagar o que já estava gravado em obra.tags.
-    return { id: null, tipo: 'avulso', nome: '', origem: 'nacional', editora: '', pais: '', genres: [], img: '', resenha: '',
+    return { id: null, tipo: 'avulso', nome: '', origem: 'nacional', editora: '', pais: '', genres: [], img: '', resenha: '', tipoEdicao: '',
       roteirista: '', desenhista: '', status: 'wishlist', urgencia: false, valorPago: 0, lido: false, nota: 0, vols: [] }
   }
   const tipo = o.tipo === 'avulsa' ? 'avulso' : (o.tipo || (o.volumes ? 'serie' : 'avulso'))
   return {
     id: o.id, tipo, nome: o.nome || '', origem: o.origem || (o.editoraBR ? 'nacional' : 'importado'),
-    editora: edOf(o), pais: o.pais || '', genres: Array.isArray(o.tags) ? o.tags.slice() : [],
+    editora: edOf(o), pais: o.pais || '', genres: Array.isArray(o.tags) ? o.tags.slice() : [], tipoEdicao: o.tipoEdicao || '',
     img: o.imagem || '', resenha: o.resenha || '',
     roteirista: o.roteirista || '', desenhista: o.desenhista || '',
     status: o.status || 'wishlist', urgencia: !!o.urgencia, valorPago: Number(o.valorPago) || 0,
@@ -53,7 +54,7 @@ function CheckTile({ checked, onChange, danger, children }) {
 }
 
 /* ---------- painel de volume ---------- */
-function VolPanel({ v, i, withCover, autores, onChange, onCopyAll, onCover }) {
+function VolPanel({ v, i, withCover, autores, onChange, onCopyAll, onCover, onRemover, podeRemover }) {
   const owned = v.status === 'biblioteca'
   const fileRef = useRef(null)
   const set = (patch) => onChange(i, patch)
@@ -123,6 +124,17 @@ function VolPanel({ v, i, withCover, autores, onChange, onCopyAll, onCover }) {
               ) : <div />}
             </>
           )}
+          {/* Apagar UM volume, sem ter que refazer a série inteira. Fica
+              separado dos "copiar p/ todos" e em rust: é a única ação aqui
+              que destrói dado. */}
+          {podeRemover && (
+            <div className="col-span-2 pt-1 border-t border-linha mt-1">
+              <button type="button" onClick={() => onRemover(i)}
+                className="text-apoio font-semibold text-rust underline underline-offset-2 hover:opacity-80">
+                Excluir este volume
+              </button>
+            </div>
+          )}
           <div className="col-span-2 flex flex-wrap gap-1.5 pt-0.5">
             {['roteirista', 'desenhista', 'status'].map(f => (
               <button key={f} type="button" onClick={() => onCopyAll(i, f)}
@@ -158,6 +170,11 @@ export default function Editor({ target, onClose, onSaved }) {
     if ((t === 'box' || t === 'serie') && (!s.vols || !s.vols.length)) next.vols = [emptyVol()]
     return next
   })
+  /* Tira UM volume da lista. A quantidade acompanha sozinha — o campo
+     "quantidade de volumes" le d.vols.length —, entao nao ha dois numeros
+     para manter em sincronia. */
+  const removerVol = (i) => setD(s => ({ ...s, vols: s.vols.filter((_, j) => j !== i) }))
+
   const setQtd = (n) => setD(s => {
     n = Math.max(0, Math.min(80, Number(n) || 0))
     const cur = s.vols.slice()
@@ -181,7 +198,7 @@ export default function Editor({ target, onClose, onSaved }) {
     if (!title) { alert(d.tipo === 'box' ? 'Dê um título ao box.' : d.tipo === 'serie' ? 'Dê um título à série.' : 'Dê um título à obra.'); return }
     // tags entra igualzinho como saiu — editar uma obra antiga não apaga os
     // gêneros que ela já tinha
-    const base = { id: d.id ?? nextId(), nome: title, tipo: d.tipo, origem: d.origem, editora: d.editora.trim(), pais: d.pais.trim(), tags: d.genres.slice(), resenha: d.resenha.trim() }
+    const base = { id: d.id ?? nextId(), nome: title, tipo: d.tipo, origem: d.origem, editora: d.editora.trim(), pais: d.pais.trim(), tags: d.genres.slice(), resenha: d.resenha.trim(), tipoEdicao: d.tipoEdicao || '' }
     let rec
     if (isMulti) {
       const volumes = d.vols.map((v, i) => {
@@ -299,7 +316,7 @@ export default function Editor({ target, onClose, onSaved }) {
                     )}
                     <div className="flex flex-col gap-2">
                       {d.vols.map((v, i) => (
-                        <VolPanel key={i} v={v} i={i} withCover={withCover} autores={autores} onChange={setVol} onCopyAll={copyAll} onCover={volCover} />
+                        <VolPanel key={i} v={v} i={i} withCover={withCover} autores={autores} onChange={setVol} onCopyAll={copyAll} onCover={volCover} onRemover={removerVol} podeRemover={d.vols.length > 1} />
                       ))}
                     </div>
                   </div>
@@ -353,6 +370,27 @@ export default function Editor({ target, onClose, onSaved }) {
                 <div className={`${box} col-span-2`}>
                   <label className={lbl}>Anotações / resenha</label>
                   <textarea className="field-input min-h-[80px] resize-y" rows={3} value={d.resenha} onChange={e => patch({ resenha: e.target.value })} placeholder="Escreva aqui…" />
+                </div>
+
+                {/* Formato da edição: escolha ÚNICA, e clicar na marcada
+                    desmarca — a maioria das obras não é edição especial, então
+                    precisa haver caminho de volta para "nenhuma". */}
+                <div className={`${box} col-span-2`}>
+                  <label className={lbl}>Tipo da edição</label>
+                  <div className="flex flex-wrap gap-2">
+                    {TIPOS_EDICAO.map(([v, rotulo]) => {
+                      const marcada = d.tipoEdicao === v
+                      return (
+                        <button
+                          key={v} type="button"
+                          aria-pressed={marcada}
+                          onClick={() => patch({ tipoEdicao: marcada ? '' : v })}
+                          className={`rounded-full border px-4 py-2 text-corpo font-semibold transition-colors duration-200
+                            ${marcada ? 'border-moss bg-moss text-white' : 'border-separador bg-surface text-ink-soft hover:border-moss-3 hover:text-ink'}`}
+                        >{rotulo}</button>
+                      )
+                    })}
+                  </div>
                 </div>
               </div>
 

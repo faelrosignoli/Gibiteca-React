@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { useStore } from '../lib/store.jsx'
 import {
-  edOf, tipoOf, statusMatch, avgNota, isImp, anyUrg,
+  edOf, tipoOf, statusMatch, avgNota, isImp, anyUrg, edicaoDe,
   coverOf, unidadeVitrine, urgenteNaVitrine, unitsOf, ownedCount, sumValor, fmtBRL, initials, tintFor, missingVols,
 } from '../lib/helpers.js'
 import Card from './Card.jsx'
@@ -76,6 +76,7 @@ function Ficha({ obra, index, onOpen }) {
               {tem}/{total}
             </span>
           )}
+          {edicaoDe(obra) && <span className="pill pill-edicao">{edicaoDe(obra)}</span>}
           {isImp(obra) && <span className="pill pill-imp">Importado</span>}
           {nota > 0 && <Estrelas n={nota} />}
         </div>
@@ -132,7 +133,7 @@ export default function Collection({ onOpen }) {
   return (
     <div className="mx-auto max-w-[1320px] px-3 sm:px-4 mt-4">
       {view === 'galeria'
-        ? <div className="grid gap-2.5 sm:gap-4 xl:gap-5 grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
+        ? <div className="grid gap-2.5 sm:gap-4 xl:gap-5 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
             {pageItems.map((o, i) => {
               // o destaque é a obra FIXADA, e ela foi para o começo da lista
               // no store. Sem obra fixada, nenhum cartão vira destaque.

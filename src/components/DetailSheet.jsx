@@ -5,7 +5,7 @@ import {
 } from '../lib/motion.js'
 import { useStore } from '../lib/store.jsx'
 import { linkDoGuia } from '../lib/catalogo.js'
-import { coverOf, tipoOf, edOf, authorsOf, paisesOf, unitsForStatus, avgNota, unitsOf, ownedCount, sumValor, fmtBRL, statusMatch, initials, tintFor } from '../lib/helpers.js'
+import { coverOf, tipoOf, edOf, edicaoDe, isImp, authorsOf, paisesOf, unitsForStatus, avgNota, unitsOf, ownedCount, sumValor, fmtBRL, statusMatch, initials, tintFor } from '../lib/helpers.js'
 
 function Numero({ rotulo, valor, sub, capitalizar }) {
   return (
@@ -140,6 +140,8 @@ export default function DetailSheet({ obra, onClose, onEdit }) {
                 <dl className="rounded-medio border border-linha overflow-hidden">
                   {[
                     ['Tipo', tipoOf(obra)],
+                    ['Edição', edicaoDe(obra)],
+                    ['Origem', isImp(obra) ? 'Importado' : 'Nacional'],
                     ['País', paisesOf(obra).join(', ')],
                     ['Autores', authorsOf(obra).join(', ')],
                     multi ? ['Volumes', `${ownedCount(obra)} de ${unidades}`] : null,
