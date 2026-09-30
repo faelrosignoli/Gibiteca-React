@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790700412879,
- "updated": "2026-09-29T16:46:52.879Z",
+ "atualizadoEm": 1790742320463,
+ "updated": "2026-09-30T04:25:20.463Z",
  "obras": [
   {
    "id": 1,
@@ -8285,14 +8285,73 @@
   },
   {
    "id": 498,
-   "nome": "Sandman Integral",
+   "nome": "Sandman Absolute",
    "tipo": "serie",
-   "imagem": null,
+   "origem": "nacional",
+   "editora": "Panini",
+   "pais": "EUA",
+   "tags": [],
+   "resenha": "",
    "volumes": [
     {
-     "nome": "Sandman Integral",
+     "nome": "Sandman - Vol. 1",
      "imagem": null,
-     "roteirista": "",
+     "roteirista": "Neil Gaiman",
+     "desenhista": "",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "Sandman - Vol. 2",
+     "imagem": null,
+     "roteirista": "Neil Gaiman",
+     "desenhista": "",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "Sandman - Vol. 3",
+     "imagem": null,
+     "roteirista": "Neil Gaiman",
+     "desenhista": "",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "Sandman - Vol. 4",
+     "imagem": null,
+     "roteirista": "Neil Gaiman",
+     "desenhista": "",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "Sandman - Vol. 5",
+     "imagem": null,
+     "roteirista": "Neil Gaiman",
+     "desenhista": "",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "Sandman - Vol. 6",
+     "imagem": null,
+     "roteirista": "Neil Gaiman",
      "desenhista": "",
      "status": "wishlist",
      "urgencia": false,
@@ -8301,9 +8360,7 @@
      "nota": 0
     }
    ],
-   "origem": "nacional",
-   "editora": "Panini",
-   "pais": "",
+   "imagem": null,
    "roteirista": "",
    "desenhista": "",
    "status": "wishlist",
