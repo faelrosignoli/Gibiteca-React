@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790776180527,
- "updated": "2026-09-30T13:49:40.527Z",
+ "atualizadoEm": 1790776281282,
+ "updated": "2026-09-30T13:51:21.282Z",
  "obras": [
   {
    "id": 1,
@@ -2454,16 +2454,19 @@
   },
   {
    "id": 150,
-   "nome": "Borgia",
+   "nome": "Bórgia",
    "tipo": "avulso",
-   "imagem": null,
-   "roteirista": "Alejandro Jodorowsky",
-   "desenhista": "Milo Manara",
    "origem": "nacional",
    "editora": "Pipoca & Nanquim",
    "pais": "França",
-   "urgencia": false,
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "integral",
+   "imagem": null,
+   "roteirista": "Alejandro Jodorowsky",
+   "desenhista": "Milo Manara",
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
