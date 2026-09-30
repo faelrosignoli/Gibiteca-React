@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790776988658,
- "updated": "2026-09-30T14:03:08.658Z",
+ "atualizadoEm": 1790784563306,
+ "updated": "2026-09-30T16:09:23.306Z",
  "obras": [
   {
    "id": 1,
@@ -11909,6 +11909,104 @@
    "imagem": null,
    "roteirista": "Alan Moore",
    "desenhista": "Dave Gibbons",
+   "status": "wishlist",
+   "urgencia": false,
+   "valorPago": 0,
+   "lido": false,
+   "nota": 0
+  },
+  {
+   "id": 572,
+   "nome": "Lucky Luke",
+   "tipo": "serie",
+   "origem": "nacional",
+   "editora": "Zarabatana Books",
+   "pais": "Bélgica",
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
+   "volumes": [
+    {
+     "nome": "Lucky Luke - Vol. 1",
+     "imagem": null,
+     "roteirista": "Morris",
+     "desenhista": "Morris",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "Lucky Luke - Vol. 2",
+     "imagem": null,
+     "roteirista": "René Goscinny",
+     "desenhista": "Morris",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "Lucky Luke - Vol. 3",
+     "imagem": null,
+     "roteirista": "René Goscinny",
+     "desenhista": "Morris",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "Lucky Luke - Vol. 4",
+     "imagem": null,
+     "roteirista": "René Goscinny",
+     "desenhista": "Morris",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "Lucky Luke - Vol. 5",
+     "imagem": null,
+     "roteirista": "René Goscinny",
+     "desenhista": "Morris",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "Lucky Luke - Vol. 6",
+     "imagem": null,
+     "roteirista": "René Goscinny",
+     "desenhista": "Morris",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "Lucky Luke - Vol. 7",
+     "imagem": null,
+     "roteirista": "René Goscinny",
+     "desenhista": "Morris",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    }
+   ],
+   "imagem": null,
+   "roteirista": "",
+   "desenhista": "",
    "status": "wishlist",
    "urgencia": false,
    "valorPago": 0,
