@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790769341793,
- "updated": "2026-09-30T11:55:41.793Z",
+ "atualizadoEm": 1790769972003,
+ "updated": "2026-09-30T12:06:12.003Z",
  "obras": [
   {
    "id": 1,
@@ -9615,7 +9615,7 @@
    "id": 527,
    "nome": "A Grande Odalisca",
    "tipo": "serie",
-   "origem": "nacional",
+   "origem": "importado",
    "editora": "Pipoca & Nanquim",
    "pais": "França",
    "tags": [],
@@ -9644,7 +9644,7 @@
      "nota": 2
     }
    ],
-   "imagem": "https://raw.githubusercontent.com/faelrosignoli/Gibiteca-React/main/covers/a-grande-odalisca-527.jpg",
+   "imagem": "https://raw.githubusercontent.com/faelrosignoli/Gibiteca-React/main/covers/a-grande-odalisca-527-v1.jpg",
    "roteirista": "",
    "desenhista": "",
    "status": "wishlist",
