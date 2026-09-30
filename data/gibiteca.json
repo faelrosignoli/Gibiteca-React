@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790776281282,
- "updated": "2026-09-30T13:51:21.282Z",
+ "atualizadoEm": 1790776297935,
+ "updated": "2026-09-30T13:51:37.935Z",
  "obras": [
   {
    "id": 1,
@@ -8565,7 +8565,12 @@
    "id": 503,
    "nome": "Blueberry",
    "tipo": "serie",
-   "imagem": null,
+   "origem": "nacional",
+   "editora": "Pipoca & Nanquim",
+   "pais": "França",
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "definitiva",
    "volumes": [
     {
      "nome": "Blueberry — Vol. 1",
@@ -8612,9 +8617,7 @@
      "nota": 0
     }
    ],
-   "origem": "nacional",
-   "editora": "Pipoca & Nanquim",
-   "pais": "França",
+   "imagem": null,
    "roteirista": "",
    "desenhista": "",
    "status": "wishlist",
