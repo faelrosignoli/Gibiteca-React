@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790776123975,
- "updated": "2026-09-30T13:48:43.975Z",
+ "atualizadoEm": 1790776131977,
+ "updated": "2026-09-30T13:48:51.977Z",
  "obras": [
   {
    "id": 1,
@@ -2279,13 +2279,14 @@
   },
   {
    "id": 140,
-   "nome": "Watchmen Absoluta",
+   "nome": "Watchmen",
    "tipo": "avulso",
    "origem": "nacional",
    "editora": "Panini",
    "pais": "Reino Unido",
    "tags": [],
    "resenha": "",
+   "tipoEdicao": "absoluta",
    "imagem": null,
    "roteirista": "Alan Moore",
    "desenhista": "Dave Gibbons",
