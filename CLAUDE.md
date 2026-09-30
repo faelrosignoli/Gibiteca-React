@@ -677,9 +677,9 @@ desenhista continuam em `text-apoio`.
   - Movimento: `--ease-prem` = `cubic-bezier(.32,.72,0,1)` a 700ms.
 
 ### Tipo da edição
-`data.js` guarda `TIPOS_EDICAO` (absoluta, definitiva, integral, bolso) como
-pares `[valor, rótulo]` — a obra grava a **chave**, a tela mostra o rótulo, e
-renomear um rótulo não reescreve a coleção. `edicaoDe(obra)` traduz.
+`data.js` guarda `TIPOS_EDICAO` (absoluta, definitiva, integral, omnibus,
+bolso) como pares `[valor, rótulo]` — a obra grava a **chave**, a tela mostra
+o rótulo, e renomear um rótulo não reescreve a coleção. `edicaoDe(obra)` traduz.
 
 **Escolha única, com volta.** No Editor são pílulas, não caixas: uma obra tem
 um formato só. Clicar na marcada **desmarca** — a maioria das edições não é
