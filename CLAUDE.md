@@ -34,7 +34,7 @@ src/
   data.js                  # SOMENTE listas de apoio: EDITORAS e GENRES (nenhuma obra embutida)
   lib/
     store.jsx              # StoreProvider (contexto global): obras, filtros, paginação, persistência, nuvem
-    helpers.js             # funções puras: coverOf, unitsOf, tipoOf, edOf, statusMatch, avgNota, canon, slugify, fmtBRL, moneyToNumber/Format, tintFor, initials...
+    helpers.js             # funções puras: coverOf, unitsOf, tipoOf, edOf, edicaoDe, statusMatch, avgNota, canon, slugify, fmtBRL, moneyToNumber/Format, tintFor, initials...
     cloud.js               # GitHub Contents API: ghCheckRepo, ghGet, ghPut, b64enc/dec, guessRepo
     motion.js              # tokens de movimento: molas, projeção de momento, elástico das bordas, hooks de viewport e movimento reduzido
   components/
@@ -43,11 +43,11 @@ src/
     SearchOverlay.jsx      # busca em pop-up (backdrop desfocado)
     Collection.jsx         # grade (Card) + Lista (Ficha) + estado vazio; usa Pagination
     Card.jsx               # card 3D (tilt), sombra dura, selos; SEM brilho de cursor
+    Selos.jsx              # linha de selos do card com teto de 2 linhas e pílula "+N"
     Ticker.jsx, Pagination.jsx, Footer.jsx   (Marquee e Resumo foram removidos)
     FiltersDrawer.jsx      # gaveta de filtros (grid content-start para não esticar as linhas)
     DetailSheet.jsx        # painel de detalhe; botão Editar; grade de capas por volume
-    Editor.jsx             # cadastro/edição/exclusão (avulso, box, série) + VolPanel + CheckTile + GenrePicker
-    GenrePicker.jsx        # sub-modal de seleção de gêneros
+    Editor.jsx             # cadastro/edição/exclusão (avulso, box, série) + VolPanel + CheckTile
     Stats.jsx              # painel de estatísticas (KPIs, médias, histograma, barras) com escopo
     Cloud.jsx              # modal de conexão/sincronização com o GitHub
     BulkCovers.jsx         # envio de capas em massa (casa por nome, sobe p/ covers/)
@@ -315,6 +315,25 @@ Duas decisões: **roteirista e desenhista viram uma frase só** ("a autoria"),
 porque é assim que se lê; e **o texto da anotação não vai para o histórico**,
 só o fato de ter mudado — o commit é público.
 
+### Leva grande: o título resume, o detalhe fica fechado
+Subir 110 capas gerava "110 alterações na coleção" e despejava 110 fichas na
+tela — a linha do tempo deixava de servir para olhar de relance, que é para
+o que ela existe.
+
+Duas correções:
+
+1. **`resumoDe`**: quando a leva inteira é do mesmo tipo, o título diz o que
+   foi feito — `Subiu 110 capas para a nuvem`. Tipos misturados voltam para
+   `N alterações na coleção`, e uma mudança só continua sendo o próprio texto.
+2. **A entrada abre sob demanda** (`Entrada` em `Atividades.jsx`): fechada por
+   padrão, com `N itens` no rótulo. Entrada sem detalhe não vira botão — não
+   há o que abrir.
+
+**As capas são comparadas volume a volume**, não por `coverOf`: numa série ele
+só olha o volume 1, então mover a capa dos outros caía no genérico "Editou" —
+foi o que encheu o histórico de 110 linhas iguais. E `data:` → endereço é tipo
+próprio (`capa-nuvem`): é arrumação, não capa nova.
+
 ### Barras das estatísticas empilham sempre
 O rótulo tinha 120px fixos e o número 86px. Sobravam ~100px de barra no
 celular e **78px no desktop** — pior lá, porque a partir de `sm:` os gráficos
@@ -478,7 +497,7 @@ resolve; não é um CRDT.
 As opções de cada campo saem das obras que passam por **todos os outros**
 filtros — nunca por ele mesmo. Com "Tenho" ligado, a lista de editoras mostra
 só as editoras de obras que você tem; com "Quero", só as das que faltam. Vale
-para Tipo, Editora, País e Autor.
+para Tipo, Tipo de edição, Editora, País e Autor.
 
 **Por que o campo não entra na própria conta.** Se entrasse, escolher "Panini"
 deixaria a lista de editoras só com "Panini", e não daria para trocar de ideia
@@ -657,6 +676,56 @@ desenhista continuam em `text-apoio`.
     borda `ink/10`, fundo `#FFFDF8`, sombra difusa larga.
   - Movimento: `--ease-prem` = `cubic-bezier(.32,.72,0,1)` a 700ms.
 
+### Tipo da edição
+`data.js` guarda `TIPOS_EDICAO` (absoluta, definitiva, integral, bolso) como
+pares `[valor, rótulo]` — a obra grava a **chave**, a tela mostra o rótulo, e
+renomear um rótulo não reescreve a coleção. `edicaoDe(obra)` traduz.
+
+**Escolha única, com volta.** No Editor são pílulas, não caixas: uma obra tem
+um formato só. Clicar na marcada **desmarca** — a maioria das edições não é
+especial, e sem isso faltaria uma quinta pílula "nenhuma" só para desfazer.
+A mesma regra vale no seletor de tipo dos Filtros.
+
+### Teto de duas linhas nos selos (`Selos.jsx`)
+No celular a grade é de **duas colunas** e sobram ~141px por card. Com status,
+Importado, nota e tipo da edição, a linha de selos virava quatro linhas e
+desalinhava a grade inteira. `Selos` corta em duas linhas e joga o resto numa
+pílula **"+N"**, que abre no hover e no **toque** (hover não existe em celular,
+e é lá que o corte acontece).
+
+**A ordem dos filhos é a prioridade**: o que vem primeiro é o que fica. Hoje:
+status (tenho/quero) → Importado → nota → tipo da edição.
+
+**No celular só fica o status.** Importado, nota e tipo da edição têm
+`hidden sm:inline-flex`: em ~141px eles não cabem de jeito nenhum, e o que
+sobrava era um "+N" em todo cartão — um botão que não informa nada. Os três
+continuam inteiros no painel de detalhe, a um toque. A ficha técnica do
+`DetailSheet` ganhou as linhas **Edição** e **Origem** por causa disso; a nota
+já estava nos indicadores do topo.
+
+**Escondidos por CSS, não por JS.** Um `useEhDesktop()` por cartão seria um
+`matchMedia` por cartão — com 554 obras, 554 ouvintes. Com `display:none` o
+`Selos` mede largura zero e conclui sozinho que cabe tudo, então no celular
+nunca sobra "+N". Trocar a largura da janela acerta os dois lados na hora, sem
+recarregar.
+
+**Mede, não chuta.** As larguras variam muito ("Tenho 4/12" contra "Bolso"),
+então o componente lê a largura real de cada selo e empacota em linhas,
+contando também a largura do próprio "+N" — que precisa caber junto. Uma sonda
+invisível dá essa largura antes de o "+N" existir. A primeira versão só olhava
+em que linha cada selo tinha caído e subtraía um: era pessimista e cortava na
+primeira linha quando duas cabiam.
+
+**O `ResizeObserver` só reage à LARGURA.** Reagir à altura seria um laço:
+esconder selos encolhe a caixa, o que dispararia outra medição, que os
+mostraria de novo.
+
+### Excluir um volume só
+`VolPanel` tem "Excluir este volume" (rust, sublinhado, atrás de uma régua):
+é a única ação do painel que destrói dado, e fica longe dos "copiar p/ todos".
+Some quando resta **um** volume — série sem volume nenhum não é um estado que
+valha a pena existir. A quantidade acompanha sozinha.
+
 ## Convenções de componentes
 - Componentes funcionais, um por arquivo, export default. Estado local via hooks;
   estado global via `useStore()` (contexto). Sem libs de estado externas.
@@ -705,9 +774,21 @@ No Card é `whileTap`; nos botões é `:active` no CSS, que já dispara ao apert
   preta e **sem** fundo branco sobrando. Placeholder (sem capa): preenche o
   quadrado (`w-full h-full`) com gradiente `tintFor()` + iniciais.
   Fora da grade (Detalhe, volumes) a capa segue no formato natural livre.
+- **Grade da galeria:** `grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5`.
+  Duas colunas no celular, não três: com três sobravam ~86px úteis e todo selo
+  caía no "+N".
 - **Selos (.pill):** Tenho = `pill-tenho` (moss cheio), Quero = `pill-quero`
-  (suave), Importado = `pill-imp` (azul). Urgente = quadrado `rust` com triângulo
+  (suave), Importado = `pill-imp` (azul), tipo da edição = `pill-edicao` (gold). Urgente = quadrado `rust` com triângulo
   branco (SVG), no canto superior direito da capa.
+- **Seletor de segmentos (`Seg`, em `FiltersDrawer`):** duas variantes. A
+  normal marca com **moss cheio** (Todos/Tenho/Quero, Leitura). A `claro` marca
+  com **pastilha branca sobre trilha de papel**, com contorno moss — usada no
+  Tipo (Avulsos/Boxes/Séries), que fica logo abaixo do status: dois seletores
+  verdes empilhados brigariam pela atenção. A variante clara precisa de folga
+  (`p-1`) e `rounded-full` no botão, senão o contorno do marcado bate no
+  arredondado da trilha e sai cortado nas pontas.
+  Tipo sem nenhuma obra no recorte atual fica **visível e apagado**, não some:
+  sumir mudaria a largura dos outros dois a cada filtro.
 - **Editor:** campos em grid 2 colunas, **todos com rótulo** para alinhar em
   linha e coluna. Urgente e Lido são **checkbox** (componente `CheckTile`,
   altura 42px = a dos inputs), nunca seletores Sim/Não. Nota (estrelas) só
