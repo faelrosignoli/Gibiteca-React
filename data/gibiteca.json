@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790784881906,
- "updated": "2026-09-30T16:14:41.906Z",
+ "atualizadoEm": 1790785108901,
+ "updated": "2026-09-30T16:18:28.901Z",
  "obras": [
   {
    "id": 1,
@@ -12061,6 +12061,25 @@
    "imagem": null,
    "roteirista": "",
    "desenhista": "",
+   "status": "wishlist",
+   "urgencia": false,
+   "valorPago": 0,
+   "lido": false,
+   "nota": 0
+  },
+  {
+   "id": 574,
+   "nome": "Contraponto",
+   "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Comix Zone",
+   "pais": "Brasil",
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
+   "imagem": null,
+   "roteirista": "Teresa Valero",
+   "desenhista": "Teresa Valero",
    "status": "wishlist",
    "urgencia": false,
    "valorPago": 0,
