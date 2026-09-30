@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790784563306,
- "updated": "2026-09-30T16:09:23.306Z",
+ "atualizadoEm": 1790784881906,
+ "updated": "2026-09-30T16:14:41.906Z",
  "obras": [
   {
    "id": 1,
@@ -11997,6 +11997,60 @@
      "imagem": null,
      "roteirista": "René Goscinny",
      "desenhista": "Morris",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    }
+   ],
+   "imagem": null,
+   "roteirista": "",
+   "desenhista": "",
+   "status": "wishlist",
+   "urgencia": false,
+   "valorPago": 0,
+   "lido": false,
+   "nota": 0
+  },
+  {
+   "id": 573,
+   "nome": "A Parte Extraordinaria",
+   "tipo": "serie",
+   "origem": "nacional",
+   "editora": "Zarabatana Books",
+   "pais": "França",
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
+   "volumes": [
+    {
+     "nome": "A Parte Extraordinária: 1 - As Mãos de Orsay",
+     "imagem": null,
+     "roteirista": "Florent Ruppert / Jérôme Mulot",
+     "desenhista": "Florent Ruppert / Jérôme Mulot",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "A Parte Extraordinária: 2 - Os Olhos de Juliette",
+     "imagem": null,
+     "roteirista": "Florent Ruppert / Jérôme Mulot",
+     "desenhista": "Florent Ruppert / Jérôme Mulot",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "A Parte Extraordinária: 3 - A Cabeça de Melek",
+     "imagem": null,
+     "roteirista": "Florent Ruppert / Jérôme Mulot",
+     "desenhista": "Florent Ruppert / Jérôme Mulot",
      "status": "wishlist",
      "urgencia": false,
      "valorPago": 0,
