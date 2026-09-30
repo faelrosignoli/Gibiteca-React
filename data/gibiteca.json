@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790776297935,
- "updated": "2026-09-30T13:51:37.935Z",
+ "atualizadoEm": 1790776347876,
+ "updated": "2026-09-30T13:52:27.876Z",
  "obras": [
   {
    "id": 1,
@@ -3356,6 +3356,7 @@
    "pais": "",
    "tags": [],
    "resenha": "",
+   "tipoEdicao": "definitiva",
    "imagem": "https://raw.githubusercontent.com/faelrosignoli/Gibiteca-React/main/covers/undertaker-206.jpg",
    "roteirista": "Xavier Dorison",
    "desenhista": "Ralph Meyer / Caroline Delabie",
