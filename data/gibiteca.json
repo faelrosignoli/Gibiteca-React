@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790776107548,
- "updated": "2026-09-30T13:48:27.548Z",
+ "atualizadoEm": 1790776123975,
+ "updated": "2026-09-30T13:48:43.975Z",
  "obras": [
   {
    "id": 1,
@@ -8271,13 +8271,14 @@
   },
   {
    "id": 498,
-   "nome": "Sandman Absoluta",
+   "nome": "Sandman",
    "tipo": "serie",
    "origem": "nacional",
    "editora": "Panini",
    "pais": "EUA",
    "tags": [],
    "resenha": "",
+   "tipoEdicao": "absoluta",
    "volumes": [
     {
      "nome": "Sandman - Vol. 1",
