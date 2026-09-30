@@ -1,2 +1,11 @@
 // Listas fixas do app (idênticas à versão HTML)
 export const EDITORAS = ["2000 AD / Rebellion","Abrams ComicArts","Abril","AfterShock","Akita Shoten","Aleph","Ankama","Archie Comics","Astiberri","AVEC Editora","Balão Editorial","Bamboo","Bang! Ediciones","Bao Publishing","Bendito Editora","Black Mask Studios","BOOM! Studios","Brasa","Carlsen Comics","Casterman","Coconino Press","Comix Zone","Companhia das Letras","Conrad","Cornélius","Dargaud","Dark Horse Comics","DarkSide","DC Comics","Devir","Draco","Drawn & Quarterly","Dupuis","Dynamite Entertainment","Eaglemoss","EBAL","ECC Ediciones","Ediciones de la Flor","Ediouro","Editora Globo","Estúdio Voo","Fantagraphics","Figura","First Second","Futabasha","Futuropolis","Fábrica de Quadrinhos","Gallimard BD","Gato Amarelo","Glénat","Hakusensha","HQueria","Humanoids","IDW Publishing","Image Comics","Intrínseca","JBC","Jupati Books","Kadokawa","Kana","Kimera","Kodansha","Kodansha USA","L&PM","L'Association","La Cúpula","Le Lombard","Les Humanoïdes Associés","Lote 42","Marsupial","Marvel Comics","MG Quadrinhos","Mino","Mythos","Nemo","NewPOP","Norma Editorial","Nova Sampa","Numa Editora","Oni Press","Panini","Panini Comics","Peirópolis","Pika Édition","Pipoca & Nanquim","Piticas","Pixel","Planeta Cómic","Pólen","QS Comics","Quadrinhos na Cia.","Record","Retina 78","Risco","Rue de Sèvres","Salvat","Sapo Comics","Seguinte","Sergio Bonelli Editore","SESI-SP","Seven Seas Entertainment","Shogakukan","Shueisha","Skript","Skybound","Soleil","Square Enix","Star Comics","Suma","Taverna do Rei","Titan Comics","Todavia","Tokyopop","Top Shelf","Trem Fantasma","Tábula","Ugra Press","Valiant","Vault Comics","Veneta","Vermelho Marinho","Vertical","Vertigo","Viz Media","WMF Martins Fontes","Yen Press","Zarabatana Books","Éditions Delcourt"];
+
+/* Formato da edição. Escolha única: uma obra é Absoluta OU Integral, nunca
+   as duas. O valor guardado é a chave; o rótulo é só para a tela. */
+export const TIPOS_EDICAO = [
+  ['absoluta', 'Absoluta'],
+  ['definitiva', 'Definitiva'],
+  ['integral', 'Integral'],
+  ['bolso', 'Bolso'],
+]

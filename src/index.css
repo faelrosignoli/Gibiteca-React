@@ -76,6 +76,9 @@ body {
   .pill-tenho { @apply bg-moss text-white; }
   .pill-quero { @apply bg-paper-2 text-ink-soft border border-moss-line; }
   .pill-imp   { @apply bg-blue text-white; }
+  /* tipo da edicao: cor propria, para nao competir com Tenho (moss) nem com
+     Importado (blue) — sao tres coisas diferentes na mesma linha */
+  .pill-edicao { @apply bg-tinta-gold text-ink border border-gold; }
 
   /* select estilizado com seta */
   .field-input {
