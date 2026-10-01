@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790861197329,
- "updated": "2026-10-01T13:26:37.329Z",
+ "atualizadoEm": 1790861234899,
+ "updated": "2026-10-01T13:27:14.899Z",
  "obras": [
   {
    "id": 1,
@@ -12299,7 +12299,7 @@
    "pais": "EUA",
    "tags": [],
    "resenha": "",
-   "tipoEdicao": "",
+   "tipoEdicao": "absoluta",
    "volumes": [
     {
      "nome": "Monstro Do Pântano - Vol. 1",
