@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790862191581,
- "updated": "2026-10-01T13:43:11.581Z",
+ "atualizadoEm": 1790862312446,
+ "updated": "2026-10-01T13:45:12.446Z",
  "obras": [
   {
    "id": 1,
@@ -12395,6 +12395,25 @@
    "imagem": null,
    "roteirista": "Denny O' Neil / Elliot S. Maggin",
    "desenhista": "Neal Adams / Cory Adams / Frank Giacoia / Dan Adkins / Dick Giordano / Bernie Wrightson / Alan Lee Weiss /",
+   "status": "wishlist",
+   "urgencia": false,
+   "valorPago": 0,
+   "lido": false,
+   "nota": 0
+  },
+  {
+   "id": 588,
+   "nome": "Monstro do Pântano",
+   "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Panini",
+   "pais": "EUA",
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "absoluta",
+   "imagem": null,
+   "roteirista": "Len Wein",
+   "desenhista": "Bernie Wrightson / José Villarrubia / Tatjana Wood / Glynis Oliver-Wein / Jeff Jones / Nestor Redondo",
    "status": "wishlist",
    "urgencia": false,
    "valorPago": 0,
