@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import logo from '../assets/logo.png'
 
 /* Tela de abertura.
@@ -19,21 +19,16 @@ import logo from '../assets/logo.png'
 export default function Abertura({ aberto }) {
   return (
     <>
-      {/* o fundo é quem desaparece; a marca não desaparece, ela viaja */}
-      <AnimatePresence>
-        {aberto && (
-          <motion.div
-            key="fundo-abertura"
-            // pointer-events-none por garantia: se um dia o fade não
-            // terminar, o fundo fica visível mas não sequestra o clique
-            className="fixed inset-0 z-[95] bg-paper pointer-events-none"
-            initial={{ opacity: 1 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.34, ease: [0.32, 0.72, 0, 1] }}
-          />
-        )}
-      </AnimatePresence>
+      {/* O fundo é quem desaparece; a marca não desaparece, ela viaja.
+       *
+       * Fica SEMPRE montado, e some por transição de CSS (`.veu-abertura`).
+       * Era um `AnimatePresence` com fade em JS, e isso dava a tela branca:
+       * se a thread principal travasse durante os 340ms — recarregar no meio
+       * de uma sincronia de 4 MB trava —, o fade parava no meio, nunca
+       * "terminava", e o AnimatePresence segurava a camada creme montada
+       * cobrindo o app inteiro. Sem presença condicional não há o que
+       * segurar. */}
+      <div className="veu-abertura" data-fora={aberto ? '0' : '1'} aria-hidden="true" />
 
       {aberto && (
         <div className="fixed inset-0 z-[96] flex items-center justify-center pointer-events-none">

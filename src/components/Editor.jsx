@@ -5,6 +5,7 @@ import { useStore } from '../lib/store.jsx'
 import { authorsOf, paisesOf, edOf, moneyToNumber, moneyFormat, tintFor, initials } from '../lib/helpers.js'
 import { TIPOS_EDICAO } from '../data.js'
 import Combo from './Combo.jsx'
+import Pessoas from './Pessoas.jsx'
 import { EstrelasInput } from './Estrelas.jsx'
 import { linkDoGuia } from '../lib/catalogo.js'
 
@@ -27,6 +28,71 @@ function draftFromObra(o) {
     lido: !!o.lido, nota: Number(o.nota) || 0,
     vols: Array.isArray(o.volumes) ? o.volumes.map(v => ({ ...emptyVol(), ...v, _open: false })) : [],
   }
+}
+
+/* ---------- ícones ----------
+   Um traço só para todos: 24 de viewBox, contorno de 2, pontas arredondadas.
+   Todo botão de ícone leva title + aria-label: o desenho dá o substantivo,
+   o rótulo ao lado dá o verbo, e o leitor de tela recebe a frase inteira. */
+const svg = { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }
+const IconLixeira = () => (
+  <svg className="w-[15px] h-[15px]" {...svg}>
+    <path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+  </svg>
+)
+const IconAutor = () => (                      /* caneta = quem escreve */
+  <svg className="w-[15px] h-[15px]" {...svg}>
+    <path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" />
+  </svg>
+)
+/* Paleta, e não pincel: pincel e caneta viram o mesmo risco diagonal a 15px, e
+   trocar um pelo outro aqui sobrescreve o campo em TODOS os volumes. A silhueta
+   redonda não se confunde com nada mais da barra. */
+const IconArtista = () => (
+  <svg className="w-[15px] h-[15px]" {...svg}>
+    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.9 0 1.6-.7 1.6-1.7 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1a1.6 1.6 0 0 1 1.6-1.7h2c3 0 5.6-2.5 5.6-5.5C22 6 17.5 2 12 2z" />
+    <circle cx="8.5" cy="7.5" r=".6" fill="currentColor" />
+    <circle cx="13.5" cy="6.5" r=".6" fill="currentColor" />
+    <circle cx="17.5" cy="10.5" r=".6" fill="currentColor" />
+    <circle cx="6.5" cy="12.5" r=".6" fill="currentColor" />
+  </svg>
+)
+const IconStatus = () => (                     /* marcador = tenho/quero */
+  <svg className="w-[15px] h-[15px]" {...svg}>
+    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+  </svg>
+)
+const IconEnviar = () => (
+  <svg className="w-[15px] h-[15px]" {...svg}>
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <path d="M17 8l-5-5-5 5" /><path d="M12 3v12" />
+  </svg>
+)
+
+function BotaoIcone({ children, perigo, ...resto }) {
+  return (
+    <button type="button" {...resto}
+      className={`w-9 h-9 shrink-0 rounded-full border flex items-center justify-center transition-colors duration-200
+        ${perigo
+          ? 'border-separador text-rust hover:border-rust hover:bg-tinta-rust'
+          : 'border-separador text-ink-faint hover:border-moss-3 hover:text-moss hover:bg-tinta-moss'}`}
+    >{children}</button>
+  )
+}
+
+/* Cabeçalho de seção. O formulário tinha quinze campos em fila única, todos
+   com o mesmo peso — dava para rolar a tela inteira sem saber onde um assunto
+   terminava e o outro começava. O fio puxa o olho até a margem direita. */
+function Secao({ titulo, children }) {
+  return (
+    <section className="col-span-2">
+      <h4 className="font-mono text-rotulo uppercase font-bold text-moss flex items-center gap-2.5 mb-2">
+        {titulo}<span className="flex-1 h-px bg-linha" />
+      </h4>
+      <div className="grid grid-cols-2 gap-x-3 gap-y-3">{children}</div>
+    </section>
+  )
 }
 
 /* ---------- pequenos controles ---------- */
@@ -80,18 +146,25 @@ function VolPanel({ v, i, withCover, autores, onChange, onCopyAll, onCover, onRe
                   ? <img src={v.imagem} alt="" className="h-[80px] w-auto max-w-[86px] rounded-pequeno shadow-[0_7px_18px_-8px_rgba(35,39,28,.5)] shrink-0" />
                   : <div className="w-14 h-[74px] rounded-pequeno flex items-center justify-center font-display text-obra text-white shrink-0" style={{ background: tintFor(v.nome || 'v') }}>{initials(v.nome || (i + 1) + '')}</div>}
                 <input ref={fileRef} type="file" accept="image/*" hidden onChange={e => onCover(i, e)} />
-                <button type="button" className="neo-btn !text-apoio" onClick={() => fileRef.current?.click()}>Enviar…</button>
-                {v.imagem && <button type="button" className="text-apoio text-rust underline" onClick={() => set({ imagem: null })}>remover</button>}
+                <button type="button" className="neo-btn !text-apoio !py-2" onClick={() => fileRef.current?.click()}>
+                  <IconEnviar />Enviar…
+                </button>
+                {v.imagem && (
+                  <BotaoIcone perigo onClick={() => set({ imagem: null })}
+                    title="Tirar a capa deste volume" aria-label="Tirar a capa deste volume">
+                    <IconLixeira />
+                  </BotaoIcone>
+                )}
               </div>
             </div>
           )}
-          <div className={box}>
-            <label className={lbl}>Autor / Roteirista</label>
-            <Combo multi options={autores} value={v.roteirista} onChange={x => set({ roteirista: x })} placeholder="Use / p/ separar" />
+          <div className={`${box} col-span-2 sm:col-span-1`}>
+            <label className={lbl}>Autor</label>
+            <Pessoas options={autores} value={v.roteirista} onChange={x => set({ roteirista: x })} placeholder="Nome e Enter" />
           </div>
-          <div className={box}>
-            <label className={lbl}>Desenhista / Colorista / Finalista</label>
-            <Combo multi options={autores} value={v.desenhista} onChange={x => set({ desenhista: x })} placeholder="Use / p/ separar" />
+          <div className={`${box} col-span-2 sm:col-span-1`}>
+            <label className={lbl}>Artista</label>
+            <Pessoas options={autores} value={v.desenhista} onChange={x => set({ desenhista: x })} placeholder="Nome e Enter" />
           </div>
           <div className={box}>
             <label className={lbl}>Status</label>
@@ -124,24 +197,31 @@ function VolPanel({ v, i, withCover, autores, onChange, onCopyAll, onCover, onRe
               ) : <div />}
             </>
           )}
-          {/* Apagar UM volume, sem ter que refazer a série inteira. Fica
-              separado dos "copiar p/ todos" e em rust: é a única ação aqui
-              que destrói dado. */}
-          {podeRemover && (
-            <div className="col-span-2 pt-1 border-t border-linha mt-1">
-              <button type="button" onClick={() => onRemover(i)}
-                className="text-apoio font-semibold text-rust underline underline-offset-2 hover:opacity-80">
-                Excluir este volume
-              </button>
-            </div>
-          )}
-          <div className="col-span-2 flex flex-wrap gap-1.5 pt-0.5">
-            {['roteirista', 'desenhista', 'status'].map(f => (
-              <button key={f} type="button" onClick={() => onCopyAll(i, f)}
- className="text-apoio font-semibold text-moss border border-separador rounded-full px-2.5 py-1 hover:bg-paper-2">
-                copiar {f} p/ todos
-              </button>
-            ))}
+          {/* Uma barra só para as ações do volume: repetir à esquerda, apagar
+              à direita, separadas pelo vão. Eram quatro botões de texto em
+              duas fileiras, com "copiar roteirista p/ todos" ocupando mais
+              largura do que o campo que ele copia.
+              O rótulo fica à vista de propósito: ícone sozinho vira charada,
+              e em celular não existe o balãozinho do title para salvar. */}
+          <div className="col-span-2 flex items-center gap-1.5 pt-2 mt-1 border-t border-linha">
+            <span className="font-mono text-rotulo uppercase text-ink-faint mr-0.5">Copiar p/ todos</span>
+            <BotaoIcone onClick={() => onCopyAll(i, 'roteirista')}
+              title="Copiar o autor deste volume para todos os volumes"
+              aria-label="Copiar o autor deste volume para todos os volumes"><IconAutor /></BotaoIcone>
+            <BotaoIcone onClick={() => onCopyAll(i, 'desenhista')}
+              title="Copiar o artista deste volume para todos os volumes"
+              aria-label="Copiar o artista deste volume para todos os volumes"><IconArtista /></BotaoIcone>
+            <BotaoIcone onClick={() => onCopyAll(i, 'status')}
+              title="Copiar o status deste volume para todos os volumes"
+              aria-label="Copiar o status deste volume para todos os volumes"><IconStatus /></BotaoIcone>
+
+            <span className="flex-1" />
+
+            {/* a única ação da barra que destrói dado: rust, e longe das outras */}
+            {podeRemover && (
+              <BotaoIcone perigo onClick={() => onRemover(i)}
+                title="Excluir este volume" aria-label="Excluir este volume"><IconLixeira /></BotaoIcone>
+            )}
           </div>
         </div>
       )}
@@ -251,88 +331,128 @@ export default function Editor({ target, onClose, onSaved }) {
                 <button className="neo-icon !w-9 !h-9" onClick={onClose}>×</button>
               </div>
 
-              <div className="flex-1 overflow-auto px-5 py-4 grid grid-cols-2 gap-x-3 gap-y-3">
-                <div className={`${box} col-span-2`}>
-                  <label className={lbl}>Tipo de cadastro</label>
-                  <Switch options={[['avulso', 'Avulso'], ['box', 'Box'], ['serie', 'Série']]} value={d.tipo} onChange={setTipo} />
-                </div>
+              <div className="flex-1 overflow-auto px-5 py-4 grid grid-cols-2 gap-x-3 gap-y-5">
+                <Secao titulo="Cadastro">
+                  <div className={`${box} col-span-2`}>
+                    <label className={lbl}>Tipo de cadastro</label>
+                    <Switch options={[['avulso', 'Avulso'], ['box', 'Box'], ['serie', 'Série']]} value={d.tipo} onChange={setTipo} />
+                  </div>
 
-                <div className={`${box} col-span-2`}>
-                  <label className={lbl}>{d.tipo === 'box' ? 'Título do box' : d.tipo === 'serie' ? 'Título da série' : 'Título'}</label>
-                  <div className="flex gap-2">
-                    <input className="field-input flex-1" value={d.nome} onChange={e => patch({ nome: e.target.value })}
+                  <div className={`${box} col-span-2`}>
+                    <label className={lbl}>{d.tipo === 'box' ? 'Título do box' : d.tipo === 'serie' ? 'Título da série' : 'Título'}</label>
+                    <input className="field-input" value={d.nome} onChange={e => patch({ nome: e.target.value })}
                       placeholder={d.tipo === 'box' ? 'Nome do box / coleção' : d.tipo === 'serie' ? 'Nome da série' : 'Nome da obra'} />
-                    {/* o Guia não tem API e fecha CORS: em vez de raspar o site,
-                        levamos a pessoa até ele com o título já na busca */}
+                    {/* O Guia não tem API e fecha CORS: em vez de raspar o site,
+                        levamos a pessoa até ele com o título já na busca.
+                        Saiu de dentro da linha do título — ali comia metade da
+                        largura do campo justamente no celular. */}
                     <a href={linkDoGuia(d.nome)} target="_blank" rel="noopener noreferrer"
-                      className="neo-btn shrink-0 whitespace-nowrap" title="Abrir no Guia dos Quadrinhos, em aba nova">
-                      Ver no Guia ↗
+                      className="self-end text-apoio font-semibold text-moss underline underline-offset-2 hover:opacity-80"
+                      title="Abrir no Guia dos Quadrinhos, em aba nova">
+                      Ver no Guia dos Quadrinhos ↗
                     </a>
                   </div>
-                </div>
+                </Secao>
 
-                <div className={`${box} col-span-2`}>
-                  <label className={lbl}>Origem da edição</label>
-                  <Switch options={[['nacional', 'Nacional'], ['importado', 'Importado']]} value={d.origem} onChange={v => patch({ origem: v })} />
-                </div>
+                <Secao titulo="Publicação">
+                  <div className={`${box} col-span-2`}>
+                    <label className={lbl}>Origem da edição</label>
+                    <Switch options={[['nacional', 'Nacional'], ['importado', 'Importado']]} value={d.origem} onChange={v => patch({ origem: v })} />
+                  </div>
 
-                <div className={box}>
-                  <label className={lbl}>{d.origem === 'importado' ? 'Editora' : 'Editora no Brasil'}</label>
-                  <Combo options={eds} value={d.editora} onChange={x => patch({ editora: x })} placeholder="Nome da editora" />
-                </div>
-                <div className={box}>
-                  <label className={lbl}>País de origem</label>
-                  <Combo multi options={paises} value={d.pais} onChange={x => patch({ pais: x })} placeholder="Use / p/ separar" />
-                </div>
+                  <div className={`${box} col-span-2 sm:col-span-1`}>
+                    <label className={lbl}>{d.origem === 'importado' ? 'Editora' : 'Editora no Brasil'}</label>
+                    <Combo options={eds} value={d.editora} onChange={x => patch({ editora: x })} placeholder="Nome da editora" />
+                  </div>
+                  <div className={`${box} col-span-2 sm:col-span-1`}>
+                    <label className={lbl}>País de origem</label>
+                    <Combo multi options={paises} value={d.pais} onChange={x => patch({ pais: x })} placeholder="Use / p/ separar" />
+                  </div>
+
+                  {/* Formato da edição: escolha ÚNICA, e clicar na marcada
+                      desmarca — a maioria das obras não é edição especial,
+                      então precisa haver caminho de volta para "nenhuma".
+                      Mora aqui, junto de editora e país: é dado de publicação,
+                      e ficava largado depois do campo de resenha. */}
+                  <div className={`${box} col-span-2`}>
+                    <label className={lbl}>Tipo da edição</label>
+                    <div className="flex flex-wrap gap-2">
+                      {TIPOS_EDICAO.map(([v, rotulo]) => {
+                        const marcada = d.tipoEdicao === v
+                        return (
+                          <button
+                            key={v} type="button"
+                            aria-pressed={marcada}
+                            onClick={() => patch({ tipoEdicao: marcada ? '' : v })}
+                            className={`rounded-full border px-4 py-2 text-corpo font-semibold transition-colors duration-200
+                              ${marcada ? 'border-moss bg-moss text-white' : 'border-separador bg-surface text-ink-soft hover:border-moss-3 hover:text-ink'}`}
+                          >{rotulo}</button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </Secao>
 
                 {/* capa única (avulso / box) */}
                 {!withCover && (
-                  <div className={`${box} col-span-2`}>
-                    <label className={lbl}>Capa</label>
-                    <div className="flex items-center gap-3">
+                  <Secao titulo="Capa">
+                    <div className="col-span-2 flex items-center gap-3">
                       {d.img
                         ? <img src={d.img} alt="" className="h-[92px] w-auto max-w-[100px] rounded-pequeno shadow-[0_7px_18px_-8px_rgba(35,39,28,.5)] shrink-0" />
                         : <div className="w-16 h-[84px] rounded-pequeno border border-dashed border-separador bg-surface-2 flex items-center justify-center text-ink-faint text-rotulo text-center px-1 shrink-0">sem capa</div>}
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <input ref={coverRef} type="file" accept="image/*" hidden onChange={onCover} />
-                        <button type="button" className="neo-btn w-full justify-center" onClick={() => coverRef.current?.click()}>Enviar imagem…</button>
-                        <div className="text-apoio text-ink-faint mt-1">A imagem fica salva junto no seu backup.</div>
-                        {d.img && <button type="button" className="text-apoio text-rust underline mt-1" onClick={() => patch({ img: '' })}>remover capa</button>}
+                        <div className="flex items-center gap-2">
+                          <button type="button" className="neo-btn flex-1 justify-center" onClick={() => coverRef.current?.click()}>
+                            <IconEnviar />Enviar imagem…
+                          </button>
+                          {d.img && (
+                            <BotaoIcone perigo onClick={() => patch({ img: '' })}
+                              title="Tirar a capa" aria-label="Tirar a capa"><IconLixeira /></BotaoIcone>
+                          )}
+                        </div>
+                        <div className="text-apoio text-ink-faint mt-1.5">A imagem fica salva junto no seu backup.</div>
                       </div>
                     </div>
-                  </div>
+                  </Secao>
                 )}
 
                 {/* multi: volumes */}
                 {isMulti && (
-                  <div className="col-span-2 flex flex-col gap-2.5">
-                    <div className={box}>
+                  <Secao titulo={d.tipo === 'box' ? 'Livros do box' : 'Volumes da série'}>
+                    <div className={`${box} col-span-2`}>
                       <label className={lbl}>Quantidade de {d.tipo === 'box' ? 'livros' : 'volumes'}</label>
                       <input type="number" min="1" max="80" className="field-input max-w-[150px]" value={d.vols.length || ''}
                         onChange={e => setQtd(e.target.value)} placeholder="ex.: 3" />
                     </div>
                     {d.vols.length > 0 && (
-                      <div className="text-apoio text-ink-faint -mt-1">Preencha cada volume. Use “copiar p/ todos” quando o valor se repetir.</div>
+                      <div className="col-span-2 text-apoio text-ink-faint">
+                        Abra cada volume para preencher. O que se repete, copie com os botões do rodapé do volume.
+                      </div>
                     )}
-                    <div className="flex flex-col gap-2">
+                    <div className="col-span-2 flex flex-col gap-2">
                       {d.vols.map((v, i) => (
                         <VolPanel key={i} v={v} i={i} withCover={withCover} autores={autores} onChange={setVol} onCopyAll={copyAll} onCover={volCover} onRemover={removerVol} podeRemover={d.vols.length > 1} />
                       ))}
                     </div>
-                  </div>
+                  </Secao>
                 )}
 
                 {/* avulso: autores + status */}
                 {!isMulti && (
                   <>
-                    <div className={box}>
-                      <label className={lbl}>Autor / Roteirista</label>
-                      <Combo multi options={autores} value={d.roteirista} onChange={x => patch({ roteirista: x })} placeholder="Use / p/ separar" />
-                    </div>
-                    <div className={box}>
-                      <label className={lbl}>Desenhista / Colorista / Finalista</label>
-                      <Combo multi options={autores} value={d.desenhista} onChange={x => patch({ desenhista: x })} placeholder="Use / p/ separar" />
-                    </div>
+                    <Secao titulo="Autoria">
+                      <div className={`${box} col-span-2 sm:col-span-1`}>
+                        <label className={lbl}>Autor</label>
+                        <Pessoas options={autores} value={d.roteirista} onChange={x => patch({ roteirista: x })} />
+                      </div>
+                      <div className={`${box} col-span-2 sm:col-span-1`}>
+                        <label className={lbl}>Artista</label>
+                        <Pessoas options={autores} value={d.desenhista} onChange={x => patch({ desenhista: x })} />
+                      </div>
+                    </Secao>
+
+                    <Secao titulo="Situação">
                     <div className={box}>
                       <label className={lbl}>Status</label>
                       <Switch options={[['wishlist', 'Quero'], ['biblioteca', 'Tenho']]} value={d.status}
@@ -364,38 +484,21 @@ export default function Editor({ target, onClose, onSaved }) {
                         ) : <div />}
                       </>
                     )}
+                    </Secao>
                   </>
                 )}
 
-                <div className={`${box} col-span-2`}>
-                  <label className={lbl}>Anotações / resenha</label>
-                  <textarea className="field-input min-h-[80px] resize-y" rows={3} value={d.resenha} onChange={e => patch({ resenha: e.target.value })} placeholder="Escreva aqui…" />
-                </div>
-
-                {/* Formato da edição: escolha ÚNICA, e clicar na marcada
-                    desmarca — a maioria das obras não é edição especial, então
-                    precisa haver caminho de volta para "nenhuma". */}
-                <div className={`${box} col-span-2`}>
-                  <label className={lbl}>Tipo da edição</label>
-                  <div className="flex flex-wrap gap-2">
-                    {TIPOS_EDICAO.map(([v, rotulo]) => {
-                      const marcada = d.tipoEdicao === v
-                      return (
-                        <button
-                          key={v} type="button"
-                          aria-pressed={marcada}
-                          onClick={() => patch({ tipoEdicao: marcada ? '' : v })}
-                          className={`rounded-full border px-4 py-2 text-corpo font-semibold transition-colors duration-200
-                            ${marcada ? 'border-moss bg-moss text-white' : 'border-separador bg-surface text-ink-soft hover:border-moss-3 hover:text-ink'}`}
-                        >{rotulo}</button>
-                      )
-                    })}
+                <Secao titulo="Anotações">
+                  <div className={`${box} col-span-2`}>
+                    <label className={lbl}>Anotações / resenha</label>
+                    <textarea className="field-input min-h-[80px] resize-y" rows={3} value={d.resenha} onChange={e => patch({ resenha: e.target.value })} placeholder="Escreva aqui…" />
                   </div>
-                </div>
+                </Secao>
+
               </div>
 
               <div className="flex items-center gap-2 px-5 py-3.5 border-t border-separador">
-                {d.id != null && <button className="neo-btn neo-btn-rust" onClick={remove}>Excluir</button>}
+                {d.id != null && <button className="neo-btn neo-btn-rust" onClick={remove}><IconLixeira />Excluir</button>}
                 <button className="neo-btn ml-auto" onClick={onClose}>Cancelar</button>
                 <button className="neo-btn neo-btn-moss" onClick={save}>Salvar</button>
               </div>

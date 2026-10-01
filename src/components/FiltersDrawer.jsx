@@ -5,7 +5,7 @@ import {
 } from '../lib/motion.js'
 import { useMemo } from 'react'
 import { useStore } from '../lib/store.jsx'
-import { edOf, authorsOf, paisesOf, tipoOf, passes } from '../lib/helpers.js'
+import { edOf, authorsOf, paisesOf, tipoOf, passes, comoLista } from '../lib/helpers.js'
 import { TIPOS_EDICAO } from '../data.js'
 import Selecao from './Selecao.jsx'
 
@@ -19,6 +19,8 @@ function Field({ label, changed, children }) {
     </div>
   )
 }
+// campo multi ligado = lista com algo dentro
+const temAlgo = (v) => comoLista(v).length > 0
 // lista de opções no formato que o Selecao espera: [valor, rótulo]
 const comTodos = (rotulo, itens) => [['', rotulo], ...itens.map(x => [x, x])]
 
@@ -50,7 +52,7 @@ function Seg({ options, value, onChange, claro, vazios }) {
 const TIPOS = [['avulso', 'Avulsos'], ['box', 'Boxes'], ['serie', 'Séries']]
 
 // valor "sem filtro" de cada campo, para conseguir neutralizar um de cada vez
-const NEUTRO = { status: 'todos', tipo: '', tipoEdicao: '', editora: '', pais: '', autor: '', leitura: 'todos', importado: false, urgencia: false, q: '' }
+const NEUTRO = { status: 'todos', tipo: '', tipoEdicao: [], editora: [], pais: [], autor: [], leitura: 'todos', importado: false, urgencia: false, q: '' }
 
 const ordenar = (conjunto) => Array.from(conjunto).sort((a, b) => a.localeCompare(b, 'pt'))
 
@@ -58,8 +60,14 @@ const ordenar = (conjunto) => Array.from(conjunto).sort((a, b) => a.localeCompar
  *
  * Sem isso, apertar dois filtros que se excluem faria o valor escolhido
  * desaparecer das opções, e o campo passaria a mostrar "Todas" enquanto
- * continua filtrando — a interface mentiria sobre o próprio estado. */
-const comOEscolhido = (lista, atual) => (atual && !lista.includes(atual) ? [atual, ...lista] : lista)
+ * continua filtrando — a interface mentiria sobre o próprio estado.
+ *
+ * Com multi-seleção isso pesa mais: marcar três editoras e ver duas sumirem
+ * ao ligar "Tenho" tiraria justamente a forma de desmarcá-las. */
+const comOsEscolhidos = (lista, atuais) => {
+  const faltam = comoLista(atuais).filter(x => !lista.includes(x))
+  return faltam.length ? [...faltam, ...lista] : lista
+}
 
 export default function FiltersDrawer({ open, onClose }) {
   const { obras, filters, sort, setFilter, setSort, resetFilters } = useStore()
@@ -79,18 +87,19 @@ export default function FiltersDrawer({ open, onClose }) {
   const sobraSem = (campo) => obras.filter(o => passes(o, { ...filters, [campo]: NEUTRO[campo] }))
 
   // "Argentina / Espanha" entra como dois paises, nao como um rotulo so
-  const paises = useMemo(() => comOEscolhido(ordenar(new Set(sobraSem('pais').flatMap(paisesOf))), filters.pais), [obras, filters])
-  const autores = useMemo(() => comOEscolhido(ordenar(new Set(sobraSem('autor').flatMap(authorsOf))), filters.autor), [obras, filters])
+  const paises = useMemo(() => comOsEscolhidos(ordenar(new Set(sobraSem('pais').flatMap(paisesOf))), filters.pais), [obras, filters])
+  const autores = useMemo(() => comOsEscolhidos(ordenar(new Set(sobraSem('autor').flatMap(authorsOf))), filters.autor), [obras, filters])
   // a lista de editoras vem das OBRAS, não do catálogo fixo: filtrar por uma
   // editora de que não se tem nada só serviria para esvaziar a estante
-  const eds = useMemo(() => comOEscolhido(ordenar(new Set(sobraSem('editora').map(edOf).filter(Boolean))), filters.editora), [obras, filters])
+  const eds = useMemo(() => comOsEscolhidos(ordenar(new Set(sobraSem('editora').map(edOf).filter(Boolean))), filters.editora), [obras, filters])
   const tiposVazios = useMemo(() => {
     const sobra = sobraSem('tipo')
     return TIPOS.map(([v]) => v).filter(v => !sobra.some(o => tipoOf(o) === v))
   }, [obras, filters])
   const edicoes = useMemo(() => {
     const sobra = sobraSem('tipoEdicao')
-    const tem = TIPOS_EDICAO.filter(([v]) => v === filters.tipoEdicao || sobra.some(o => (o.tipoEdicao || '') === v))
+    const marcadas = comoLista(filters.tipoEdicao)
+    const tem = TIPOS_EDICAO.filter(([v]) => marcadas.includes(v) || sobra.some(o => (o.tipoEdicao || '') === v))
     return [['', 'Todas'], ...tem]
   }, [obras, filters])
 
@@ -132,21 +141,24 @@ export default function FiltersDrawer({ open, onClose }) {
                   onChange={v => setFilter('tipo', filters.tipo === v ? '' : v)} />
               </Field></div>
 
-              <Field label="Tipo de edição" changed={!!filters.tipoEdicao}>
-                <Selecao value={filters.tipoEdicao} onChange={v => setFilter('tipoEdicao', v)} changed={!!filters.tipoEdicao}
-                  options={edicoes} />
+              {/* Os quatro são multi: dá para pedir Panini E Pipoca, ou dois
+                  países de uma vez. Dentro do campo os valores somam; entre
+                  campos continuam se cruzando. */}
+              <Field label="Tipo de edição" changed={temAlgo(filters.tipoEdicao)}>
+                <Selecao multi value={filters.tipoEdicao} onChange={v => setFilter('tipoEdicao', v)}
+                  changed={temAlgo(filters.tipoEdicao)} options={edicoes} />
               </Field>
-              <Field label="Editora" changed={!!filters.editora}>
-                <Selecao value={filters.editora} onChange={v => setFilter('editora', v)} changed={!!filters.editora}
-                  options={comTodos('Todas', eds)} />
+              <Field label="Editora" changed={temAlgo(filters.editora)}>
+                <Selecao multi value={filters.editora} onChange={v => setFilter('editora', v)}
+                  changed={temAlgo(filters.editora)} options={comTodos('Todas', eds)} />
               </Field>
-              <Field label="País" changed={!!filters.pais}>
-                <Selecao value={filters.pais} onChange={v => setFilter('pais', v)} changed={!!filters.pais}
-                  options={comTodos('Todos', paises)} />
+              <Field label="País" changed={temAlgo(filters.pais)}>
+                <Selecao multi value={filters.pais} onChange={v => setFilter('pais', v)}
+                  changed={temAlgo(filters.pais)} options={comTodos('Todos', paises)} />
               </Field>
-              <Field label="Autor" changed={!!filters.autor}>
-                <Selecao value={filters.autor} onChange={v => setFilter('autor', v)} changed={!!filters.autor}
-                  options={comTodos('Todos', autores)} />
+              <Field label="Autor" changed={temAlgo(filters.autor)}>
+                <Selecao multi value={filters.autor} onChange={v => setFilter('autor', v)}
+                  changed={temAlgo(filters.autor)} options={comTodos('Todos', autores)} />
               </Field>
               <Field label="Ordenar por">
                 <Selecao value={sort.by} onChange={v => setSort({ ...sort, by: v })}

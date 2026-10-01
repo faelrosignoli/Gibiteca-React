@@ -19,7 +19,7 @@ function Numero({ rotulo, valor, sub, capitalizar }) {
   )
 }
 
-export default function DetailSheet({ obra, onClose, onEdit }) {
+export default function DetailSheet({ obra, onClose, onEdit, onDuplicar }) {
   const { fixada, fixarObra, filters } = useStore()
   const estaFixada = obra != null && fixada === obra.id
   const multi = obra != null && (tipoOf(obra) === 'serie' || tipoOf(obra) === 'box')
@@ -94,6 +94,22 @@ export default function DetailSheet({ obra, onClose, onEdit }) {
                 aria-label={estaFixada ? 'Desafixar da grade' : 'Fixar como destaque da grade'}
               >
                 <IconFixar preenchido={estaFixada} />
+              </button>
+
+              {/* Duplicar vive ao lado de Editar porque é a mesma família de
+                  ação — e porque quase sempre o passo seguinte é editar a
+                  cópia. Só ícone: o cabeçalho já carrega três controles. */}
+              <button
+                className="neo-icon !w-9 !h-9 shrink-0"
+                onClick={() => onDuplicar?.(obra)}
+                title="Duplicar esta obra"
+                aria-label="Duplicar esta obra"
+              >
+                <svg className="w-[15px] h-[15px]" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="9" y="9" width="11" height="11" rx="2" />
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                </svg>
               </button>
 
               <button className="neo-btn !py-1.5 !px-3 shrink-0" onClick={() => onEdit?.(obra)}>

@@ -7,6 +7,12 @@ export default function SearchOverlay({ open, onClose }) {
   const { filters, setFilter } = useStore()
   const inputRef = useRef(null)
 
+  /* O × é "cancelar a busca", não "sair da tela": apaga o termo e fecha.
+     Antes ele só fechava, e a coleção continuava filtrada por um texto que
+     não estava mais à vista — dava a impressão de que obras tinham sumido.
+     O Esc continua só fechando, para quem quer conferir o resultado. */
+  const limparEFechar = () => { setFilter('q', ''); onClose() }
+
   useEffect(() => {
     if (!open) return
     const t = setTimeout(() => inputRef.current?.focus(), 60)
@@ -20,7 +26,12 @@ export default function SearchOverlay({ open, onClose }) {
       {open && (
         <motion.div
  className="fixed inset-0 z-[70] flex items-start justify-center px-3 pt-[8vh] bg-veu backdrop-blur-xl"
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          initial={{ opacity: 0 }} animate={{ opacity: 1, pointerEvents: 'auto' }}
+          /* pointerEvents sai no INSTANTE em que a saida comeca (nao e animavel,
+             o framer aplica de uma vez). Se o fade travar — thread ocupada, aba
+             em segundo plano —, a camada fica presa no DOM, e sem isso ela
+             engoliria todo clique do app com a tela aparentemente normal. */
+          exit={{ opacity: 0, pointerEvents: 'none' }}
           onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
         >
           <motion.div
@@ -38,7 +49,8 @@ export default function SearchOverlay({ open, onClose }) {
  className="w-full rounded-full border border-separador bg-surface shadow-amb pl-12 pr-14 py-4 text-obra text-ink outline-none shadow-[0_24px_54px_-20px_rgba(0,0,0,.55)]"
             />
             <button
-              onClick={onClose} aria-label="Fechar"
+              onClick={limparEFechar} aria-label="Limpar a busca e fechar"
+              title="Limpar a busca e fechar"
  className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-toque hover:bg-toque text-ink-soft flex items-center justify-center text-obra"
             >✕</button>
           </motion.div>

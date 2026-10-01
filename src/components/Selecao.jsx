@@ -1,28 +1,57 @@
 import { useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { MOLA_TOQUE } from '../lib/motion.js'
-import { gNorm } from '../lib/helpers.js'
+import { gNorm, comoLista } from '../lib/helpers.js'
 import {
   useLugarDaLista, useFechaAoClicarFora, useSeguirDestaque,
   CLASSE_LISTA, classeOpcao,
 } from '../lib/lista-suspensa.js'
 
-/* Lista fechada de escolha única — o que era <select> nos Filtros.
+/* Lista fechada — o que era <select> nos Filtros.
  *
  * Irmão do Combo, mas para o outro caso: aqui não se digita um valor novo, só
- * se escolhe um dos que existem. O <select> nativo não aceita os tokens do app
- * (a folha aberta é desenhada pelo sistema operacional), então a gaveta de
+ * se escolhe entre os que existem. O <select> nativo não aceita os tokens do
+ * app (a folha aberta é desenhada pelo sistema operacional), então a gaveta de
  * Filtros ficava com um pedaço de outra interface no meio dela.
  *
- * Ganho de passagem: listas longas — Editora, Autor — recebem um campo de
- * busca. No <select> nativo, achar uma editora entre trinta era rolar no olho.
+ * Listas longas — Editora, Autor — recebem um campo de busca. No <select>
+ * nativo, achar uma editora entre trinta era rolar no olho.
+ *
+ * Com `multi`, `value` é uma LISTA e a folha NÃO fecha a cada escolha: marcar
+ * cinco editoras seriam cinco idas e vindas se fechasse. Fecha no clique fora,
+ * no Esc ou no botão.
  */
 
 const COM_BUSCA_A_PARTIR_DE = 8
 
+function Tique() {
+  return (
+    <svg className="w-[14px] h-[14px] shrink-0 text-moss" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 6L9 17l-5-5" />
+    </svg>
+  )
+}
+
+/* Caixa de marcação da folha multi. É quadrada de propósito: redonda leria
+   como escolha única, que é exatamente o que ela deixou de ser. */
+function Caixa({ marcada }) {
+  return (
+    <span className={`w-[17px] h-[17px] shrink-0 rounded-[5px] border flex items-center justify-center transition-colors duration-200
+                      ${marcada ? 'bg-moss border-moss text-white' : 'border-separador bg-surface'}`}>
+      {marcada && (
+        <svg className="w-[11px] h-[11px]" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 6L9 17l-5-5" />
+        </svg>
+      )}
+    </span>
+  )
+}
+
 export default function Selecao({
   value = '', onChange, options = [], changed = false, placeholder = 'Selecionar',
-  compacto = false, className = '',
+  compacto = false, multi = false, className = '',
 }) {
   const [aberto, setAberto] = useState(false)
   const [ativo, setAtivo] = useState(-1)
@@ -36,6 +65,7 @@ export default function Selecao({
   useFechaAoClicarFora(aberto, caixa, () => setAberto(false))
   useSeguirDestaque(aberto, lista, ativo)
 
+  const marcados = multi ? comoLista(value) : []
   const temBusca = options.length >= COM_BUSCA_A_PARTIR_DE
   const visiveis = useMemo(() => {
     if (!temBusca || !busca.trim()) return options
@@ -43,19 +73,34 @@ export default function Selecao({
     return options.filter(([, rot]) => gNorm(rot).includes(alvo))
   }, [options, busca, temBusca])
 
-  const atual = options.find(([v]) => v === value)
-  const rotuloAtual = atual ? atual[1] : placeholder
+  /* O que o botão mostra fechado. Com vários marcados, o primeiro nome mais um
+     contador: "Panini +2". O contador fica fora do truncate, senão some
+     justamente quando o nome é longo — que é quando ele mais importa. */
+  const rotuloDe = (v) => { const o = options.find(x => x[0] === v); return o ? o[1] : v }
+  const extras = multi ? Math.max(0, marcados.length - 1) : 0
+  // sem nada marcado, o botão diz o que a opção vazia diz ("Todas", "Todos") —
+  // não um "Selecionar" genérico que some com a concordância do campo
+  const rotuloVazio = rotuloDe('') !== '' ? rotuloDe('') : placeholder
+  const rotuloAtual = multi
+    ? (marcados.length ? rotuloDe(marcados[0]) : rotuloVazio)
+    : (options.find(([v]) => v === value)?.[1] ?? placeholder)
 
   const abrir = () => {
     // o índice se conta sobre `options`, não sobre `visiveis`: a busca acabou
     // de ser limpa, então ao abrir a lista mostra tudo de novo
     setBusca('')
-    setAtivo(options.findIndex(([v]) => v === value))
+    setAtivo(multi ? 0 : options.findIndex(([v]) => v === value))
     setAberto(true)
     if (temBusca) setTimeout(() => campoBusca.current?.focus(), 0)
   }
   const fechar = () => { setAberto(false); gatilho.current?.focus() }
-  const escolher = (v) => { onChange(v); setAberto(false); gatilho.current?.focus() }
+
+  const escolher = (v) => {
+    if (!multi) { onChange(v); setAberto(false); gatilho.current?.focus(); return }
+    // '' é a opção "todas": em vez de virar mais um item marcado, zera a lista
+    if (!v) { onChange([]); return }
+    onChange(marcados.includes(v) ? marcados.filter(x => x !== v) : [...marcados, v])
+  }
 
   const noTeclado = (e) => {
     if (e.key === 'Escape') {
@@ -76,6 +121,8 @@ export default function Selecao({
     } else if (e.key === 'Tab') setAberto(false)
   }
 
+  const ligado = multi ? marcados.length > 0 : !!value
+
   return (
     <div ref={caixa} className={`relative ${aberto ? 'z-30' : ''} ${className}`}>
       <button
@@ -89,7 +136,12 @@ export default function Selecao({
                     ${compacto ? 'text-apoio pl-3 pr-1.5 py-1.5' : 'text-corpo pl-3.5 pr-2.5 py-2'}
                     ${changed ? 'border-moss text-ink' : 'border-separador text-ink hover:border-moss-3'}`}
       >
-        <span className="flex-1 min-w-0 truncate">{rotuloAtual}</span>
+        <span className={`flex-1 min-w-0 truncate ${ligado ? '' : 'text-ink-soft'}`}>{rotuloAtual}</span>
+        {extras > 0 && (
+          <span className="shrink-0 rounded-full bg-tinta-moss text-moss font-mono text-rotulo font-bold px-1.5 py-0.5">
+            +{extras}
+          </span>
+        )}
         <motion.svg
           className="w-[14px] h-[14px] shrink-0 text-ink-faint" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"
@@ -121,26 +173,26 @@ export default function Selecao({
                 />
               </div>
             )}
-            <ul ref={lista} role="listbox">
-              {visiveis.map(([v, rot], i) => (
-                <li key={v} role="option" aria-selected={v === value}>
-                  <button
-                    type="button" tabIndex={-1}
-                    onMouseDown={e => e.preventDefault()}
-                    onMouseEnter={() => setAtivo(i)}
-                    onClick={() => escolher(v)}
-                    className={`${classeOpcao(i === ativo)} flex items-center gap-2`}
-                  >
-                    <span className="flex-1 min-w-0 truncate">{rot}</span>
-                    {v === value && (
-                      <svg className="w-[14px] h-[14px] shrink-0 text-moss" viewBox="0 0 24 24" fill="none"
-                           stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M20 6L9 17l-5-5" />
-                      </svg>
-                    )}
-                  </button>
-                </li>
-              ))}
+            <ul ref={lista} role="listbox" aria-multiselectable={multi || undefined}>
+              {visiveis.map(([v, rot], i) => {
+                // no multi, "todas" aparece marcada justamente quando nada está
+                const marcada = multi ? (v ? marcados.includes(v) : marcados.length === 0) : v === value
+                return (
+                  <li key={v} role="option" aria-selected={marcada}>
+                    <button
+                      type="button" tabIndex={-1}
+                      onMouseDown={e => e.preventDefault()}
+                      onMouseEnter={() => setAtivo(i)}
+                      onClick={() => escolher(v)}
+                      className={`${classeOpcao(i === ativo)} flex items-center gap-2.5`}
+                    >
+                      {multi && <Caixa marcada={marcada} />}
+                      <span className={`flex-1 min-w-0 truncate ${marcada ? 'text-ink font-semibold' : ''}`}>{rot}</span>
+                      {!multi && marcada && <Tique />}
+                    </button>
+                  </li>
+                )
+              })}
               {visiveis.length === 0 && (
                 <li className="px-3.5 py-2 text-corpo text-ink-faint">Nada com esse nome.</li>
               )}
