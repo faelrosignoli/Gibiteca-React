@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790859186681,
- "updated": "2026-10-01T12:53:06.681Z",
+ "atualizadoEm": 1790859232162,
+ "updated": "2026-10-01T12:53:52.162Z",
  "obras": [
   {
    "id": 1,
@@ -12215,7 +12215,7 @@
    "pais": "EUA",
    "tags": [],
    "resenha": "",
-   "tipoEdicao": "",
+   "tipoEdicao": "absoluta",
    "volumes": [
     {
      "nome": "Quarto Mundo Por Jack Kirby - Vol. 1",
