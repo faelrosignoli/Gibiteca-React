@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790861607984,
- "updated": "2026-10-01T13:33:27.984Z",
+ "atualizadoEm": 1790861900562,
+ "updated": "2026-10-01T13:38:20.562Z",
  "obras": [
   {
    "id": 1,
@@ -12338,6 +12338,25 @@
    "imagem": null,
    "roteirista": "",
    "desenhista": "",
+   "status": "wishlist",
+   "urgencia": false,
+   "valorPago": 0,
+   "lido": false,
+   "nota": 0
+  },
+  {
+   "id": 585,
+   "nome": "Reino do Amanhã",
+   "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Panini",
+   "pais": "EUA",
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "absoluta",
+   "imagem": null,
+   "roteirista": "Mark Waid",
+   "desenhista": "Alex Ross",
    "status": "wishlist",
    "urgencia": false,
    "valorPago": 0,
