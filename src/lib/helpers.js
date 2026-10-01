@@ -73,13 +73,17 @@ export function missingVols(o){
   return volsOf(o).map((v,i)=>({i:i+1,own:v.status==='biblioteca'})).filter(x=>!x.own).map(x=>x.i);
 }
 export function gNorm(s){ return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(); }
+/* Campo de filtro multi-seleção: aceita lista, mas também o valor solto de
+   antes — assim um filtro guardado por uma versão velha não quebra o app. */
+export function comoLista(v){ return Array.isArray(v) ? v.filter(Boolean) : (v ? [v] : []); }
 export function passes(o, f){
   if(f.status!=='todos' && !statusMatch(o,f.status)) return false;
   if(f.tipo && tipoOf(o)!==f.tipo) return false;
-  if(f.tipoEdicao && (o.tipoEdicao||'')!==f.tipoEdicao) return false;
-  if(f.editora && edOf(o)!==f.editora) return false;
-  if(f.pais && !paisesOf(o).includes(f.pais)) return false;
-  if(f.autor && !authorsOf(o).includes(f.autor)) return false;
+  // lista vazia = sem filtro; com itens, basta a obra bater com UM deles
+  const fEd=comoLista(f.tipoEdicao); if(fEd.length && !fEd.includes(o.tipoEdicao||'')) return false;
+  const fEt=comoLista(f.editora);    if(fEt.length && !fEt.includes(edOf(o))) return false;
+  const fPa=comoLista(f.pais);       if(fPa.length && !paisesOf(o).some(x=>fPa.includes(x))) return false;
+  const fAu=comoLista(f.autor);      if(fAu.length && !authorsOf(o).some(x=>fAu.includes(x))) return false;
   if(f.importado && !isImp(o)) return false;
   if(f.urgencia && !anyUrg(o)) return false;
   if(f.leitura==='lido' && !unitsOf(o).some(u=>u.status==='biblioteca'&&u.lido)) return false;

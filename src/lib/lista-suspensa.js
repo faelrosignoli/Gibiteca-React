@@ -6,8 +6,11 @@ import { useEffect, useLayoutEffect, useState } from 'react'
  * tratamento — duas cópias da mesma medição acabariam desencontrando.
  */
 
-export const ALTURA_LISTA = 232   // altura cheia, quando há espaço de sobra
-export const ALTURA_MINIMA = 120  // abaixo disso a lista vira uma fresta inútil
+/* 340px ≈ 7 opções à vista. Com 232 cabiam 5, e procurar uma editora entre
+ * trinta virava rolagem no escuro. O teto real continua sendo o container que
+ * rola — isto é só o máximo pedido. */
+export const ALTURA_LISTA = 340   // altura cheia, quando há espaço de sobra
+export const ALTURA_MINIMA = 160  // abaixo disso a lista vira uma fresta inútil
 const RESPIRO = 12                // não encostar na borda de quem rola
 
 /* De que lado a lista abre, e com que altura.

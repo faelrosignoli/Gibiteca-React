@@ -7,10 +7,16 @@ import { compararColecoes, mensagemDeCommit } from './diario.js'
 const StoreCtx = createContext(null)
 export const useStore = () => useContext(StoreCtx)
 
-const DEFAULT_FILTERS = {
-  q: '', status: 'todos', tipo: '', tipoEdicao: '', editora: '', pais: '', autor: '',
+/* Editora, país, autor e tipo de edição guardam LISTA, não valor único: dá
+ * para marcar "Panini" e "Pipoca & Nanquim" ao mesmo tempo. Vários valores no
+ * mesmo campo somam (OU); campos diferentes continuam se cruzando (E).
+ *
+ * É função, não constante: devolvendo listas novas a cada chamada, "limpar
+ * filtros" não entrega ao estado os mesmos arrays que estavam em uso. */
+export const filtrosPadrao = () => ({
+  q: '', status: 'todos', tipo: '', tipoEdicao: [], editora: [], pais: [], autor: [],
   importado: false, urgencia: false, leitura: 'todos',
-}
+})
 const CLOUD_KEY = 'gibiteca_cloud'
 const CLOUD_DEFAULT = { connected: false, owner: '', repo: '', branch: 'main', path: 'data/gibiteca.json', token: '', sha: null }
 
@@ -54,7 +60,7 @@ export function StoreProvider({ children }) {
   const init = loadInitial()
   const [obras, setObras] = useState(init.obras)
   const [editoras, setEditoras] = useState(init.editoras)
-  const [filters, setFilters] = useState(DEFAULT_FILTERS)
+  const [filters, setFilters] = useState(filtrosPadrao)
   const [sort, setSort] = useState({ by: 'nome', dir: 'asc' })
   const [view, setView] = useState('galeria')
   const [page, setPage] = useState(1)
@@ -301,7 +307,7 @@ export function StoreProvider({ children }) {
 
   // ---- filtros / ordenação / paginação ----
   const setFilter = useCallback((key, val) => { setFilters(f => ({ ...f, [key]: val })); setPage(1) }, [])
-  const resetFilters = useCallback(() => { setFilters(DEFAULT_FILTERS); setPage(1) }, [])
+  const resetFilters = useCallback(() => { setFilters(filtrosPadrao()); setPage(1) }, [])
   const setPageSize = useCallback((n) => { setPageSizeState(n); setPage(1); try { localStorage.setItem('gibiteca_pagesize', String(n)) } catch (e) { /* */ } }, [])
   const loadBackup = useCallback((data) => applyData(data), [applyData])
   // troca a coleção inteira por uma versão já processada (ex.: capas movidas
@@ -314,6 +320,22 @@ export function StoreProvider({ children }) {
     marcarAlterado(); registerEditora(rec.editora)
     setObras(list => { const i = list.findIndex(o => o.id === rec.id); if (i === -1) return [...list, rec]; const c = list.slice(); c[i] = rec; return c })
   }, [registerEditora])
+  /* Cópia inteira da obra, com id novo e "(cópia)" no nome. Nasce como obra
+     de verdade — quem duplica quer editar a cópia em seguida, e um rascunho
+     que só existe no modal se perderia num toque em Cancelar.
+     Clone profundo: série e box têm volumes, e dois registros apontando para
+     o mesmo array fariam editar um mexer no outro. */
+  const duplicarObra = useCallback((id) => {
+    const orig = obras.find(o => o.id === id)
+    if (!orig) return null
+    const copia = JSON.parse(JSON.stringify(orig))
+    copia.id = nextId()
+    copia.nome = (orig.nome || 'Obra') + ' (cópia)'
+    marcarAlterado()
+    setObras(list => [...list, copia])
+    return copia
+  }, [obras, nextId])
+
   const deleteObra = useCallback((id) => {
     // se a apagada era a fixada, o destaque some junto
     setFixada(f => { if (f === id) { try { localStorage.removeItem('gibiteca_fixada') } catch (e) { /* */ } return null } return f })
@@ -345,7 +367,7 @@ export function StoreProvider({ children }) {
   const value = {
     obras, editoras, filters, sort, view, page: safePage, pageSize,
     setSort, setView, setPage, setPageSize, setFilter, resetFilters, loadBackup, aplicarObras,
-    nextId, upsertObra, deleteObra, setCovers,
+    nextId, upsertObra, duplicarObra, deleteObra, setCovers,
     filtered, total, totalPages, start, pageItems, all,
     fixada, fixarObra,
     // nuvem
