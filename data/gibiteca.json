@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790859148027,
- "updated": "2026-10-01T12:52:28.027Z",
+ "atualizadoEm": 1790859186681,
+ "updated": "2026-10-01T12:53:06.681Z",
  "obras": [
   {
    "id": 1,
@@ -6068,16 +6068,19 @@
   },
   {
    "id": 371,
-   "nome": "Sky Masters",
+   "nome": "Sky Masters: A Força Espacial",
    "tipo": "avulso",
-   "imagem": null,
-   "roteirista": "Jack Kerby",
-   "desenhista": "Jack Kerby",
    "origem": "importado",
-   "editora": "",
+   "editora": "Pipoca & Nanquim",
    "pais": "EUA",
-   "urgencia": false,
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
+   "imagem": null,
+   "roteirista": "Jack Kirby",
+   "desenhista": "Jack Kirby",
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
