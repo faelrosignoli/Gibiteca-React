@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790873070413,
- "updated": "2026-10-01T16:44:30.413Z",
+ "atualizadoEm": 1790873101793,
+ "updated": "2026-10-01T16:45:01.793Z",
  "obras": [
   {
    "id": 1,
@@ -12445,14 +12445,14 @@
   },
   {
    "id": 590,
-   "nome": "Batman: Cavaleiro das Trevas (cópia)",
+   "nome": "Batman: Cavaleiro das Trevas",
    "tipo": "avulso",
    "origem": "nacional",
    "editora": "Panini",
    "pais": "EUA",
    "tags": [],
    "resenha": "",
-   "tipoEdicao": "absoluta",
+   "tipoEdicao": "bolso",
    "imagem": null,
    "roteirista": "Frank Miller",
    "desenhista": "Frank Miller / Klaus Janson / Lynn Varley",
