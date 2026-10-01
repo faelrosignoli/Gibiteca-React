@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790862502684,
- "updated": "2026-10-01T13:48:22.684Z",
+ "atualizadoEm": 1790865258127,
+ "updated": "2026-10-01T14:34:18.127Z",
  "obras": [
   {
    "id": 1,
@@ -2308,9 +2308,10 @@
    "pais": "Brasil",
    "tags": [],
    "resenha": "",
+   "tipoEdicao": "",
    "imagem": "https://raw.githubusercontent.com/faelrosignoli/Gibiteca-React/main/covers/100-discos-para-conhecer-aguardela-141.jpg",
-   "roteirista": "Daniel Lopes / Rapahel Salimena",
-   "desenhista": "Rapahel Salimena",
+   "roteirista": "Daniel Lopes / Raphael Salimena",
+   "desenhista": "Raphael Salimena",
    "status": "biblioteca",
    "urgencia": false,
    "valorPago": 67.45,
