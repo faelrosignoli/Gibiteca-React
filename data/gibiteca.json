@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790860794676,
- "updated": "2026-10-01T13:19:54.676Z",
+ "atualizadoEm": 1790861197329,
+ "updated": "2026-10-01T13:26:37.329Z",
  "obras": [
   {
    "id": 1,
@@ -12284,6 +12284,60 @@
    "imagem": null,
    "roteirista": "Jim Krueger / Alex Ross",
    "desenhista": "Doug Braithwaite / Alex Ross",
+   "status": "wishlist",
+   "urgencia": false,
+   "valorPago": 0,
+   "lido": false,
+   "nota": 0
+  },
+  {
+   "id": 584,
+   "nome": "Monstro Do Pântano",
+   "tipo": "serie",
+   "origem": "nacional",
+   "editora": "Panini",
+   "pais": "EUA",
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
+   "volumes": [
+    {
+     "nome": "Monstro Do Pântano - Vol. 1",
+     "imagem": null,
+     "roteirista": "Alan Moore / Len Wein",
+     "desenhista": "Dan Day / John Totleben / Steve Oliff / Stephen Bissette / Rick Veitch / Shawn McManus / Alfredo Alcala / Bernie Wrightson / Ron Randall / Tatjana Wood",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "Monstro Do Pântano - Vol. 2",
+     "imagem": null,
+     "roteirista": "Alan Moore",
+     "desenhista": "",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "Monstro Do Pântano - Vol. 3",
+     "imagem": null,
+     "roteirista": "Alan Moore",
+     "desenhista": "",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    }
+   ],
+   "imagem": null,
+   "roteirista": "",
+   "desenhista": "",
    "status": "wishlist",
    "urgencia": false,
    "valorPago": 0,
