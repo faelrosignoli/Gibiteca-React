@@ -767,6 +767,43 @@ listar "Alan Moore Dave Gibbons" como se fosse uma pessoa.
 
 Os rótulos são **"Autor"** e **"Artista"** — não mais "Autor / Roteirista" e
 "Desenhista / Colorista / Finalista", que só existiam para explicar a barra.
+**O rótulo é desenhado pelo próprio `Pessoas`** (prop `rotulo`), não por fora:
+é na linha dele que mora o botão de dobrar.
+
+**Teto de uma linha.** Uma edição com trinta artistas creditados fazia a caixa
+crescer meia tela e empurrar o resto do formulário para fora da vista. Em
+repouso só aparece o que cabe numa linha; o resto fica atrás de um **"+N" com
+seta**, na linha do rótulo.
+
+Mede a largura real de cada etiqueta — "Jim Lee" e "Daniel Dan Brown" não têm
+nem perto do mesmo tamanho —, e o espaço do campo de digitar entra na conta,
+porque os dois dividem a linha. Por isso o mesmo campo mostra **dois** nomes no
+celular e **um** no desktop (lá a coluna é mais estreita): quem decide é a
+medida, não um número fixo.
+
+O botão fica **na linha do rótulo, não no fim das etiquetas**: aberto, o fim da
+lista está a trinta etiquetas de distância, e fechar exigiria rolar até lá.
+
+Fechar um nome novo **abre a lista sozinho** — senão você digitaria, apertaria
+Enter e nada apareceria, porque a etiqueta teria ido direto para a parte
+escondida.
+
+Como em `Selos`, o `ResizeObserver` **só reage à largura**: reagir à altura
+seria um laço. E se o `requestAnimationFrame` não rodar, o campo fica aberto
+mostrando tudo — degradação boa, não quebra.
+
+### Contraste: `contorno` é o fio de campo
+`separador` (12%) é véu de **divisória**. Num formulário inteiro de caixas ele
+some, e a tela vira creme sobre creme — era a queixa de "tudo monocromático".
+
+`contorno` (24%) é o fio de **campo**: `.field-input`, `.neo-btn`, gatilho do
+`Selecao`, trilha do `Seg`/`Switch`, `CheckTile` e as caixas de marcação. Quem
+desenhar controle novo usa `contorno`; quem separar blocos continua em
+`separador`/`linha`.
+
+Veio junto: rótulo de campo em `text-ink-soft` (era `ink-faint`), fio da
+`Secao` em `separador` com um quadradinho moss ancorando o título, e as
+etiquetas do `Pessoas` com borda `moss-3` e texto `font-semibold`.
 
 ### O Editor é dividido em seções
 `Secao` (mono, moss, com um fio até a margem). Ordem: **Cadastro ·

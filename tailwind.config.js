@@ -28,6 +28,10 @@ export default {
         // O componente pede a função, não o tom.
         linha:     'rgba(35,39,28,.08)',    // fio de 1px, separação sutil
         separador: 'rgba(35,39,28,.12)',    // divisória com presença
+        // Contorno de CAMPO. Separador é véu de divisória: num formulário
+        // inteiro de caixas ele some, e a tela vira creme sobre creme. Aqui o
+        // fio precisa dizer onde o campo começa e onde termina.
+        contorno:  'rgba(35,39,28,.24)',    // borda de input, botão, seletor
         toque:     'rgba(35,39,28,.055)',   // fundo de hover
         veu:       'rgba(35,39,28,.5)',     // backdrop de modal
 
