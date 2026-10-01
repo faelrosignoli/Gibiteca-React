@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790861900562,
- "updated": "2026-10-01T13:38:20.562Z",
+ "atualizadoEm": 1790861955301,
+ "updated": "2026-10-01T13:39:15.301Z",
  "obras": [
   {
    "id": 1,
@@ -12357,6 +12357,25 @@
    "imagem": null,
    "roteirista": "Mark Waid",
    "desenhista": "Alex Ross",
+   "status": "wishlist",
+   "urgencia": false,
+   "valorPago": 0,
+   "lido": false,
+   "nota": 0
+  },
+  {
+   "id": 586,
+   "nome": "Grandes Astros Superman",
+   "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Panini",
+   "pais": "EUA",
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "absoluta",
+   "imagem": null,
+   "roteirista": "Grant Morrison",
+   "desenhista": "Frank Quitely / Jamie Grant",
    "status": "wishlist",
    "urgencia": false,
    "valorPago": 0,
