@@ -43,10 +43,10 @@ body {
   /* Botões — linguagem premium: pílula, sem sombra dura, curva lenta.
      Os nomes .neo-* foram mantidos para não quebrar os componentes. */
   .neo-btn {
-    @apply inline-flex items-center gap-2 rounded-full border border-separador bg-transparent px-4 py-2.5 text-corpo font-semibold text-ink;
+    @apply inline-flex items-center gap-2 rounded-full border border-contorno bg-transparent px-4 py-2.5 text-corpo font-semibold text-ink;
     transition: transform var(--dur) var(--ease-prem), background var(--dur) var(--ease-prem), border-color var(--dur) var(--ease-prem);
   }
-  .neo-btn:hover { background: var(--toque); border-color: var(--separador); }
+  .neo-btn:hover { background: var(--toque); border-color: rgba(35,39,28,.38); }
   .neo-btn:active { transform: scale(.98); }
 
   .neo-btn-moss {
@@ -82,7 +82,7 @@ body {
 
   /* select estilizado com seta */
   .field-input {
-    @apply w-full rounded-medio border border-separador bg-surface px-3.5 py-2.5 text-corpo text-ink outline-none;
+    @apply w-full rounded-medio border border-contorno bg-surface px-3.5 py-2.5 text-corpo text-ink outline-none;
     transition: border-color var(--dur) var(--ease-prem), box-shadow var(--dur) var(--ease-prem);
   }
   .field-input:focus { @apply border-moss; box-shadow: 0 0 0 3px rgba(94,113,70,.14); }
