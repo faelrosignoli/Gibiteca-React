@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790785215605,
- "updated": "2026-09-30T16:20:15.605Z",
+ "atualizadoEm": 1790825475301,
+ "updated": "2026-10-01T03:31:15.301Z",
  "obras": [
   {
    "id": 1,
@@ -8579,8 +8579,8 @@
     {
      "nome": "Blueberry — Vol. 1",
      "imagem": null,
-     "roteirista": "Christophe Blain",
-     "desenhista": "Christophe Blain",
+     "roteirista": "Jean-Michel Charlier",
+     "desenhista": "Jean Giraud",
      "status": "wishlist",
      "urgencia": false,
      "valorPago": 0,
@@ -8590,8 +8590,8 @@
     {
      "nome": "Blueberry — Vol. 2",
      "imagem": null,
-     "roteirista": "Christophe Blain",
-     "desenhista": "Christophe Blain",
+     "roteirista": "Jean-Michel Charlier",
+     "desenhista": "Jean Giraud",
      "status": "wishlist",
      "urgencia": false,
      "valorPago": 0,
@@ -8601,8 +8601,8 @@
     {
      "nome": "Blueberry — Vol. 3",
      "imagem": null,
-     "roteirista": "Christophe Blain",
-     "desenhista": "Christophe Blain",
+     "roteirista": "Jean-Michel Charlier",
+     "desenhista": "Jean Giraud",
      "status": "wishlist",
      "urgencia": false,
      "valorPago": 0,
@@ -8612,8 +8612,8 @@
     {
      "nome": "Blueberry — Vol. 4",
      "imagem": null,
-     "roteirista": "Christophe Blain",
-     "desenhista": "Christophe Blain",
+     "roteirista": "Jean-Michel Charlier",
+     "desenhista": "Jean Giraud",
      "status": "wishlist",
      "urgencia": false,
      "valorPago": 0,
