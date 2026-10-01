@@ -12,7 +12,7 @@ import Selecao from './Selecao.jsx'
 function Field({ label, changed, children }) {
   return (
     <div className="flex flex-col gap-1">
-      <label className={`font-mono text-rotulo uppercase pl-0.5 ${changed ? 'text-moss font-bold' : 'text-ink-faint'}`}>
+      <label className={`font-mono text-rotulo uppercase pl-0.5 ${changed ? 'text-moss font-bold' : 'text-ink-soft'}`}>
         {label}{changed && <span className="ml-1.5 inline-block w-[7px] h-[7px] rounded-full bg-gold align-middle" />}
       </label>
       {children}
@@ -35,7 +35,7 @@ function Seg({ options, value, onChange, claro, vazios }) {
   // a variante clara vira pastilha DENTRO da trilha: sem a folga, o contorno
   // do marcado bate no arredondado da borda e sai cortado nas pontas
   return (
-    <div className={`flex w-full rounded-full border border-separador overflow-hidden ${claro ? 'bg-paper-2 p-1 gap-1' : 'bg-surface'}`}>
+    <div className={`flex w-full rounded-full border border-contorno overflow-hidden ${claro ? 'bg-paper-2 p-1 gap-1' : 'bg-surface'}`}>
       {options.map(([v, l]) => {
         // tipo sem nenhuma obra no recorte atual: fica visível, mas apagado
         const morto = !!(vazios && vazios.includes(v)) && value !== v
@@ -174,10 +174,10 @@ export default function FiltersDrawer({ open, onClose }) {
                 <Seg options={[['todos', 'Todos'], ['lido', 'Lidos'], ['naolido', 'Não lidos']]} value={filters.leitura} onChange={v => setFilter('leitura', v)} />
               </Field></div>
 
-              <label className={`flex items-center justify-center gap-2 rounded-full border px-3 py-2.5 text-corpo font-semibold cursor-pointer transition ${filters.importado ? 'border-moss text-moss bg-surface-2' : 'border-separador text-ink-soft'}`}>
+              <label className={`flex items-center justify-center gap-2 rounded-full border px-3 py-2.5 text-corpo font-semibold cursor-pointer transition ${filters.importado ? 'border-moss text-moss bg-surface-2' : 'border-contorno text-ink-soft'}`}>
                 <input type="checkbox" className="accent-moss w-[15px] h-[15px]" checked={filters.importado} onChange={e => setFilter('importado', e.target.checked)} /> Importados
               </label>
-              <label className={`flex items-center justify-center gap-2 rounded-full border px-3 py-2.5 text-corpo font-semibold cursor-pointer transition ${filters.urgencia ? 'border-moss text-moss bg-surface-2' : 'border-separador text-ink-soft'}`}>
+              <label className={`flex items-center justify-center gap-2 rounded-full border px-3 py-2.5 text-corpo font-semibold cursor-pointer transition ${filters.urgencia ? 'border-moss text-moss bg-surface-2' : 'border-contorno text-ink-soft'}`}>
                 <input type="checkbox" className="accent-moss w-[15px] h-[15px]" checked={filters.urgencia} onChange={e => setFilter('urgencia', e.target.checked)} /> Urgentes
               </label>
             </div>

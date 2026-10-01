@@ -38,7 +38,7 @@ function Tique() {
 function Caixa({ marcada }) {
   return (
     <span className={`w-[17px] h-[17px] shrink-0 rounded-[5px] border flex items-center justify-center transition-colors duration-200
-                      ${marcada ? 'bg-moss border-moss text-white' : 'border-separador bg-surface'}`}>
+                      ${marcada ? 'bg-moss border-moss text-white' : 'border-contorno bg-surface'}`}>
       {marcada && (
         <svg className="w-[11px] h-[11px]" viewBox="0 0 24 24" fill="none" stroke="currentColor"
              strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
@@ -134,7 +134,7 @@ export default function Selecao({
         className={`w-full flex items-center gap-2 rounded-full border bg-surface text-left outline-none
                     font-semibold transition-colors duration-200
                     ${compacto ? 'text-apoio pl-3 pr-1.5 py-1.5' : 'text-corpo pl-3.5 pr-2.5 py-2'}
-                    ${changed ? 'border-moss text-ink' : 'border-separador text-ink hover:border-moss-3'}`}
+                    ${changed ? 'border-moss text-ink' : 'border-contorno text-ink hover:border-moss-3'}`}
       >
         <span className={`flex-1 min-w-0 truncate ${ligado ? '' : 'text-ink-soft'}`}>{rotuloAtual}</span>
         {extras > 0 && (

@@ -75,8 +75,8 @@ function BotaoIcone({ children, perigo, ...resto }) {
     <button type="button" {...resto}
       className={`w-9 h-9 shrink-0 rounded-full border flex items-center justify-center transition-colors duration-200
         ${perigo
-          ? 'border-separador text-rust hover:border-rust hover:bg-tinta-rust'
-          : 'border-separador text-ink-faint hover:border-moss-3 hover:text-moss hover:bg-tinta-moss'}`}
+          ? 'border-contorno text-rust hover:border-rust hover:bg-tinta-rust'
+          : 'border-contorno text-ink-soft hover:border-moss-3 hover:text-moss hover:bg-tinta-moss'}`}
     >{children}</button>
   )
 }
@@ -87,8 +87,11 @@ function BotaoIcone({ children, perigo, ...resto }) {
 function Secao({ titulo, children }) {
   return (
     <section className="col-span-2">
-      <h4 className="font-mono text-rotulo uppercase font-bold text-moss flex items-center gap-2.5 mb-2">
-        {titulo}<span className="flex-1 h-px bg-linha" />
+      <h4 className="font-mono text-rotulo uppercase font-bold text-moss flex items-center gap-2.5 mb-2.5">
+        {/* o quadradinho ancora o título: sem ele a seção era só mais um texto
+            miúdo creme no meio de outros textos miúdos cremes */}
+        <span className="w-[6px] h-[6px] rounded-[2px] bg-moss shrink-0" />
+        {titulo}<span className="flex-1 h-px bg-separador" />
       </h4>
       <div className="grid grid-cols-2 gap-x-3 gap-y-3">{children}</div>
     </section>
@@ -98,7 +101,7 @@ function Secao({ titulo, children }) {
 /* ---------- pequenos controles ---------- */
 function Switch({ options, value, onChange }) {
   return (
-    <div className="flex w-full rounded-full border border-separador overflow-hidden">
+    <div className="flex w-full rounded-full border border-contorno overflow-hidden">
       {options.map(([v, l]) => (
         <button key={String(v)} type="button" onClick={() => onChange(v)}
  className={`flex-1 text-corpo font-semibold py-2 px-2 transition ${value === v ? 'bg-moss text-white' : 'bg-surface text-ink-soft hover:bg-paper-2'}`}>{l}</button>
@@ -106,13 +109,13 @@ function Switch({ options, value, onChange }) {
     </div>
   )
 }
-const lbl ="font-mono text-rotulo uppercase text-ink-faint pl-0.5"
+const lbl ="font-mono text-rotulo uppercase text-ink-soft pl-0.5"
 const box ="flex flex-col gap-1"
 
 // checkbox estilizado com a mesma altura dos inputs (para alinhar em linha/coluna)
 function CheckTile({ checked, onChange, danger, children }) {
   return (
-    <label className={`flex items-center gap-2.5 rounded-full border h-[42px] px-3.5 text-corpo font-semibold cursor-pointer transition select-none ${checked ? (danger ? 'border-rust text-rust bg-surface-2' : 'border-moss text-moss bg-surface-2') : 'border-separador text-ink-soft bg-surface hover:bg-paper-2'}`}>
+    <label className={`flex items-center gap-2.5 rounded-full border h-[42px] px-3.5 text-corpo font-semibold cursor-pointer transition select-none ${checked ? (danger ? 'border-rust text-rust bg-surface-2' : 'border-moss text-moss bg-surface-2') : 'border-contorno text-ink-soft bg-surface hover:bg-paper-2'}`}>
       <input type="checkbox" className={`w-[16px] h-[16px] ${danger ? 'accent-rust' : 'accent-moss'}`} checked={checked} onChange={onChange} />
       {children}
     </label>
@@ -158,13 +161,13 @@ function VolPanel({ v, i, withCover, autores, onChange, onCopyAll, onCover, onRe
               </div>
             </div>
           )}
-          <div className={`${box} col-span-2 sm:col-span-1`}>
-            <label className={lbl}>Autor</label>
-            <Pessoas options={autores} value={v.roteirista} onChange={x => set({ roteirista: x })} placeholder="Nome e Enter" />
+          <div className="col-span-2 sm:col-span-1">
+            <Pessoas rotulo="Autor" options={autores} value={v.roteirista}
+              onChange={x => set({ roteirista: x })} placeholder="Nome e Enter" />
           </div>
-          <div className={`${box} col-span-2 sm:col-span-1`}>
-            <label className={lbl}>Artista</label>
-            <Pessoas options={autores} value={v.desenhista} onChange={x => set({ desenhista: x })} placeholder="Nome e Enter" />
+          <div className="col-span-2 sm:col-span-1">
+            <Pessoas rotulo="Artista" options={autores} value={v.desenhista}
+              onChange={x => set({ desenhista: x })} placeholder="Nome e Enter" />
           </div>
           <div className={box}>
             <label className={lbl}>Status</label>
@@ -442,13 +445,13 @@ export default function Editor({ target, onClose, onSaved }) {
                 {!isMulti && (
                   <>
                     <Secao titulo="Autoria">
-                      <div className={`${box} col-span-2 sm:col-span-1`}>
-                        <label className={lbl}>Autor</label>
-                        <Pessoas options={autores} value={d.roteirista} onChange={x => patch({ roteirista: x })} />
+                      <div className="col-span-2 sm:col-span-1">
+                        <Pessoas rotulo="Autor" options={autores} value={d.roteirista}
+                          onChange={x => patch({ roteirista: x })} />
                       </div>
-                      <div className={`${box} col-span-2 sm:col-span-1`}>
-                        <label className={lbl}>Artista</label>
-                        <Pessoas options={autores} value={d.desenhista} onChange={x => patch({ desenhista: x })} />
+                      <div className="col-span-2 sm:col-span-1">
+                        <Pessoas rotulo="Artista" options={autores} value={d.desenhista}
+                          onChange={x => patch({ desenhista: x })} />
                       </div>
                     </Secao>
 
