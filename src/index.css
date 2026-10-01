@@ -191,3 +191,25 @@ body::after {
   .pill-btn:hover { background: var(--toque); border-color: var(--separador); }
   .pill-btn:active { transform: scale(.98); }
 }
+
+/* ------------------------------------------------------------------
+   Véu da abertura.
+
+   A transição é de CSS, e não do framer-motion, por um motivo concreto: a
+   opacidade roda no compositor e termina mesmo com a thread principal
+   ocupada. Com o fade em JS, bastava a thread travar durante os 340ms —
+   sincronizar uma coleção de 4 MB faz exatamente isso — para a animação
+   parar no meio. Como ela nunca terminava, o AnimatePresence nunca
+   desmontava a camada, e o app ficava embaixo de um retângulo creme de tela
+   inteira: a "tela branca" que aparecia ao recarregar durante a sincronia.
+
+   Agora o elemento está sempre montado e quem manda é o atributo. Se a
+   transição não rodar, ele some de uma vez — feio, mas visível.
+   ------------------------------------------------------------------ */
+.veu-abertura {
+  position: fixed; inset: 0; z-index: 95;
+  background: #F4F0E6;            /* paper */
+  pointer-events: none;
+  transition: opacity var(--dur-lento) var(--ease-prem), visibility 0s linear var(--dur-lento);
+}
+.veu-abertura[data-fora='1'] { opacity: 0; visibility: hidden; }

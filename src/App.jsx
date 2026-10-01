@@ -18,7 +18,7 @@ import Atividades from './components/Atividades.jsx'
 import { baixarBackup } from './lib/backup.js'
 
 export default function App() {
-  const { filters, cloud: cloudCfg, obras, editoras } = useStore()
+  const { filters, cloud: cloudCfg, obras, editoras, duplicarObra } = useStore()
   // Abertura: a marca aparece no meio e viaja até o cabeçalho encolhendo.
   // Quem pediu menos movimento não vê tela nenhuma — entra direto na estante.
   const semMovimento = usaMovimentoReduzido()
@@ -43,10 +43,24 @@ export default function App() {
   const say = (m) => { setToast(m); setTimeout(() => setToast(''), 2400) }
 
   const f = filters
-  const filterCount = ['status', 'tipo', 'editora', 'pais', 'autor'].reduce((n, k) => n + (k === 'status' ? (f.status !== 'todos' ? 1 : 0) : (f[k] ? 1 : 0)), 0)
-    + (f.leitura !== 'todos' ? 1 : 0) + (f.importado ? 1 : 0) + (f.urgencia ? 1 : 0)
+  /* Um campo ligado conta 1, mesmo com três valores marcados: o número diz
+     quantos filtros estão em uso, não quantas opções. */
+  const ligado = (v) => (Array.isArray(v) ? v.length > 0 : !!v)
+  const filterCount =
+    (f.status !== 'todos' ? 1 : 0) + (f.leitura !== 'todos' ? 1 : 0) +
+    ['tipo', 'tipoEdicao', 'editora', 'pais', 'autor', 'importado', 'urgencia']
+      .reduce((n, k) => n + (ligado(f[k]) ? 1 : 0), 0)
 
   const openEditor = (obra) => { setDetail(null); setEditor(obra || {}) }
+
+  /* Duplicar já grava a cópia e abre o editor nela: o nome vem com "(cópia)"
+     e é justamente o que a pessoa vai querer trocar primeiro. */
+  const duplicar = (obra) => {
+    const nova = duplicarObra(obra.id)
+    if (!nova) return
+    setDetail(null); setEditor(nova)
+    say('Cópia criada — ajuste o que mudar ✓')
+  }
 
   const openBulk = () => {
     if (!cloudCfg.connected) { say('Conecte a nuvem primeiro para enviar as capas.'); setCloud(true); return }
@@ -99,7 +113,7 @@ export default function App() {
       </button>
 
       <FiltersDrawer open={showFilters} onClose={() => setShowFilters(false)} />
-      <DetailSheet obra={detail} onClose={() => setDetail(null)} onEdit={openEditor} />
+      <DetailSheet obra={detail} onClose={() => setDetail(null)} onEdit={openEditor} onDuplicar={duplicar} />
       <SearchOverlay open={search} onClose={() => setSearch(false)} />
       <Stats open={stats} onClose={() => setStats(false)} />
       <Atividades open={atividades} onClose={() => setAtividades(false)} />
