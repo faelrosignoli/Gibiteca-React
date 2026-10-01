@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790861234899,
- "updated": "2026-10-01T13:27:14.899Z",
+ "atualizadoEm": 1790861607984,
+ "updated": "2026-10-01T13:33:27.984Z",
  "obras": [
   {
    "id": 1,
@@ -12316,7 +12316,7 @@
      "nome": "Monstro Do Pântano - Vol. 2",
      "imagem": null,
      "roteirista": "Alan Moore",
-     "desenhista": "",
+     "desenhista": "Stephen Bissette / John Totleben / Rick Veitch / Stan Woch / Tatjana Wood / Alfredo Alcala / Ron Randall",
      "status": "wishlist",
      "urgencia": false,
      "valorPago": 0,
@@ -12326,8 +12326,8 @@
     {
      "nome": "Monstro Do Pântano - Vol. 3",
      "imagem": null,
-     "roteirista": "Alan Moore",
-     "desenhista": "",
+     "roteirista": "Alan Moore / Rick Veitch",
+     "desenhista": "Rick Veitch / Alfredo Alcala / Tatjana Wood / John Totleben / Adrienne Roy / Al Williamson / Stephen Bissette / Thomas Yeates",
      "status": "wishlist",
      "urgencia": false,
      "valorPago": 0,
