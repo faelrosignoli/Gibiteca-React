@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790827798949,
- "updated": "2026-10-01T04:09:58.949Z",
+ "atualizadoEm": 1790827883749,
+ "updated": "2026-10-01T04:11:23.749Z",
  "obras": [
   {
    "id": 1,
@@ -12159,6 +12159,25 @@
    "imagem": null,
    "roteirista": "Darwyn Cooke",
    "desenhista": "Darwyn Cooke / Dave Stewart / Dave Bullock / Michael Cho / J. Bone",
+   "status": "wishlist",
+   "urgencia": false,
+   "valorPago": 0,
+   "lido": false,
+   "nota": 0
+  },
+  {
+   "id": 579,
+   "nome": "Batman: Ano Um",
+   "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Panini",
+   "pais": "EUA",
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "absoluta",
+   "imagem": null,
+   "roteirista": "",
+   "desenhista": "",
    "status": "wishlist",
    "urgencia": false,
    "valorPago": 0,
