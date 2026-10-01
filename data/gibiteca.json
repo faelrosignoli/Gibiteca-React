@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790825818458,
- "updated": "2026-10-01T03:36:58.458Z",
+ "atualizadoEm": 1790826447475,
+ "updated": "2026-10-01T03:47:27.475Z",
  "obras": [
   {
    "id": 1,
@@ -12099,6 +12099,25 @@
    "imagem": null,
    "roteirista": "",
    "desenhista": "",
+   "status": "wishlist",
+   "urgencia": false,
+   "valorPago": 0,
+   "lido": false,
+   "nota": 0
+  },
+  {
+   "id": 576,
+   "nome": "Ronin",
+   "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Panini",
+   "pais": "EUA",
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "absoluta",
+   "imagem": null,
+   "roteirista": "Frank Miller",
+   "desenhista": "Frank Miller / Lynn Varley",
    "status": "wishlist",
    "urgencia": false,
    "valorPago": 0,
