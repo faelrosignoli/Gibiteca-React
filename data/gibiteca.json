@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790827883749,
- "updated": "2026-10-01T04:11:23.749Z",
+ "atualizadoEm": 1790828001779,
+ "updated": "2026-10-01T04:13:21.779Z",
  "obras": [
   {
    "id": 1,
@@ -12176,8 +12176,8 @@
    "resenha": "",
    "tipoEdicao": "absoluta",
    "imagem": null,
-   "roteirista": "",
-   "desenhista": "",
+   "roteirista": "Frank Miller",
+   "desenhista": "David Mazzucchelli / Richmond Lewis",
    "status": "wishlist",
    "urgencia": false,
    "valorPago": 0,
