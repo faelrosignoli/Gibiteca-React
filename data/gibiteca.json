@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790828001779,
- "updated": "2026-10-01T04:13:21.779Z",
+ "atualizadoEm": 1790859081816,
+ "updated": "2026-10-01T12:51:21.816Z",
  "obras": [
   {
    "id": 1,
@@ -12178,6 +12178,25 @@
    "imagem": null,
    "roteirista": "Frank Miller",
    "desenhista": "David Mazzucchelli / Richmond Lewis",
+   "status": "wishlist",
+   "urgencia": false,
+   "valorPago": 0,
+   "lido": false,
+   "nota": 0
+  },
+  {
+   "id": 580,
+   "nome": "Batman: A Piada Mortal",
+   "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Panini",
+   "pais": "EUA",
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
+   "imagem": null,
+   "roteirista": "Alan Moore",
+   "desenhista": "Brian Bolland",
    "status": "wishlist",
    "urgencia": false,
    "valorPago": 0,
