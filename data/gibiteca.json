@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790827291720,
- "updated": "2026-10-01T04:01:31.720Z",
+ "atualizadoEm": 1790827475283,
+ "updated": "2026-10-01T04:04:35.283Z",
  "obras": [
   {
    "id": 1,
@@ -12152,10 +12152,10 @@
    "pais": "EUA",
    "tags": [],
    "resenha": "",
-   "tipoEdicao": "",
+   "tipoEdicao": "absoluta",
    "imagem": null,
    "roteirista": "Darwyn Cooke",
-   "desenhista": "Darwyn Cooke",
+   "desenhista": "Darwyn Cooke / Dave Stewart / Dave Bullock / Michael Cho / J. Bone",
    "status": "wishlist",
    "urgencia": false,
    "valorPago": 0,
