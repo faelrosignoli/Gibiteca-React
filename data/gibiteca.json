@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790859081816,
- "updated": "2026-10-01T12:51:21.816Z",
+ "atualizadoEm": 1790859148027,
+ "updated": "2026-10-01T12:52:28.027Z",
  "obras": [
   {
    "id": 1,
@@ -12197,6 +12197,49 @@
    "imagem": null,
    "roteirista": "Alan Moore",
    "desenhista": "Brian Bolland",
+   "status": "wishlist",
+   "urgencia": false,
+   "valorPago": 0,
+   "lido": false,
+   "nota": 0
+  },
+  {
+   "id": 581,
+   "nome": "Quarto Mundo Por Jack Kirby",
+   "tipo": "serie",
+   "origem": "nacional",
+   "editora": "Panini",
+   "pais": "EUA",
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
+   "volumes": [
+    {
+     "nome": "Quarto Mundo Por Jack Kirby - Vol. 1",
+     "imagem": null,
+     "roteirista": "Jack Kirby",
+     "desenhista": "Jack Kirby",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "Quarto Mundo Por Jack Kirby - Vol. 2",
+     "imagem": null,
+     "roteirista": "Jack Kirby",
+     "desenhista": "Jack Kirby",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    }
+   ],
+   "imagem": null,
+   "roteirista": "",
+   "desenhista": "",
    "status": "wishlist",
    "urgencia": false,
    "valorPago": 0,
