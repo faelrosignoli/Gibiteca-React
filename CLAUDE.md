@@ -44,6 +44,7 @@ src/
     Collection.jsx         # grade (Card) + Lista (Ficha) + estado vazio; usa Pagination
     Card.jsx               # card 3D (tilt), sombra dura, selos; SEM brilho de cursor
     Selos.jsx              # linha de selos do card com teto de 2 linhas e pílula "+N"
+    Pessoas.jsx            # autor/artista como etiquetas; entrega a string com " / "
     Ticker.jsx, Pagination.jsx, Footer.jsx   (Marquee e Resumo foram removidos)
     FiltersDrawer.jsx      # gaveta de filtros (grid content-start para não esticar as linhas)
     DetailSheet.jsx        # painel de detalhe; botão Editar; grade de capas por volume
@@ -725,6 +726,102 @@ mostraria de novo.
 é a única ação do painel que destrói dado, e fica longe dos "copiar p/ todos".
 Some quando resta **um** volume — série sem volume nenhum não é um estado que
 valha a pena existir. A quantidade acompanha sozinha.
+
+### Filtros multi-seleção
+**Editora, País, Autor e Tipo de edição guardam LISTA**, não valor único.
+Dentro do campo os valores **somam** (Panini OU Pipoca); entre campos continuam
+se **cruzando** (Panini E Japão). `filtrosPadrao()` é função, não constante:
+devolvendo listas novas a cada chamada, "limpar filtros" não entrega ao estado
+os mesmos arrays que estavam em uso.
+
+`comoLista(v)` em `helpers.js` aceita lista **e** valor solto — um filtro
+gravado por uma versão anterior não derruba o `passes()`.
+
+O `Selecao multi` **não fecha a folha a cada escolha**: marcar cinco editoras
+seriam cinco idas e vindas. Fecha no clique fora, no Esc ou no botão. A opção
+vazia ("Todas") não vira mais um item marcado — ela **zera** a lista, e aparece
+marcada justamente quando nada está. Fechado, o botão mostra o primeiro rótulo
+mais um contador (`Panini +2`), com o contador **fora** do truncate: ele some
+justamente quando o nome é longo, que é quando mais importa.
+
+O contador de filtros do cabeçalho conta **campos ligados**, não valores
+marcados: três editoras são um filtro só.
+
+A folha abre com até **340px** (eram 232): 7 opções à vista em vez de 5. O teto
+real continua sendo o container que rola.
+
+### Autor e artista são etiquetas, não texto com "/"
+`Pessoas.jsx`. Cada nome é uma etiqueta fechada com × próprio; fecha com
+Enter, vírgula, ponto e vírgula ou Tab, e **colar uma lista** ("Alan Moore,
+Dave Gibbons; John Higgins") abre todas de uma vez. Backspace no campo vazio
+tira a última. Sair do campo fecha o nome pendente — ninguém perde o que
+digitou por clicar fora.
+
+**O que sai do componente continua sendo a mesma string separada por " / "**:
+modelo de dados, `splitLista`, `authorsOf`, filtros, diário e backups não
+mudaram nada. A obra antiga abre em etiquetas sozinha.
+
+Repetido não entra duas vezes, comparando por `gNorm` (sem acento, sem caixa).
+Antes, errar uma barra juntava dois nomes num só e o filtro de autor passava a
+listar "Alan Moore Dave Gibbons" como se fosse uma pessoa.
+
+Os rótulos são **"Autor"** e **"Artista"** — não mais "Autor / Roteirista" e
+"Desenhista / Colorista / Finalista", que só existiam para explicar a barra.
+
+### O Editor é dividido em seções
+`Secao` (mono, moss, com um fio até a margem). Ordem: **Cadastro ·
+Publicação · Capa · Autoria · Situação · Volumes · Anotações**. Eram quinze
+campos em fila única, todos com o mesmo peso.
+
+Duas mudanças de lugar que vieram junto: **"Tipo da edição" subiu** para
+Publicação (é dado de publicação, e estava largado depois da resenha), e o link
+**"Ver no Guia" saiu de dentro da linha do título** — ali comia metade da
+largura do campo justamente no celular. Agora fica abaixo, alinhado à direita.
+
+### Ícone em vez de texto, mas nunca ícone sozinho
+`BotaoIcone` no Editor: círculo de contorno, variante `perigo` em rust.
+Todos levam `title` **e** `aria-label` por extenso.
+
+A barra do rodapé do volume é uma só: o rótulo visível **"Copiar p/ todos"**
+seguido de três ícones (caneta = autor, paleta = artista, marcador = status), o
+vão, e a **lixeira** à direita. O rótulo fica à vista de propósito — ícone
+sozinho vira charada, e no celular não existe o balãozinho do `title` para
+salvar. A paleta não é pincel: pincel e caneta viram o mesmo risco diagonal a
+15px, e trocar um pelo outro aqui sobrescreve o campo em **todos** os volumes.
+
+### Duplicar obra
+Ícone ao lado de Editar, na gaveta de detalhe. `duplicarObra(id)` no store faz
+**clone profundo** (`JSON.parse(JSON.stringify())`) — série e box têm volumes,
+e dois registros apontando para o mesmo array fariam editar um mexer no outro.
+Id novo, "(cópia)" no nome.
+
+A cópia **nasce gravada** e o Editor abre nela: quem duplica quer editar em
+seguida, e um rascunho que só existisse no modal se perderia num Cancelar.
+Consequência a lembrar: duplicar uma série com capas embutidas **dobra** o peso
+dela no armazenamento.
+
+### O × da busca limpa a busca
+Não só fecha: apaga o termo. Antes a coleção continuava filtrada por um texto
+que não estava mais à vista, e dava a impressão de que obras tinham sumido.
+O **Esc continua só fechando**, para quem quer conferir o resultado.
+
+### A tela branca era o véu da abertura
+Sintoma: recarregar durante uma sincronia e o app aparecer em branco. A causa
+não era a sincronia — era o fade de saída da `Abertura`.
+
+O fundo creme era um `AnimatePresence` com fade em **JS**. Se a thread
+principal travasse durante os 340ms — e serializar uma coleção de 4 MB trava —,
+a animação parava no meio, nunca "terminava", e o `AnimatePresence` segurava a
+camada `z-95` montada **cobrindo o app inteiro**, para sempre.
+
+Agora o elemento fica **sempre montado** e some por transição de **CSS**
+(`.veu-abertura`, com `data-fora`): a opacidade roda no compositor e termina
+mesmo com a thread ocupada, e sem presença condicional não há o que segurar.
+
+**Regra que fica:** camada de tela inteira não depende de animação de JS
+terminar para sair do caminho. Quando depender, ela precisa de
+`pointer-events-none` no `exit` — é o que o `SearchOverlay` faz, para que uma
+saída travada não engula todo clique do app com a tela aparentemente normal.
 
 ## Convenções de componentes
 - Componentes funcionais, um por arquivo, export default. Estado local via hooks;
