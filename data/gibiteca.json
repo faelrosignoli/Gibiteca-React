@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790859232162,
- "updated": "2026-10-01T12:53:52.162Z",
+ "atualizadoEm": 1790859247854,
+ "updated": "2026-10-01T12:54:07.854Z",
  "obras": [
   {
    "id": 1,
@@ -12196,7 +12196,7 @@
    "pais": "EUA",
    "tags": [],
    "resenha": "",
-   "tipoEdicao": "",
+   "tipoEdicao": "absoluta",
    "imagem": null,
    "roteirista": "Alan Moore",
    "desenhista": "Brian Bolland",
