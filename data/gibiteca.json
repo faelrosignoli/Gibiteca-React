@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790862312446,
- "updated": "2026-10-01T13:45:12.446Z",
+ "atualizadoEm": 1790862502684,
+ "updated": "2026-10-01T13:48:22.684Z",
  "obras": [
   {
    "id": 1,
@@ -12414,6 +12414,25 @@
    "imagem": null,
    "roteirista": "Len Wein",
    "desenhista": "Bernie Wrightson / José Villarrubia / Tatjana Wood / Glynis Oliver-Wein / Jeff Jones / Nestor Redondo",
+   "status": "wishlist",
+   "urgencia": false,
+   "valorPago": 0,
+   "lido": false,
+   "nota": 0
+  },
+  {
+   "id": 589,
+   "nome": "Batman: Cavaleiro das Trevas",
+   "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Panini",
+   "pais": "EUA",
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "absoluta",
+   "imagem": null,
+   "roteirista": "Frank Miller",
+   "desenhista": "Frank Miller / Klaus Janson / Lynn Varley",
    "status": "wishlist",
    "urgencia": false,
    "valorPago": 0,
