@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790827482781,
- "updated": "2026-10-01T04:04:42.781Z",
+ "atualizadoEm": 1790827798949,
+ "updated": "2026-10-01T04:09:58.949Z",
  "obras": [
   {
    "id": 1,
@@ -2265,14 +2265,17 @@
    "id": 139,
    "nome": "V de Vingança",
    "tipo": "avulso",
-   "imagem": null,
-   "roteirista": "Alan Moore",
-   "desenhista": "David Lloyd",
    "origem": "nacional",
    "editora": "Panini",
    "pais": "Reino Unido",
-   "urgencia": false,
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "absoluta",
+   "imagem": null,
+   "roteirista": "Alan Moore",
+   "desenhista": "David Lloyd",
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
