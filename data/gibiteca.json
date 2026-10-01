@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790825475301,
- "updated": "2026-10-01T03:31:15.301Z",
+ "atualizadoEm": 1790825818458,
+ "updated": "2026-10-01T03:36:58.458Z",
  "obras": [
   {
    "id": 1,
@@ -12080,6 +12080,25 @@
    "imagem": null,
    "roteirista": "Teresa Valero",
    "desenhista": "Teresa Valero",
+   "status": "wishlist",
+   "urgencia": false,
+   "valorPago": 0,
+   "lido": false,
+   "nota": 0
+  },
+  {
+   "id": 575,
+   "nome": "Na Trilha de Blueberry",
+   "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Pipoca & Nanquim",
+   "pais": "França",
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
+   "imagem": null,
+   "roteirista": "",
+   "desenhista": "",
    "status": "wishlist",
    "urgencia": false,
    "valorPago": 0,
