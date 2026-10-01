@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790859392766,
- "updated": "2026-10-01T12:56:32.766Z",
+ "atualizadoEm": 1790859577037,
+ "updated": "2026-10-01T12:59:37.037Z",
  "obras": [
   {
    "id": 1,
@@ -12265,6 +12265,25 @@
    "imagem": null,
    "roteirista": "Grant Morrison",
    "desenhista": "Dave McKean",
+   "status": "wishlist",
+   "urgencia": false,
+   "valorPago": 0,
+   "lido": false,
+   "nota": 0
+  },
+  {
+   "id": 583,
+   "nome": "Justiça",
+   "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Panini",
+   "pais": "EUA",
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "absoluta",
+   "imagem": null,
+   "roteirista": "Jim Krueger / Alex Ross",
+   "desenhista": "Doug Braithwaite / Alex Ross",
    "status": "wishlist",
    "urgencia": false,
    "valorPago": 0,
