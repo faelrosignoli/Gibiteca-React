@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1790859247854,
- "updated": "2026-10-01T12:54:07.854Z",
+ "atualizadoEm": 1790859305179,
+ "updated": "2026-10-01T12:55:05.179Z",
  "obras": [
   {
    "id": 1,
@@ -8363,15 +8363,20 @@
   },
   {
    "id": 499,
-   "nome": "Thor, o Deus do Trovão \"jason Aaron\"",
+   "nome": "Thor, o Deus do Trovão",
    "tipo": "serie",
-   "imagem": null,
+   "origem": "nacional",
+   "editora": "Panini",
+   "pais": "",
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
    "volumes": [
     {
-     "nome": "Thor, o Deus do Trovão \"jason Aaron\" — Vol. 1",
+     "nome": "Thor, o Deus do Trovão - Vol. 1",
      "imagem": null,
-     "roteirista": "",
-     "desenhista": "",
+     "roteirista": "Jason Aaron",
+     "desenhista": "Jason Aaron",
      "status": "wishlist",
      "urgencia": false,
      "valorPago": 0,
@@ -8379,10 +8384,10 @@
      "nota": 0
     },
     {
-     "nome": "Thor, o Deus do Trovão \"jason Aaron\" — Vol. 2",
+     "nome": "Thor, o Deus do Trovão - Vol. 2",
      "imagem": null,
-     "roteirista": "",
-     "desenhista": "",
+     "roteirista": "Jason Aaron",
+     "desenhista": "Jason Aaron",
      "status": "wishlist",
      "urgencia": false,
      "valorPago": 0,
@@ -8390,10 +8395,10 @@
      "nota": 0
     },
     {
-     "nome": "Thor, o Deus do Trovão \"jason Aaron\" — Vol. 3",
+     "nome": "Thor, o Deus do Trovão - Vol. 3",
      "imagem": null,
-     "roteirista": "",
-     "desenhista": "",
+     "roteirista": "Jason Aaron",
+     "desenhista": "Jason Aaron",
      "status": "wishlist",
      "urgencia": false,
      "valorPago": 0,
@@ -8401,10 +8406,10 @@
      "nota": 0
     },
     {
-     "nome": "Thor, o Deus do Trovão \"jason Aaron\" — Vol. 4",
+     "nome": "Thor, o Deus do Trovão - Vol. 4",
      "imagem": null,
-     "roteirista": "",
-     "desenhista": "",
+     "roteirista": "Jason Aaron",
+     "desenhista": "Jason Aaron",
      "status": "wishlist",
      "urgencia": false,
      "valorPago": 0,
@@ -8412,9 +8417,7 @@
      "nota": 0
     }
    ],
-   "origem": "nacional",
-   "editora": "Panini",
-   "pais": "",
+   "imagem": null,
    "roteirista": "",
    "desenhista": "",
    "status": "wishlist",
