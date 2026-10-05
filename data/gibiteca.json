@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1791235216578,
- "updated": "2026-10-05T21:20:16.578Z",
+ "atualizadoEm": 1791235559457,
+ "updated": "2026-10-05T21:25:59.457Z",
  "obras": [
   {
    "id": 1,
@@ -12477,7 +12477,7 @@
    "tipoEdicao": "omnibus",
    "volumes": [
     {
-     "nome": "Vol. 1",
+     "nome": "Mickey e O Oceano Perdido",
      "imagem": null,
      "roteirista": "",
      "desenhista": "",
@@ -12488,7 +12488,7 @@
      "nota": 0
     },
     {
-     "nome": "Vol. 2",
+     "nome": "As Férias de Donald",
      "imagem": null,
      "roteirista": "",
      "desenhista": "",
@@ -12499,7 +12499,7 @@
      "nota": 0
     },
     {
-     "nome": "Vol. 3",
+     "nome": "As Mais Alegres Aventuras de Donald",
      "imagem": null,
      "roteirista": "",
      "desenhista": "",
@@ -12510,7 +12510,7 @@
      "nota": 0
     },
     {
-     "nome": "Vol. 4",
+     "nome": "As Mais Loucas Aventuras de Mickey",
      "imagem": null,
      "roteirista": "",
      "desenhista": "",
@@ -12521,7 +12521,7 @@
      "nota": 0
     },
     {
-     "nome": "Vol. 5",
+     "nome": "Horrifikland - Uma Assustadora Aventura de Mickey",
      "imagem": null,
      "roteirista": "",
      "desenhista": "",
@@ -12532,7 +12532,7 @@
      "nota": 0
     },
     {
-     "nome": "Vol. 6",
+     "nome": "Mickey e A Terra dos Anciões",
      "imagem": null,
      "roteirista": "",
      "desenhista": "",
@@ -12543,7 +12543,7 @@
      "nota": 0
     },
     {
-     "nome": "Vol. 7",
+     "nome": "Uma Misteriosa Melodia, Ou Como Mickey Conheceu A Minnie",
      "imagem": null,
      "roteirista": "",
      "desenhista": "",
@@ -12554,7 +12554,7 @@
      "nota": 0
     },
     {
-     "nome": "Vol. 8",
+     "nome": "A Juventude de Mickey",
      "imagem": null,
      "roteirista": "",
      "desenhista": "",
@@ -12565,7 +12565,7 @@
      "nota": 0
     },
     {
-     "nome": "Vol. 9",
+     "nome": "Minnie - O Segredo da Tia Miranda",
      "imagem": null,
      "roteirista": "",
      "desenhista": "",
@@ -12576,7 +12576,7 @@
      "nota": 0
     },
     {
-     "nome": "Vol. 10",
+     "nome": "A Ilha do Terror - Uma Assustadora Aventura de Mickey",
      "imagem": null,
      "roteirista": "",
      "desenhista": "",
@@ -12587,7 +12587,7 @@
      "nota": 0
     },
     {
-     "nome": "Vol. 11",
+     "nome": "Mickey All Stars",
      "imagem": null,
      "roteirista": "",
      "desenhista": "",
@@ -12598,7 +12598,7 @@
      "nota": 0
     },
     {
-     "nome": "Vol. 12",
+     "nome": "Mickey Mouse - Café \"Zumbi\"",
      "imagem": null,
      "roteirista": "",
      "desenhista": "",
@@ -12609,7 +12609,7 @@
      "nota": 0
     },
     {
-     "nome": "Vol. 13",
+     "nome": "Mickey Através dos Séculos",
      "imagem": null,
      "roteirista": "",
      "desenhista": "",
@@ -12620,7 +12620,7 @@
      "nota": 0
     },
     {
-     "nome": "Vol. 14",
+     "nome": "Mickey Mouse e Os Mil Bafos",
      "imagem": null,
      "roteirista": "",
      "desenhista": "",
@@ -12631,7 +12631,7 @@
      "nota": 0
     },
     {
-     "nome": "Vol. 15",
+     "nome": "Super Mickey",
      "imagem": null,
      "roteirista": "",
      "desenhista": "",
@@ -12642,7 +12642,7 @@
      "nota": 0
     },
     {
-     "nome": "Vol. 16",
+     "nome": "Tio Patinhas e O Dragão de Glasgow",
      "imagem": null,
      "roteirista": "",
      "desenhista": "",
@@ -12653,29 +12653,7 @@
      "nota": 0
     },
     {
-     "nome": "Vol. 17",
-     "imagem": null,
-     "roteirista": "",
-     "desenhista": "",
-     "status": "wishlist",
-     "urgencia": false,
-     "valorPago": 0,
-     "lido": false,
-     "nota": 0
-    },
-    {
-     "nome": "Vol. 18",
-     "imagem": null,
-     "roteirista": "",
-     "desenhista": "",
-     "status": "wishlist",
-     "urgencia": false,
-     "valorPago": 0,
-     "lido": false,
-     "nota": 0
-    },
-    {
-     "nome": "Vol. 19",
+     "nome": "Um Trabalho Para O Superpato",
      "imagem": null,
      "roteirista": "",
      "desenhista": "",
