@@ -6,6 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light" />
     <title>Minha Gibiteca</title>
+    <script>
+      /* Antes do React, senão quem usa Nockout vê o Moss piscar enquanto o
+         bundle carrega. Em try/catch porque navegador sem storage existe. */
+      try {
+        if (localStorage.getItem('gibiteca_tema') === 'nockout')
+          document.documentElement.dataset.tema = 'nockout'
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

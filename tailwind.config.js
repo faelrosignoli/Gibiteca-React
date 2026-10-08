@@ -4,7 +4,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        paper:   { DEFAULT: '#F4F0E6', 2: '#EBE5D4', 3: '#E1DAC4' },
+        /* O PAPEL é temável junto com o acento: o Moss usa o creme de sempre,
+           o Nockout um prateado. Canais separados por espaço pelo mesmo motivo
+           do acento — manter `bg-paper/60` funcionando. */
+        paper: {
+          DEFAULT: 'rgb(var(--paper) / <alpha-value>)',
+          2:       'rgb(var(--paper-2) / <alpha-value>)',
+          3:       'rgb(var(--paper-3) / <alpha-value>)',
+        },
         // Uma tinta só, quatro papéis, tudo por opacidade — como o United
         // Carriers faz. Vantagem sobre cores sólidas: o texto continua legível
         // sobre qualquer superfície, inclusive sobre uma capa colorida.
@@ -15,7 +22,23 @@ export default {
           mute:    'rgba(35,39,28,.38)',    // desabilitado
           2:       '#2c3124',               // hover de superfície escura
         },
-        moss:    { DEFAULT: '#4B5D3A', 2: '#5E7146', 3: '#879266', line: '#c4cbaf' },
+        /* O ACENTO é temável: os valores moram em variáveis no index.css, e
+           trocar o tema repinta os ~100 usos de uma vez. Canais separados por
+           espaço, não hex, para o Tailwind ainda conseguir aplicar opacidade
+           (`bg-moss/40`) por cima. */
+        moss: {
+          DEFAULT: 'rgb(var(--moss) / <alpha-value>)',
+          2:       'rgb(var(--moss-2) / <alpha-value>)',
+          3:       'rgb(var(--moss-3) / <alpha-value>)',
+          line:    'rgb(var(--moss-line) / <alpha-value>)',
+        },
+        /* O acento como TEXTO é um tom à parte. No Moss dá na mesma; no
+           Nockout não: #FF5000 sobre creme fica em 2,8:1, ilegível em rótulo
+           de 10px. Aqui ele escurece o quanto precisa para passar. */
+        'acento-texto': 'rgb(var(--acento-texto) / <alpha-value>)',
+        /* A tinta que vai EM CIMA do acento. No Moss é o creme; no Nockout o
+           creme cai para 3,3:1 e quem lê bem é a tinta escura. */
+        'sobre-acento': 'rgb(var(--sobre-acento) / <alpha-value>)',
         gold:    '#B0862B',
         rust:    '#9C4A2E',
         blue:    '#2f5aa8',   // selo "Importado"
@@ -36,7 +59,7 @@ export default {
         veu:       'rgba(35,39,28,.5)',     // backdrop de modal
 
         // ---- tintas pálidas de estado ----
-        'tinta-moss': '#f2f5ea',
+        'tinta-moss': 'rgb(var(--tinta-moss) / <alpha-value>)',
         'tinta-gold': '#f3ead4',
         'tinta-rust': '#f0e2da',
       },

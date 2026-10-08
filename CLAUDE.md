@@ -34,15 +34,16 @@ src/
   data.js                  # SOMENTE listas de apoio: EDITORAS e GENRES (nenhuma obra embutida)
   lib/
     store.jsx              # StoreProvider (contexto global): obras, filtros, paginação, persistência, nuvem
-    helpers.js             # funções puras: coverOf, unitsOf, tipoOf, edOf, edicaoDe, statusMatch, avgNota, canon, slugify, fmtBRL, moneyToNumber/Format, tintFor, initials...
+    helpers.js             # funções puras: coverOf, unitsOf, tipoOf, edOf, edicaoDe, statusMatch, avgNota, canon, slugify, fmtBRL, moneyToNumber/Format, tintIndex/classeTinta, initials...
     cloud.js               # GitHub Contents API: ghCheckRepo, ghGet, ghPut, b64enc/dec, guessRepo
     motion.js              # tokens de movimento: molas, projeção de momento, elástico das bordas, hooks de viewport e movimento reduzido
   components/
-    Header.jsx             # barra ÚNICA do topo: Busca · Filtros · Estatísticas · LOGO (centro) · Galeria/Lista · menu ☰
+    Header.jsx             # barra de ponta a ponta, sticky: véu desfocado no topo, cortina moss ao rolar
     (Toolbar.jsx foi absorvido pelo Header — não recriar uma segunda faixa)
     SearchOverlay.jsx      # busca em pop-up (backdrop desfocado)
     Collection.jsx         # grade (Card) + Lista (Ficha) + estado vazio; usa Pagination
     Card.jsx               # card 3D (tilt), sombra dura, selos; SEM brilho de cursor
+    Marca.jsx              # a marca em SVG inline, duas tintas trocáveis (gerada de assets/logo.svg)
     Selos.jsx              # linha de selos do card com teto de 2 linhas e pílula "+N"
     Pessoas.jsx            # autor/artista como etiquetas; entrega a string com " / "
     Ticker.jsx, Pagination.jsx, Footer.jsx   (Marquee e Resumo foram removidos)
@@ -106,20 +107,110 @@ Todos os tamanhos são `calc(Npx * var(--escala))`. Mudar `--escala` no
 `index.css` reescala a tipografia inteira do app. Padrão: `1`.
 
 ### Primeiro nível: só o que se usa sempre
-Uma barra única, com o logo no centro:
+Uma barra única, com o logo no centro nos **dois** tamanhos:
 
 ```
-Busca · Filtros · Estatísticas · LOGO · Galeria/Lista · ☰
+desktop:  Busca · Filtros · LOGO · Galeria/Lista · ☰
+
+celular:  Busca ········ LOGO ········ ☰
+          Filtros ············ Galeria/Lista
 ```
 
-No desktop é uma grade `[1fr auto 1fr]` — só assim o logo fica no centro exato
-independente da largura dos dois lados. **No celular o logo sai da pílula**: ele fica
-grande (h-16), centralizado acima dela e com respiro de 32px do topo. Ele mora
-**fora do bloco fixo** (componente `LogoMobile`, montado pelo `App.jsx`), então
-rola junto com o conteúdo — só a pílula de botões acompanha a rolagem.
+É uma grade `[1fr auto 1fr]` — só assim o logo fica no centro exato
+independente da largura dos dois lados.
 
-A pílula é **opaca e sem desfoque**, e não há faixa de fundo atravessando a tela:
-o que flutua sobre o conteúdo é a pílula, e só ela.
+**No celular a marca entrou na barra.** Antes era um bloco solto acima, que
+rolava embora (`LogoMobile`, removido); agora acompanha a rolagem como em
+qualquer site, e o que desceu para a segunda linha foi o que é ferramenta, não
+marca.
+
+A segunda linha fica **fora** da barra fixa: ela rola embora com a página. Só a
+marca, a busca e o ☰ acompanham a rolagem — o que é ferramenta da estante fica
+com a estante. Medido: rolando 400px, a barra para em `top: 0` e a segunda
+linha vai para `-329`.
+
+**O alternador Galeria/Lista existe uma vez só no DOM.** Ele carrega um
+`layoutId`, e dois elementos com o mesmo id ao mesmo tempo quebram a animação
+da pastilha. Por isso a posição dele (barra no desktop, segunda linha no
+celular) é escolhida em **JS**, não duplicada e escondida por CSS.
+
+### O ☰: um painel no celular, uma folha no desktop
+Três assuntos, nesta ordem: **cor do site**, **estatísticas** e **um tópico só**
+para tudo que é dado — nuvem, atividades, capas em massa e os dois backups.
+Eram cinco itens soltos competindo com o resto; agora são cinco coisas da mesma
+família atrás de uma porta que abre em sanfona.
+
+O menu é o **mesmo nos dois tamanhos**. Estatísticas chegou a viver na barra do
+desktop; manter os dois caminhos daria duas portas para a mesma tela, então ela
+mora só no ☰.
+
+Com o menu aberto a segunda linha **não precisa sumir à mão**: o painel é fixo e
+começa embaixo da barra, então a cobre sozinho. Escondê-la daria um pulo na
+página ao abrir o menu, porque ela está no fluxo normal.
+
+**No painel, as linhas são grandes (`text-titulo`, 28px) e sem ícone.** São três
+assuntos, não uma lista de comandos, e a essa altura o ícone vira enfeite ao
+lado de uma palavra que já se lê de longe. Na folha do desktop, que é compacta,
+o ícone continua ajudando a varrer — o mesmo componente serve os dois pela
+prop `grande`.
+
+Com o ícone da nuvem fora, o **ponto de sincronização** ganhou lugar próprio ao
+lado do rótulo: a ação pode se esconder atrás de uma porta, o alerta não pode.
+
+No celular o menu é um painel de tela cheia que começa embaixo da barra, com a
+altura dela medida em `useLayoutEffect`. Ele mora **fora do `<header>`**, e
+isso não é arbitrário: como filho, ele pegava a regra
+`.barra-topo > * { position: relative }` — a que mantém o conteúdo acima da
+cortina do acento — e com isso perdia o `fixed`, caía no fluxo e passava a
+entrar na altura da própria barra, que é justamente a referência que ele usa
+para se posicionar. Um ciclo que só aparece medindo.
+
+### A barra do topo: véu no alto, cortina do acento quando se enche
+Não é mais uma pílula flutuante — é uma **barra de ponta a ponta** (`.barra-topo`,
+no `index.css`), com dois estados ligados pelo `data-acento`:
+
+| | Fundo | Tinta |
+|---|---|---|
+| Vazia | papel a 62% + `backdrop-filter: blur(16px) saturate(1.4)` | ink (escura) |
+| Cheia | painel do **acento** | `--sobre-acento` |
+
+**Ela se enche por DOIS motivos: a página rolou, ou o menu está aberto.** É o
+que `comAcento` resolve no `Header`, e tudo que muda de cor junto com a
+cortina olha para ele — nunca para `rolado` direto, senão o fundo vira acento
+e os botões ficam na tinta escura.
+
+O atributo chamava-se `data-rolado` e foi renomeado quando o menu virou um
+segundo motivo: ele diz o **estado**, não a causa. Com o menu aberto no topo da
+página a barra ficava translúcida, e o painel branco colado numa barra quase
+branca não tinha onde terminar.
+
+**A cortina não é fade de opacidade — é `clip-path`.** Um painel moss já opaco
+mora no `::before` e fica escondido num polígono de área zero colado na borda
+de baixo (`polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%)`); ao rolar ele abre
+para o retângulo cheio, e quem viaja é a **aresta de cima**. O acento sobe.
+
+Por que não opacidade: com ela você veria a página **através** do acento durante
+toda a transição. O recorte dá aresta dura — o moss nasce cheio, só está
+escondido. E `clip-path` não causa reflow, ao contrário de animar `height`.
+
+`--dur-cortina` é **0.9s**, o dobro do teto do resto do app, com
+`cubic-bezier(.22, 1, .36, 1)` (easeOutQuint). É exceção consciente: aqui o
+movimento é encenação, não resposta a toque. **O token não deve ser reusado em
+botão nenhum.**
+
+A inversão da tinta roda em **0.45s, não em 0.9s**: a cortina leva quase meio
+segundo para cobrir o meio da barra, e um texto cinza-médio parado ali por 0.9s
+não se lê em fundo nenhum.
+
+O `::before` é posicionado, então `.barra-topo > *` precisa de
+`position: relative; z-index: 1` — sem isso o painel pinta **por cima** dos
+botões.
+
+A marca NÃO acompanha a inversão — ver **A marca é SVG, em duas tintas**,
+abaixo.
+
+O limite de rolagem é **24px**, não 1px: com 0.9s de animação, disparar no
+primeiro pixel faria um tremidinho de dedo abrir e fechar o acento inteiro.
 
 **Nuvem, Enviar capas e as duas ações de backup vivem dentro do ☰** — são
 operações raras e não devem disputar atenção com a coleção. Ação nova e rara
@@ -625,10 +716,264 @@ usuário fixou. Fixa-se pelo botão de alfinete no Detalhe.
 Sem carrossel de capas e sem faixa de estatísticas. A tela inicial é a barra e a
 grade — os números vivem no painel de Estatísticas.
 
+### A marca é SVG, em duas tintas
+O desenho tem **duas partes**: a sombra deslocada e as letras por cima. Como
+PNG, a única ferramenta de recolorir seria `filter`, que achata tudo numa cor
+só — e isso apagaria a sombra contra as letras, deixando um borrão. Por isso a
+marca é **SVG inline** (`Marca.jsx`), onde cada parte tem o próprio `fill`.
+
+As cores saem de variáveis, e só elas mudam:
+
+| Parte | Cor | Onde |
+|---|---|---|
+| `--marca-sombra` | ink | sempre |
+| `--marca-letra` | `paper` | sempre |
+
+### A segunda marca, no hover
+Passar o mouse sobre o logo troca pela arte alternativa do tema —
+`MarcaAlt.jsx`, uma por tema, as duas no DOM, com o CSS escolhendo qual
+aparece. A troca também é CSS puro (`.grupo-marca:hover`): passar hover por
+estado faria o cabeçalho redesenhar a cada passada de mouse, para um efeito
+que o navegador já resolve.
+
+A classe do hover mora no **botão**, não no `span` interno — ele é
+`pointer-events-none` e nunca receberia o evento.
+
+**A tinta acompanha a barra**: ink no topo, `paper` com a cortina do acento no
+ar — a mesma tinta clara do miolo da marca principal, nunca `#fff`. Clara
+sempre deixaria a arte invisível no topo, onde o fundo é papel translúcido.
+
+**A troca é revezamento, não mistura.** As duas artes não têm nada em comum —
+letra gótica de um lado, katakana do outro —, e cruzar as opacidades ao mesmo
+tempo deixaria as duas meio visíveis no meio do caminho: duas palavras
+diferentes sobrepostas viram borrão. Então quem sai vai primeiro (sem atraso,
+150ms) e quem entra começa 60ms depois. Na volta o atraso troca de lado,
+acompanhando sempre quem está chegando.
+
+Quem sai sobe, quem entra vem de baixo (`translateY` de 16% com `scale(.96)`),
+dando direção à troca — e por ser transform, roda no compositor. Movimento
+reduzido mantém só o esmaecimento.
+
+Só o ponteiro alcança. Em tela de toque não há hover e a segunda arte não
+aparece — é enfeite, não informação.
+
+**As artes precisam vir em curvas.** `tools/gerar-marca-alt.cjs` recusa SVG com
+`<text>`: com texto vivo o navegador troca a fonte por uma do sistema, e sem a
+família certa instalada vira quadradinho — funciona só na máquina de quem
+exportou.
+
+**A marca é a única peça do cabeçalho que NÃO inverte.** Ela chegou a inverter
+junto com a barra, e ficava parecendo outra marca a cada rolagem — assinatura
+não muda de cor. Sombra ink, miolo `paper`, nos dois temas e nos dois estados.
+
+Isso funciona porque **a marca contrasta consigo mesma**: miolo contra sombra dá
+**13,39:1**, independente do fundo. Cada tema derruba uma parte diferente —
+sobre o moss a sombra quase some (2,12) e as letras saltam (6,31); sobre o
+laranja é o contrário (4,64 e 2,88) —, mas sempre sobra uma parte carregando a
+forma. É por isso que um logotipo de duas tintas aguenta ficar fixo onde um de
+uma tinta só precisaria inverter.
+
+**O miolo das letras é sempre a cor do fundo atrás da marca**, nunca branco
+puro: assim o desenho lê como recorte no papel, e não como adesivo colado por
+cima. Quem carrega a forma é a sombra.
+
+**O viewBox tem que abraçar a arte.** Os três SVG saíram do editor numa caixa
+de `0 0 4000 1080` com o desenho centrado no meio dela, ocupando **51%** da
+largura no `logo.svg`, 49% no alt-moss e **31%** no alt-nockout. Como o
+`preserveAspectRatio` encaixa a caixa inteira — vazio incluso —, `h-12` rendia
+48px de caixa e só ~24px de letra: a marca aparecia pela metade, e centrar no
+cabeçalho centrava o vazio, não o desenho. As caixas foram apertadas na tinta,
+medidas com `getBBox()`:
+
+| arquivo | viewBox | proporção |
+|---|---|---|
+| `logo.svg` | `152 264 3695 551` | 6,71:1 |
+| `marca-alt-moss.svg` | `887 276 2225 528` | 4,21:1 |
+| `marca-alt-nockout.svg` | `207 374 3586 332` | 10,80:1 |
+
+Um re-export com margem **não quebra nada visível** — só encolhe o logo pela
+metade de novo, em silêncio. Quem trocar a arte mede o `getBBox()` antes de
+rodar o gerador. E a proporção é parte do contrato: ela quase dobrou ao apertar
+a caixa (3,70 → 6,71), então toda altura em uso vale uma medida nova.
+
+**Na barra a marca é medida pela LARGURA: `w-[175px] md:w-[190px] h-auto`.** É a
+largura que aperta aqui — é ela que disputa espaço com as duas pontas —, e com
+o viewBox encostado na arte a altura sai sozinha da proporção (6,71:1): 26,1 e
+28,3px. Dois degraus, e para por aí.
+
+Ela chegou a ir a `h-10` (268×40) no desktop e ficava pesada: a 40px era o
+elemento mais ALTO da barra, acima das pílulas de 34–36px, e um logotipo de
+display preto nesse tamanho domina tudo em volta. Agora é o mais baixo. O aperto é entre 640 e
+768, onde o cabeçalho já tem três colunas mas pouco mais de 600px úteis e os
+dois lados comem ~330px. É lá que o degrau precisa ser medido, não a 1280px:
+com a caixa apertada, `h-10` a 640px daria 268px de marca numa coluna de 236 —
+ela transbordaria 16px para cada lado e encostaria no botão de filtros com
+**folga zero**. Por isso o salto espera o `md`.
+
+Medido, sem rolagem lateral em nenhuma largura:
+
+| largura | marca | folga esq / dir |
+|---|---|---|
+| 375 | 175×26,1 | 48 / 48 |
+| 640 | 175×26,1 | — |
+| 768 | 190×28,3 | — |
+| 1340 | 190×28,3 | — |
+
+**Ao medir a marca, tire o ponteiro de cima dela.** O hover troca a arte e
+aplica `scale(.96)`: uma medida feita com o cursor parado ali devolve 206×31
+onde o valor real é 215×32, e a diferença é pequena o bastante para passar por
+boa.
+
+Na abertura a marca é dimensionada pela **largura** (`w-[86vw]`), não pela
+altura: com altura fixa mais `max-width`, o SVG não encolhe — ele sobra caixa
+vazia em volta, porque o `preserveAspectRatio` centraliza o desenho dentro do
+espaço em vez de reduzi-lo. No cabeçalho a altura manda, porque ali a marca
+precisa casar com a altura dos botões ao lado.
+
+**O botão da marca é `inline-flex items-center`.** Sem o `items-center` o
+`<span>` de dentro é elemento de linha, apoia na linha de base, e o espaço que
+o navegador reserva para o descendente da fonte empurra a marca ~3px acima dos
+ícones vizinhos. Com ele, medido nos três alvos do cabeçalho mobile: centros em
+28, 28 e 28.
+
+Quem precisar de uma combinação nova **muda a variável no contexto**, não o
+componente.
+
+**Para trocar a arte:** aperte o viewBox na tinta (ver acima), substitua
+`src/assets/logo.svg` e rode
+`node tools/gerar-marca.cjs` — os `d` não se editam à mão. O gerador separa os caminhos por classe:
+sem classe vira `.marca-sombra`, `.cls-1` vira `.marca-letra`, e `.cls-2`
+(`fill: none`, sobras do editor) é descartado.
+
+O `layoutId="marca"` da abertura saiu da imagem e foi para um `motion.span` em
+volta do SVG — a viagem da marca continua igual.
+
+### Dois temas de cor
+O app tem **dois temas**: **Moss** (verde, padrão) e **Nockout**
+(laranja `#FF5000`). Mudam o **acento** e o **papel**; tinta, gold, rust e blue
+são os mesmos nos dois.
+
+| Papel | Moss | Nockout |
+|---|---|---|
+| `--paper` | `#F4F0E6` creme | `#F0F0F0` prateado |
+| `--paper-2` | `#EBE5D4` | `#E4E4E4` |
+| `--paper-3` | `#E1DAC4` | `#D6D6D6` |
+
+O prateado é **neutro**: R = G = B, e os degraus caem parelhos para a rampa não
+ganhar cor ao escurecer. O creme do Moss, ao contrário, esquenta conforme
+escurece (o B cai mais rápido que o R) — são duas famílias com lógicas
+diferentes, não uma derivada da outra.
+
+Dois efeitos que isso traz, nenhum deles problema até agora:
+
+- O `surface` dos cartões (`#FFFDF8`) é quente e é o mesmo nos dois temas, então
+  no Nockout ele fica levemente ameno sobre o cinza. Lê como papel sobre mesa,
+  não como erro.
+- O cartão separa **menos** do fundo: 1,12 contra 1,29 do prateado anterior. O
+  que segura a leitura são a borda e a sombra do `.bezel`, não a diferença de
+  tom. Se um dia o cartão perder a borda, isso precisa ser reavaliado.
+
+Seguem o papel, por tabela: o fundo da página, o pontilhado (que também era
+moss cravado), o véu da abertura, o fundo translúcido da barra, a borda da
+barra de rolagem e o miolo da marca.
+
+Moss é o `:root`; Nockout é `[data-tema='nockout']` no `<html>`. **O atributo
+só existe quando há desvio**, então o padrão nunca fica pendurado em lugar
+nenhum, e um dia que o Nockout saia não sobra resíduo.
+
+**Os valores são canais RGB separados por espaço** (`--moss: 75 93 58`), não
+hex. O Tailwind monta `rgb(var(--moss) / <alpha-value>)` em cima deles; com hex,
+todo `bg-moss/40` do app pararia de funcionar.
+
+**O acento tem três papéis, não um.** No Moss os três quase coincidem e a
+separação nunca fez falta; no Nockout eles divergem, e é por isso que ela
+existe:
+
+| Token | Papel | Moss | Nockout |
+|---|---|---|---|
+| `--moss`, `-2`, `-3`, `-line` | preenchimento, borda, anel | #4B5D3A… | #FF5000… |
+| `--acento-texto` | o acento usado como **texto** | = moss | #C23A00 |
+| `--sobre-acento` | a tinta que vai **em cima** do preenchimento | paper | ink |
+
+Os números que obrigaram a isso, medidos: #FF5000 como texto sobre creme dá
+**2,8:1**; creme sobre #FF5000 dá **2,88:1** — os dois reprovam para corpo
+pequeno. Com os tons separados a barra rolada sobe para **4,64:1**.
+
+**Auditoria feita** (varredura de todo texto da tela, comparando os dois temas
+no mesmo DOM). Só 7 elementos pioravam de passa→reprova, todos o mesmo selo —
+já corrigidos:
+
+| O quê | Moss | Nockout | Limite |
+|---|---|---|---|
+| Selo `Série N` | 7,18 → 6,31 | 3,28 → **4,64** | 4,5 |
+| Contorno do botão na barra rolada | 2,11 → **4,37** | 1,72 → **3,39** | 3,0 |
+| Ícones da barra rolada | — | 3,86 | 3,0 (objeto gráfico) |
+| CTA e texto dos botões na barra | 6,31 | 4,64 | 4,5 |
+
+Duas lições do exercício:
+
+- O selo `Série` escapou do passe de tema porque `text-white` morava na string
+  base e `bg-moss` era anexado depois — **nenhuma linha continha os dois**.
+  Busca por texto não acha classe montada em pedaços.
+- O contorno a `.34` **já reprovava no Moss** (2,11 contra os 3:1 que um
+  contorno de componente pede). O laranja não criou o defeito, só o tornou
+  visível. Contorno não é texto: o alvo dele é 3:1, não 4,5:1.
+
+O que passa no Nockout passa **raspando** (4,64 contra 4,5). Escurecer o
+laranja daria folga; clarear quebra.
+
+### Capa ausente: a tinta também é do tema
+Obra sem capa ganha um dos **oito** tons sorteados pelo nome da editora
+(`classeTinta()`). Eles eram derivações do moss cravadas num array de JS, e por
+isso não acompanhavam o tema.
+
+Agora o **JS só sorteia** (`tintIndex` devolve 0–7) e a **cor sai de variável
+de CSS** (`.tinta-N`, com a família do Nockout em `[data-tema='nockout']`).
+Essa separação não é preciosismo: um hex vindo do JS ficaria **congelado até o
+React redesenhar o cartão**, então trocar de tema deixaria capas da cor antiga
+espalhadas pela estante. Em CSS a cascata repinta na hora.
+
+O hash é o mesmo de antes, então cada editora continua caindo na mesma tinta e
+nenhuma obra troca de cor dentro do tema Moss.
+
+A família do Nockout **não é o `#FF5000` puro** — com branco por cima ele daria
+3,3:1. São terracotas e barros: o laranja levado para o mesmo registro terroso
+em que os verdes já estavam. Medidos, branco sobre cada um dos oito: pior caso
+**5,24:1** no Nockout e **5,27:1** no Moss.
+
+De passagem, os três gradientes levemente diferentes que existiam nos pontos de
+uso (155°/160°, `cc`/`dd`) viraram **um só** — a variação era incidental, não
+decisão de ninguém.
+
+**Regra para quem for mexer:** `bg-moss`/`border-moss`/`ring-moss` seguem o
+acento; o acento como texto é `text-acento-texto`; o que fica **sobre** um
+preenchimento de acento é `text-sobre-acento`, nunca `text-white`.
+
+Efeito colateral assumido: no Moss, o texto sobre o acento saiu de branco
+puro para `paper`. A diferença é quase imperceptível e alinha com a regra da
+casa de que nenhuma superfície usa `#fff`.
+
+O seletor vive **dentro do ☰** (ação rara, pela regra do primeiro nível) e
+**não fecha o menu** ao trocar: é ajuste, não comando, e dá para comparar os
+dois sem reabrir.
+
+Os dois botões são **só a palavra**: sem contorno, sem fundo, sem bolinha de
+amostra — MOSS em verde, NOCKOUT em laranja, em `font-display` peso 800 e caixa
+alta. A palavra É a amostra, por isso a cor é **hex cravado**: ela mostra a cor
+de cada tema e não pode seguir o tema atual.
+
+Sem contorno nem fundo, quem marca o escolhido é a **opacidade** (1 contra 0,3).
+Para leitor de tela quem conta é o `aria-checked` do `role="menuitemradio"`, que
+não depende de cor nem de opacidade — e o foco de teclado tem anel próprio em
+`focus-visible`, que não aparece para quem usa o mouse.
+
+O `index.html` lê o tema num script **antes do React**: sem isso, quem usa
+Nockout veria o Moss piscar enquanto o bundle carrega.
+
 ### Topo fixo
-`App.jsx` envolve o `Header` num `sticky top-0`: numa coleção grande a barra de
-filtros não pode sumir ao rolar. O bloco não tem fundo nem borda — só a pílula
-dentro dele é visível.
+O `sticky top-0` mora na própria `.barra-topo` — o `App.jsx` não embrulha mais
+o `Header` em nada. Numa coleção grande a barra de filtros não pode sumir ao
+rolar.
 
 ### Raios — três cascas, um núcleo para cada
 `rounded-pequeno` (8px) · `rounded-medio` (16px) · `rounded-grande` (28px).
@@ -660,7 +1005,9 @@ desenhista continuam em `text-apoio`.
 - Tinta: uma só, `#23271C`, em quatro degraus de opacidade — `ink` 100%,
   `ink-soft` 78%, `ink-faint` 56%, `ink-mute` 38%. Por serem a mesma tinta,
   funcionam sobre qualquer superfície, inclusive sobre capa colorida.
-- Verde: `moss #4B5D3A`, `moss-2 #5E7146`, `moss-3 #879266`, `moss-line #c4cbaf`.
+- Acento (temável, ver **Dois temas de cor**): `moss`, `moss-2`, `moss-3`,
+  `moss-line`. No tema **Moss**: `#4B5D3A`, `#5E7146`, `#879266`, `#c4cbaf`.
+  Os nomes dos tokens continuam `moss` nos dois temas — é o papel, não a cor.
 - Destaques: `gold #B0862B`, `rust #9C4A2E`, `blue #2f5aa8` (Importado), `box #8a6a45` (Box).
 - Fontes: serif `Bricolage Grotesque` (títulos), sans `Inter` (texto), mono `Space Mono` (rótulos/pills).
 - **Uma linguagem só, em todo o app** (tela principal e modais):
@@ -906,7 +1253,7 @@ No Card é `whileTap`; nos botões é `:active` no CSS, que já dispara ao apert
   definida para resolver e uma capa alta estica a caixa, desalinhando a linha.
   Continuam valendo: **sem recorte** (`object-cover` proibido), **sem** moldura
   preta e **sem** fundo branco sobrando. Placeholder (sem capa): preenche o
-  quadrado (`w-full h-full`) com gradiente `tintFor()` + iniciais.
+  quadrado (`w-full h-full`) com `classeTinta()` + iniciais.
   Fora da grade (Detalhe, volumes) a capa segue no formato natural livre.
 - **Grade da galeria:** `grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5`.
   Duas colunas no celular, não três: com três sobravam ~86px úteis e todo selo
@@ -918,7 +1265,7 @@ No Card é `whileTap`; nos botões é `:active` no CSS, que já dispara ao apert
   normal marca com **moss cheio** (Todos/Tenho/Quero, Leitura). A `claro` marca
   com **pastilha branca sobre trilha de papel**, com contorno moss — usada no
   Tipo (Avulsos/Boxes/Séries), que fica logo abaixo do status: dois seletores
-  verdes empilhados brigariam pela atenção. A variante clara precisa de folga
+  de acento empilhados brigariam pela atenção. A variante clara precisa de folga
   (`p-1`) e `rounded-full` no botão, senão o contorno do marcado bate no
   arredondado da trilha e sai cortado nas pontas.
   Tipo sem nenhuma obra no recorte atual fica **visível e apagado**, não some:
