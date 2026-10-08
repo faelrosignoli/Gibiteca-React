@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1791492941387,
- "updated": "2026-10-08T20:55:41.387Z",
+ "atualizadoEm": 1791492971805,
+ "updated": "2026-10-08T20:56:11.805Z",
  "obras": [
   {
    "id": 1,
@@ -3377,7 +3377,7 @@
    "id": 207,
    "nome": "Verões Felizes",
    "tipo": "avulso",
-   "origem": "nacional",
+   "origem": "importado",
    "editora": "Pipoca & Nanquim",
    "pais": "Bélgica",
    "tags": [],
