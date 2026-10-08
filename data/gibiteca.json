@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1791235559457,
- "updated": "2026-10-05T21:25:59.457Z",
+ "atualizadoEm": 1791492941387,
+ "updated": "2026-10-08T20:55:41.387Z",
  "obras": [
   {
    "id": 1,
@@ -9644,11 +9644,12 @@
    "id": 527,
    "nome": "A Grande Odalisca",
    "tipo": "serie",
-   "origem": "importado",
+   "origem": "nacional",
    "editora": "Pipoca & Nanquim",
    "pais": "França",
    "tags": [],
    "resenha": "",
+   "tipoEdicao": "",
    "volumes": [
     {
      "nome": "A Grande Odalisca",
