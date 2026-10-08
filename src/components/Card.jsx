@@ -7,7 +7,7 @@ import Selos from './Selos.jsx'
 const SO_DESKTOP = 'hidden sm:inline-flex'
 import { MOLA_TOQUE } from '../lib/motion.js'
 import {
-  coverOf, unidadeVitrine, urgenteNaVitrine, tipoOf, edOf, edicaoDe, ownedCount, unitsOf, missingVols, avgNota,
+  coverOf, unidadeVitrine, urgenteNaVitrine, tipoOf, edOf, edicaoDe, ownedCount, unitsOf, avgNota,
   anyUrg, statusMatch, initials, classeTinta, isImp,
 } from '../lib/helpers.js'
 
@@ -61,7 +61,6 @@ export default function Card({ obra, index = 0, onOpen, feature = false, animarE
   const multi = t === 'serie' || t === 'box'
   const total = unitsOf(obra).length
   const owned = ownedCount(obra)
-  const miss = missingVols(obra)
   const nota = avgNota(obra)
   const hasNote = obra.resenha && obra.resenha.trim()
   const owns = statusMatch(obra, 'biblioteca')
@@ -181,20 +180,6 @@ export default function Card({ obra, index = 0, onOpen, feature = false, animarE
               alinhar — ele desgruda e acompanha o texto, senão sobra um buraco
               entre os dois. */}
           <div className={`pt-2.5 sm:pt-3.5 mt-auto ${feature ? 'lg:mt-0' : ''}`}>
-            {/* a barra conta a série inteira — sob "Tenho"/"Quero" a grade
-                mostra um volume, e a barra falaria de outra coisa */}
-            {multi && total > 0 && filters.status === 'todos' && (
-              <>
-                <div className="h-[2px] rounded-full bg-linha overflow-hidden">
-                  <div className="h-full bg-moss rounded-full" style={{ width: `${Math.round(owned / total * 100)}%` }} />
-                </div>
-                <div className="mt-2 font-mono text-rotulo uppercase text-ink-faint">
-                  {owned >= total
-                    ? 'coleção completa'
-                    : miss.length ? `faltam ${total - owned} de ${total}` : ''}
-                </div>
-              </>
-            )}
             {/* Ordem = prioridade: o que não couber em duas linhas cai no
                 "+N", então o mais importante vem primeiro. */}
             <Selos>
