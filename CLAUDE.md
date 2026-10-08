@@ -843,6 +843,20 @@ o navegador reserva para o descendente da fonte empurra a marca ~3px acima dos
 Quem precisar de uma combinação nova **muda a variável no contexto**, não o
 componente.
 
+**O favicon segue a mesma regra, e tem uma a mais.** `public/favicon.svg` é o
+monograma "GIBI" em bloco 2×2. Veio em `0 0 1080 1080` com a tinta ocupando 60%
+da largura e 79% da altura; num ícone de 16px esse vazio é perda direta de
+legibilidade. A caixa foi apertada para o quadrado `80 80 920 920` — quadrado
+porque o ícone é exibido num espaço quadrado, e centrado porque a tinta já
+estava no centro (539,95 × 540,05).
+
+A cor vem de um `<style>` DENTRO do SVG, com `prefers-color-scheme`: `#23271C`
+no claro, `#F4F0E6` no escuro. É o esquema do **navegador**, não o tema do site
+— o favicon vive na aba, não na página, e não tem como saber se quem abriu está
+em Moss ou Nockout. Firefox e Chrome respeitam a consulta; **o Safari não**, e
+nele fica sempre a versão clara (tinta escura), que some numa barra escura. Não
+há `.ico` de reserva no projeto.
+
 **Para trocar a arte:** aperte o viewBox na tinta (ver acima), substitua
 `src/assets/logo.svg` e rode
 `node tools/gerar-marca.cjs` — os `d` não se editam à mão. O gerador separa os caminhos por classe:
