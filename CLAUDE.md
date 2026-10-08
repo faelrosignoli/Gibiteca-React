@@ -247,8 +247,12 @@ Sob "Tenho" / "Quero", no cartão da grade e na ficha da lista:
 - **selo de urgência** → `urgenteNaVitrine(obra, status)`. Em "Tenho" ele
   **nunca aparece**: volume que já está na estante não é urgente, e o cartão
   está falando justamente dele.
-- **barra de progresso** → **não aparece**. Ela conta a série inteira; ao lado
-  de um volume, falaria de outra coisa. Só existe em "Todos".
+- **barra de progresso** → **não existe mais no cartão da grade**, em filtro
+  nenhum. Ela ocupava duas peças (o fio de 2px e o "faltam N de N") para dizer
+  o que o selo **"Tenho 1/3"** logo abaixo já dizia em uma linha. Quem quer o
+  progresso lê o selo; quem quer saber QUAIS volumes faltam abre a ficha, e
+  nenhuma barra respondia isso. Na vista em LISTA ela continua — lá há largura
+  para ela e o texto é por extenso ("falta o vol. 3").
 
 Na gaveta de detalhe a lista de volumes segue o mesmo recorte:
 
