@@ -66,7 +66,7 @@ export default function BulkCovers({ open, onClose, onNotice }) {
   }
 
   const tag = (s) => s === 'match'
-    ? <span className="text-rotulo font-extrabold uppercase px-1.5 py-0.5 rounded-pequeno bg-moss text-white">Associada</span>
+    ? <span className="text-rotulo font-extrabold uppercase px-1.5 py-0.5 rounded-pequeno bg-moss text-sobre-acento">Associada</span>
     : s === 'ambig'
       ? <span className="text-rotulo font-extrabold uppercase px-1.5 py-0.5 rounded-pequeno bg-tinta-gold text-gold">Ambígua</span>
       : <span className="text-rotulo font-extrabold uppercase px-1.5 py-0.5 rounded-pequeno bg-tinta-rust text-rust">Sem par</span>
@@ -85,13 +85,13 @@ export default function BulkCovers({ open, onClose, onNotice }) {
             transition={MOLA_GAVETA}
           >
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-separador">
-              <h3 className="font-display text-secao text-moss">Capas em massa</h3>
+              <h3 className="font-display text-secao text-acento-texto">Capas em massa</h3>
               <button className="neo-icon !w-9 !h-9 disabled:opacity-40" onClick={onClose} disabled={sending}>×</button>
             </div>
 
             <div className="flex-1 overflow-auto px-5 py-4 flex flex-col gap-3">
               <p className="text-apoio text-ink-soft leading-relaxed">
-                Selecione as imagens: o app <b className="text-moss">casa cada arquivo com a obra pelo nome</b>
+                Selecione as imagens: o app <b className="text-acento-texto">casa cada arquivo com a obra pelo nome</b>
                 {' '}(ex.: <span className="font-mono">100 Balas.jpg</span> → “100 Balas”). As capas são enviadas para o
                 seu repositório em <span className="font-mono">{COVER_BASE}/</span> e vinculadas à obra.
               </p>
@@ -104,13 +104,13 @@ export default function BulkCovers({ open, onClose, onNotice }) {
                 onDrop={onDrop}
  className={`rounded-grande border border-dashed px-5 py-8 text-center cursor-pointer transition ${drag ? 'border-moss bg-tinta-moss' : 'border-moss bg-surface-2'}`}
               >
-                <div className="font-display text-obra text-moss">Clique ou arraste as imagens aqui</div>
+                <div className="font-display text-obra text-acento-texto">Clique ou arraste as imagens aqui</div>
                 <div className="text-apoio text-ink-faint mt-1">JPG, PNG, WebP — várias de uma vez</div>
               </div>
 
               {items.length > 0 && (
                 <div className="flex gap-4 flex-wrap text-corpo font-semibold">
-                  <span className="text-moss">✓ {counts.m} associada(s)</span>
+                  <span className="text-acento-texto">✓ {counts.m} associada(s)</span>
                   {counts.a > 0 && <span className="text-gold">? {counts.a} ambígua(s)</span>}
                   {counts.n > 0 && <span className="text-rust">✕ {counts.n} sem par</span>}
                 </div>

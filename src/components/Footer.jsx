@@ -12,8 +12,8 @@ export default function Footer() {
       <div className="mx-auto max-w-[1320px] px-5 sm:px-14 pt-8 pb-28">
         <div className="flex flex-wrap justify-between gap-8 items-start">
           <p className="max-w-[430px] text-ink-soft text-corpo leading-relaxed">
-            <span className="font-display font-bold text-lg block text-ink mb-1">Minha Gibiteca</span>
-            Sua gibiteca pessoal — organize a coleção, acompanhe o que falta e nunca perca o fio da meada.
+            <span className="font-display font-bold text-lg block text-ink mb-1">A Gibiteca</span>
+            Sua organização pessoal, pra nunca perder o fio da meada.
           </p>
           <div className="flex gap-7 flex-wrap">
             {stats.map(([n, l]) => (

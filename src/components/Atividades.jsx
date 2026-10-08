@@ -159,7 +159,7 @@ export default function Atividades({ open, onClose }) {
             transition={MOLA_GAVETA}
           >
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-separador">
-              <h3 className="font-display text-secao text-moss">Atividades</h3>
+              <h3 className="font-display text-secao text-acento-texto">Atividades</h3>
               <button className="neo-icon !w-9 !h-9" onClick={onClose}>×</button>
             </div>
 

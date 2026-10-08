@@ -1,6 +1,10 @@
 import { TIPOS_EDICAO } from '../data.js'
 // Funções puras do modelo de dados — reaproveitadas do app original (mesma lógica).
-export const PLACEHOLDER_TINTS = ['#4B5D3A','#5E7146','#6b6a3a','#7a6a48','#556b5a','#4a5a63','#7d5a44','#63583f'];
+/* Quantas tintas de "capa ausente" existem. As CORES moram no index.css, uma
+   família por tema — aqui fica só o sorteio. Devolver hex de JS impediria a
+   troca de tema de repintar: variável de CSS o JS não enxerga, e a cor ficaria
+   congelada até o React redesenhar o cartão. */
+export const QTD_TINTAS = 8;
 export function fmtBRL(n){ n = Number(n)||0; return 'R$ ' + n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 export function initials(t){
   const w = (t||'?').replace(/[^\p{L}\p{N} ]/gu,'').trim().split(/\s+/).filter(Boolean);
@@ -8,7 +12,11 @@ export function initials(t){
   if(w.length===1) return w[0].slice(0,2).toUpperCase();
   return (w[0][0]+w[1][0]).toUpperCase();
 }
-export function tintFor(s){ let h=0; s=s||''; for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; return PLACEHOLDER_TINTS[h%PLACEHOLDER_TINTS.length]; }
+/* Mesmo hash de sempre: a mesma editora cai sempre na mesma tinta, e as obras
+   que já tinham uma cor continuam com ela. */
+export function tintIndex(s){ let h=0; s=s||''; for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; return h%QTD_TINTAS; }
+/* Pronto para o className: `classeTinta('Panini')` → "tinta tinta-3". */
+export function classeTinta(s){ return 'tinta tinta-' + tintIndex(s); }
 // Campos que aceitam varios valores separados por "/" — autores e paises.
 export function splitLista(s){ return (s||'').toString().split('/').map(x=>x.trim()).filter(Boolean); }
 export function paisesOf(o){ return splitLista(o.pais); }

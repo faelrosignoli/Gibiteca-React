@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useStore } from './lib/store.jsx'
-import Header, { LogoMobile } from './components/Header.jsx'
+import Header from './components/Header.jsx'
 import Abertura from './components/Abertura.jsx'
 import { usaMovimentoReduzido } from './lib/motion.js'
 import Collection from './components/Collection.jsx'
@@ -73,21 +73,17 @@ export default function App() {
           itens a barra de filtros não pode sumir ao rolar. As referências
           usam sticky com muito mais liberdade (45 declarações no United
           Carriers) do que só no topo da página. */}
-      {/* No celular o logo fica no topo da página e rola junto com o conteúdo;
-          só a pílula de botões acompanha a rolagem. No desktop o logo vive
-          dentro da própria pílula, no centro. */}
       <Abertura aberto={abrindo} />
 
-      <LogoMobile aberturaNoAr={abrindo} />
-
-      {/* uma barra só: Busca · Filtros · Estatísticas · logo · Galeria/Lista · ☰
-          Sem faixa de fundo e sem desfoque: o que flutua é a pílula, e só ela. */}
+      {/* Uma barra só, de ponta a ponta, com a marca no centro nos dois
+          tamanhos. No celular ela ganha uma segunda linha com filtro e
+          galeria/lista — ver Header.jsx. */}
       {/* Se o navegador recusou guardar, isto precisa aparecer antes de
           qualquer outra coisa: as alterações só existem nesta aba. */}
       <AvisoSemEspaco onNuvem={() => setCloud(true)} onBackup={() => baixarBackup(obras, editoras)} />
 
-      <div className="sticky top-0 z-30 pt-3 pb-3">
-        <Header
+      {/* sem embrulho: o sticky e o espaçamento moram na própria barra agora */}
+      <Header
           onCloud={() => setCloud(true)}
           onBulk={openBulk}
           onAtividades={() => setAtividades(true)}
@@ -96,15 +92,14 @@ export default function App() {
           onSearch={() => setSearch(true)}
           filterCount={filterCount}
           aberturaNoAr={abrindo}
-        />
-      </div>
+      />
       <Collection onOpen={setDetail} />
       <Footer />
 
       {/* FAB Nova obra */}
       <button
         onClick={() => openEditor(null)}
- className="cta group fixed right-5 bottom-5 z-40 !bg-moss hover:!bg-moss-2 !pl-6 !text-corpo"
+ className="cta group fixed right-5 bottom-5 z-40 !bg-moss hover:!bg-moss-2 !pl-6 !text-corpo !text-sobre-acento"
       >
         Nova obra
         <span className="knob" aria-hidden="true">

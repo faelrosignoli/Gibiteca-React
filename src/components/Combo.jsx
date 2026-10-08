@@ -31,7 +31,7 @@ function Marcado({ texto, alvo }) {
   return (
     <>
       {texto.slice(0, i)}
-      <mark className="bg-transparent text-moss font-semibold">{texto.slice(i, i + alvo.length)}</mark>
+      <mark className="bg-transparent text-acento-texto font-semibold">{texto.slice(i, i + alvo.length)}</mark>
       {texto.slice(i + alvo.length)}
     </>
   )

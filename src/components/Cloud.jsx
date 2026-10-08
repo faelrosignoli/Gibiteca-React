@@ -68,20 +68,20 @@ export default function Cloud({ open, onClose, onNotice }) {
             transition={MOLA_GAVETA}
           >
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-separador">
-              <h3 className="font-display text-secao text-moss">Sincronizar com o GitHub</h3>
+              <h3 className="font-display text-secao text-acento-texto">Sincronizar com o GitHub</h3>
               <button className="neo-icon !w-9 !h-9" onClick={onClose}>×</button>
             </div>
 
             <div className="flex-1 overflow-auto px-5 py-4 flex flex-col gap-3">
               <p className="text-apoio text-ink-soft bg-surface-2 border border-separador rounded-medio px-3.5 py-3 leading-relaxed">
-                Isto salva sua coleção <b className="text-moss">no seu próprio repositório</b>, para ela ficar igual em qualquer aparelho.
-                Você precisa de um <b className="text-moss">token</b> do GitHub (uma chave de acesso limitada).{' '}
-                <button className="text-moss underline font-semibold" onClick={() => setHelp(h => !h)}>Como gerar o token →</button>
+                Isto salva sua coleção <b className="text-acento-texto">no seu próprio repositório</b>, para ela ficar igual em qualquer aparelho.
+                Você precisa de um <b className="text-acento-texto">token</b> do GitHub (uma chave de acesso limitada).{' '}
+                <button className="text-acento-texto underline font-semibold" onClick={() => setHelp(h => !h)}>Como gerar o token →</button>
               </p>
 
               {help && (
                 <div className="text-apoio text-ink-soft bg-surface-2 border border-separador rounded-medio px-3.5 py-3 leading-relaxed">
-                  <b className="text-moss">Passo a passo:</b> 1) Acesse <b>github.com/settings/tokens</b> → <b>Fine-grained tokens</b> → <b>Generate new token</b>.
+                  <b className="text-acento-texto">Passo a passo:</b> 1) Acesse <b>github.com/settings/tokens</b> → <b>Fine-grained tokens</b> → <b>Generate new token</b>.
                   2) Em <b>Repository access</b>, escolha <b>Only select repositories</b> e marque o repositório da sua gibiteca.
                   3) Em <b>Permissions → Repository permissions → Contents</b>, mude para <b>Read and write</b>.
                   4) Gere, copie e cole abaixo. <br />O GitHub só mostra o token uma vez — se vazar, revogue na mesma página.

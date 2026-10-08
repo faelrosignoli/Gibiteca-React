@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { MOLA_GAVETA, FADE } from '../lib/motion.js'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../lib/store.jsx'
-import { authorsOf, paisesOf, edOf, moneyToNumber, moneyFormat, tintFor, initials } from '../lib/helpers.js'
+import { authorsOf, paisesOf, edOf, moneyToNumber, moneyFormat, classeTinta, initials } from '../lib/helpers.js'
 import { TIPOS_EDICAO } from '../data.js'
 import Combo from './Combo.jsx'
 import Pessoas from './Pessoas.jsx'
@@ -76,7 +76,7 @@ function BotaoIcone({ children, perigo, ...resto }) {
       className={`w-9 h-9 shrink-0 rounded-full border flex items-center justify-center transition-colors duration-200
         ${perigo
           ? 'border-contorno text-rust hover:border-rust hover:bg-tinta-rust'
-          : 'border-contorno text-ink-soft hover:border-moss-3 hover:text-moss hover:bg-tinta-moss'}`}
+          : 'border-contorno text-ink-soft hover:border-moss-3 hover:text-acento-texto hover:bg-tinta-moss'}`}
     >{children}</button>
   )
 }
@@ -87,7 +87,7 @@ function BotaoIcone({ children, perigo, ...resto }) {
 function Secao({ titulo, children }) {
   return (
     <section className="col-span-2">
-      <h4 className="font-mono text-rotulo uppercase font-bold text-moss flex items-center gap-2.5 mb-2.5">
+      <h4 className="font-mono text-rotulo uppercase font-bold text-acento-texto flex items-center gap-2.5 mb-2.5">
         {/* o quadradinho ancora o título: sem ele a seção era só mais um texto
             miúdo creme no meio de outros textos miúdos cremes */}
         <span className="w-[6px] h-[6px] rounded-[2px] bg-moss shrink-0" />
@@ -104,7 +104,7 @@ function Switch({ options, value, onChange }) {
     <div className="flex w-full rounded-full border border-contorno overflow-hidden">
       {options.map(([v, l]) => (
         <button key={String(v)} type="button" onClick={() => onChange(v)}
- className={`flex-1 text-corpo font-semibold py-2 px-2 transition ${value === v ? 'bg-moss text-white' : 'bg-surface text-ink-soft hover:bg-paper-2'}`}>{l}</button>
+ className={`flex-1 text-corpo font-semibold py-2 px-2 transition ${value === v ? 'bg-moss text-sobre-acento' : 'bg-surface text-ink-soft hover:bg-paper-2'}`}>{l}</button>
       ))}
     </div>
   )
@@ -115,7 +115,7 @@ const box ="flex flex-col gap-1"
 // checkbox estilizado com a mesma altura dos inputs (para alinhar em linha/coluna)
 function CheckTile({ checked, onChange, danger, children }) {
   return (
-    <label className={`flex items-center gap-2.5 rounded-full border h-[42px] px-3.5 text-corpo font-semibold cursor-pointer transition select-none ${checked ? (danger ? 'border-rust text-rust bg-surface-2' : 'border-moss text-moss bg-surface-2') : 'border-contorno text-ink-soft bg-surface hover:bg-paper-2'}`}>
+    <label className={`flex items-center gap-2.5 rounded-full border h-[42px] px-3.5 text-corpo font-semibold cursor-pointer transition select-none ${checked ? (danger ? 'border-rust text-rust bg-surface-2' : 'border-moss text-acento-texto bg-surface-2') : 'border-contorno text-ink-soft bg-surface hover:bg-paper-2'}`}>
       <input type="checkbox" className={`w-[16px] h-[16px] ${danger ? 'accent-rust' : 'accent-moss'}`} checked={checked} onChange={onChange} />
       {children}
     </label>
@@ -130,7 +130,7 @@ function VolPanel({ v, i, withCover, autores, onChange, onCopyAll, onCover, onRe
   return (
     <div className="rounded-medio border border-separador bg-surface overflow-hidden">
       <button type="button" onClick={() => set({ _open: !v._open })} className="w-full flex items-center gap-2 px-3 py-2 bg-paper-2 text-left">
-        <span className="font-mono text-apoio font-bold text-moss">#{i + 1}</span>
+        <span className="font-mono text-apoio font-bold text-acento-texto">#{i + 1}</span>
         <span className="text-corpo text-ink truncate flex-1">{v.nome || `Vol. ${i + 1}`}</span>
         <span className={`pill ${owned ? 'pill-tenho' : 'pill-quero'}`}>{owned ? 'Tenho' : 'Quero'}</span>
         <svg className={`w-4 h-4 text-ink-faint transition ${v._open ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6" /></svg>
@@ -147,7 +147,7 @@ function VolPanel({ v, i, withCover, autores, onChange, onCopyAll, onCover, onRe
               <div className="flex items-center gap-3">
                 {v.imagem
                   ? <img src={v.imagem} alt="" className="h-[80px] w-auto max-w-[86px] rounded-pequeno shadow-[0_7px_18px_-8px_rgba(35,39,28,.5)] shrink-0" />
-                  : <div className="w-14 h-[74px] rounded-pequeno flex items-center justify-center font-display text-obra text-white shrink-0" style={{ background: tintFor(v.nome || 'v') }}>{initials(v.nome || (i + 1) + '')}</div>}
+                  : <div className={`w-14 h-[74px] rounded-pequeno flex items-center justify-center font-display text-obra text-white shrink-0 ${classeTinta(v.nome || 'v')}`}>{initials(v.nome || (i + 1) + '')}</div>}
                 <input ref={fileRef} type="file" accept="image/*" hidden onChange={e => onCover(i, e)} />
                 <button type="button" className="neo-btn !text-apoio !py-2" onClick={() => fileRef.current?.click()}>
                   <IconEnviar />Enviar…
@@ -330,7 +330,7 @@ export default function Editor({ target, onClose, onSaved }) {
               transition={MOLA_GAVETA}
             >
               <div className="flex items-center justify-between px-5 py-3.5 border-b border-separador">
-                <h3 className="font-display text-secao text-moss">{d.id == null ? 'Nova obra' : 'Editar obra'}</h3>
+                <h3 className="font-display text-secao text-acento-texto">{d.id == null ? 'Nova obra' : 'Editar obra'}</h3>
                 <button className="neo-icon !w-9 !h-9" onClick={onClose}>×</button>
               </div>
 
@@ -350,7 +350,7 @@ export default function Editor({ target, onClose, onSaved }) {
                         Saiu de dentro da linha do título — ali comia metade da
                         largura do campo justamente no celular. */}
                     <a href={linkDoGuia(d.nome)} target="_blank" rel="noopener noreferrer"
-                      className="self-end text-apoio font-semibold text-moss underline underline-offset-2 hover:opacity-80"
+                      className="self-end text-apoio font-semibold text-acento-texto underline underline-offset-2 hover:opacity-80"
                       title="Abrir no Guia dos Quadrinhos, em aba nova">
                       Ver no Guia dos Quadrinhos ↗
                     </a>
@@ -388,7 +388,7 @@ export default function Editor({ target, onClose, onSaved }) {
                             aria-pressed={marcada}
                             onClick={() => patch({ tipoEdicao: marcada ? '' : v })}
                             className={`rounded-full border px-4 py-2 text-corpo font-semibold transition-colors duration-200
-                              ${marcada ? 'border-moss bg-moss text-white' : 'border-separador bg-surface text-ink-soft hover:border-moss-3 hover:text-ink'}`}
+                              ${marcada ? 'border-moss bg-moss text-sobre-acento' : 'border-separador bg-surface text-ink-soft hover:border-moss-3 hover:text-ink'}`}
                           >{rotulo}</button>
                         )
                       })}

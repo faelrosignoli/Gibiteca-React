@@ -66,6 +66,23 @@ export function StoreProvider({ children }) {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSizeState] = useState(() => Number(localStorage.getItem('gibiteca_pagesize')) || 40)
 
+  /* Tema de cor: 'moss' (padrão) ou 'nockout'.
+     O padrão NÃO escreve atributo nenhum — ele é o :root. O atributo só existe
+     quando há desvio, então um dia que o Nockout deixe de existir nada fica
+     pendurado no html. */
+  const [tema, setTemaState] = useState(() => {
+    try { return localStorage.getItem('gibiteca_tema') === 'nockout' ? 'nockout' : 'moss' } catch (e) { return 'moss' }
+  })
+  useEffect(() => {
+    const html = document.documentElement
+    if (tema === 'nockout') html.dataset.tema = 'nockout'
+    else delete html.dataset.tema
+  }, [tema])
+  const setTema = useCallback((t) => {
+    setTemaState(t === 'nockout' ? 'nockout' : 'moss')
+    try { localStorage.setItem('gibiteca_tema', t) } catch (e) { /* navegador sem storage */ }
+  }, [])
+
   // ---- obra fixada ----
   // Guarda UM id, nunca uma lista: fixar outra troca a anterior, por
   // construção. A obra fixada vai para o início da lista e vira o cartão em
@@ -367,6 +384,7 @@ export function StoreProvider({ children }) {
   const value = {
     obras, editoras, filters, sort, view, page: safePage, pageSize,
     setSort, setView, setPage, setPageSize, setFilter, resetFilters, loadBackup, aplicarObras,
+    tema, setTema,
     nextId, upsertObra, duplicarObra, deleteObra, setCovers,
     filtered, total, totalPages, start, pageItems, all,
     fixada, fixarObra,

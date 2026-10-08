@@ -26,7 +26,7 @@ const COM_BUSCA_A_PARTIR_DE = 8
 
 function Tique() {
   return (
-    <svg className="w-[14px] h-[14px] shrink-0 text-moss" viewBox="0 0 24 24" fill="none"
+    <svg className="w-[14px] h-[14px] shrink-0 text-acento-texto" viewBox="0 0 24 24" fill="none"
          stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20 6L9 17l-5-5" />
     </svg>
@@ -38,7 +38,7 @@ function Tique() {
 function Caixa({ marcada }) {
   return (
     <span className={`w-[17px] h-[17px] shrink-0 rounded-[5px] border flex items-center justify-center transition-colors duration-200
-                      ${marcada ? 'bg-moss border-moss text-white' : 'border-contorno bg-surface'}`}>
+                      ${marcada ? 'bg-moss border-moss text-sobre-acento' : 'border-contorno bg-surface'}`}>
       {marcada && (
         <svg className="w-[11px] h-[11px]" viewBox="0 0 24 24" fill="none" stroke="currentColor"
              strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
@@ -138,7 +138,7 @@ export default function Selecao({
       >
         <span className={`flex-1 min-w-0 truncate ${ligado ? '' : 'text-ink-soft'}`}>{rotuloAtual}</span>
         {extras > 0 && (
-          <span className="shrink-0 rounded-full bg-tinta-moss text-moss font-mono text-rotulo font-bold px-1.5 py-0.5">
+          <span className="shrink-0 rounded-full bg-tinta-moss text-acento-texto font-mono text-rotulo font-bold px-1.5 py-0.5">
             +{extras}
           </span>
         )}

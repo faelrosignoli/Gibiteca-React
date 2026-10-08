@@ -192,8 +192,8 @@ export default function Pessoas({
             aria-label={expandido ? 'Mostrar menos nomes' : `Mostrar os outros ${escondidos} nomes`}
             title={expandido ? 'Mostrar menos' : `Mostrar os outros ${escondidos}`}
             className="inline-flex items-center gap-1 shrink-0 rounded-full border border-moss-3 bg-tinta-moss
-                       px-2 py-0.5 font-mono text-rotulo font-bold text-moss
-                       hover:bg-moss hover:text-white hover:border-moss transition-colors duration-200"
+                       px-2 py-0.5 font-mono text-rotulo font-bold text-acento-texto
+                       hover:bg-moss hover:text-sobre-acento hover:border-moss transition-colors duration-200"
           >
             {expandido ? 'Menos' : `+${escondidos}`}
             <motion.svg
@@ -297,7 +297,7 @@ function Marcado({ texto, alvo }) {
   return (
     <>
       {texto.slice(0, i)}
-      <mark className="bg-transparent text-moss font-semibold">{texto.slice(i, i + alvo.length)}</mark>
+      <mark className="bg-transparent text-acento-texto font-semibold">{texto.slice(i, i + alvo.length)}</mark>
       {texto.slice(i + alvo.length)}
     </>
   )

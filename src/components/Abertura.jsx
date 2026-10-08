@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import logo from '../assets/logo.png'
+import Marca from './Marca.jsx'
 
 /* Tela de abertura.
  *
@@ -32,15 +32,15 @@ export default function Abertura({ aberto }) {
 
       {aberto && (
         <div className="fixed inset-0 z-[96] flex items-center justify-center pointer-events-none">
-          <motion.img
+          <motion.span
             layoutId="marca"
-            src={logo}
-            alt="Minha Gibiteca"
-            className="h-24 sm:h-28 w-auto max-w-[70vw] object-contain"
+            className="inline-flex"
             initial={{ opacity: 0, scale: 0.94 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.34, ease: [0.32, 0.72, 0, 1] }}
-          />
+          >
+            <Marca className="w-[86vw] max-w-[660px] h-auto" />
+          </motion.span>
         </div>
       )}
     </>

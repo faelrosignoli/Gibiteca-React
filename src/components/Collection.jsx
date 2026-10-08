@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import { useStore } from '../lib/store.jsx'
 import {
   edOf, tipoOf, statusMatch, avgNota, isImp, anyUrg, edicaoDe,
-  coverOf, unidadeVitrine, urgenteNaVitrine, unitsOf, ownedCount, sumValor, fmtBRL, initials, tintFor, missingVols,
+  coverOf, unidadeVitrine, urgenteNaVitrine, unitsOf, ownedCount, sumValor, fmtBRL, initials, classeTinta, missingVols,
 } from '../lib/helpers.js'
 import Card from './Card.jsx'
 import Estrelas from './Estrelas.jsx'
@@ -47,8 +47,7 @@ function Ficha({ obra, index, onOpen }) {
         {urgenteNaVitrine(obra, filters.status) && <UrgBadge />}
         {capa
           ? <img src={capa} alt="" loading="lazy" className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_10px_20px_-10px_rgba(35,39,28,.55)]" />
-          : <div className="w-full h-full rounded-pequeno flex items-center justify-center shadow-[0_10px_20px_-10px_rgba(35,39,28,.55)]"
-                 style={{ background: `linear-gradient(155deg, ${tintFor(edOf(obra) || obra.nome)}, ${tintFor(edOf(obra) || obra.nome)}cc)` }}>
+          : <div className={`w-full h-full rounded-pequeno flex items-center justify-center shadow-[0_10px_20px_-10px_rgba(35,39,28,.55)] ${classeTinta(edOf(obra) || obra.nome)}`}>
               <span className="font-display font-semibold text-corpo sm:text-obra leading-none text-white">{initials(obra.nome)}</span>
             </div>}
       </div>
@@ -64,7 +63,7 @@ function Ficha({ obra, index, onOpen }) {
 
         {/* apoio categórico em rótulo mono, como manda a convenção */}
         <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-          {edOf(obra) && <span className="font-mono text-rotulo uppercase text-moss-2">{edOf(obra)}</span>}
+          {edOf(obra) && <span className="font-mono text-rotulo uppercase text-acento-texto">{edOf(obra)}</span>}
           <span className="font-mono text-rotulo uppercase text-ink-faint">{tipoLabel}</span>
           {/* sob filtro a ficha fala de um volume — o selo é o dele */}
           <span className={`pill ${(vitrine ? vitrine.status === 'biblioteca' : possui) ? 'pill-tenho' : 'pill-quero'}`}>
@@ -121,7 +120,7 @@ export default function Collection({ onOpen }) {
     return (
       <div className="mx-auto max-w-[1320px] px-3 sm:px-4 mt-5">
         <div className="rounded-grande border border-dashed border-separador px-5 py-16 text-center text-ink-faint">
-          <div className="font-display text-secao text-moss mb-1.5 bg-gradient-to-r from-moss via-gold to-moss bg-[length:200%_auto] bg-clip-text text-transparent animate-[shine_3.6s_linear_infinite]">Nada por aqui</div>
+          <div className="font-display text-secao text-acento-texto mb-1.5 bg-gradient-to-r from-moss via-gold to-moss bg-[length:200%_auto] bg-clip-text text-transparent animate-[shine_3.6s_linear_infinite]">Nada por aqui</div>
           {obras.length === 0
             ? <>Sua coleção está vazia neste preview. <br />Clique em <b className="text-ink">Backup</b> (no topo) e carregue seu <b className="text-ink">gibiteca-dados.json</b> pra ver tudo aqui.</>
             : <>Nenhuma obra corresponde aos filtros. Ajuste a busca ou os filtros.</>}

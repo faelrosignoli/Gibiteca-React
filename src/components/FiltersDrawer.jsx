@@ -12,7 +12,7 @@ import Selecao from './Selecao.jsx'
 function Field({ label, changed, children }) {
   return (
     <div className="flex flex-col gap-1">
-      <label className={`font-mono text-rotulo uppercase pl-0.5 ${changed ? 'text-moss font-bold' : 'text-ink-soft'}`}>
+      <label className={`font-mono text-rotulo uppercase pl-0.5 ${changed ? 'text-acento-texto font-bold' : 'text-ink-soft'}`}>
         {label}{changed && <span className="ml-1.5 inline-block w-[7px] h-[7px] rounded-full bg-gold align-middle" />}
       </label>
       {children}
@@ -25,13 +25,13 @@ const temAlgo = (v) => comoLista(v).length > 0
 const comTodos = (rotulo, itens) => [['', rotulo], ...itens.map(x => [x, x])]
 
 function Seg({ options, value, onChange, claro, vazios }) {
-  /* Duas variantes: verde cheio (status, leitura) e clara. A clara existe
-   * porque o tipo fica logo abaixo do status — dois seletores verdes
+  /* Duas variantes: acento cheio (status, leitura) e clara. A clara existe
+   * porque o tipo fica logo abaixo do status — dois seletores de acento
    * empilhados brigariam pela atenção. Nela o sinal de "marcado" é o
    * contorno de moss sobre branco, não o preenchimento. */
   const ativo = claro
-    ? 'bg-surface-pure text-moss font-bold shadow-amb ring-1 ring-moss-2'
-    : 'bg-moss text-white'
+    ? 'bg-surface-pure text-acento-texto font-bold shadow-amb ring-1 ring-moss-2'
+    : 'bg-moss text-sobre-acento'
   // a variante clara vira pastilha DENTRO da trilha: sem a folga, o contorno
   // do marcado bate no arredondado da borda e sai cortado nas pontas
   return (
@@ -127,7 +127,7 @@ export default function FiltersDrawer({ open, onClose }) {
  className="flex items-center justify-between px-5 py-3.5 border-b border-separador cursor-grab active:cursor-grabbing touch-none"
               onPointerDown={e => arrasto.start(e)}
             >
-              <h3 className="font-display text-secao text-moss">Filtros</h3>
+              <h3 className="font-display text-secao text-acento-texto">Filtros</h3>
               <button className="neo-icon !w-9 !h-9" onClick={onClose}>×</button>
             </div>
 
@@ -174,10 +174,10 @@ export default function FiltersDrawer({ open, onClose }) {
                 <Seg options={[['todos', 'Todos'], ['lido', 'Lidos'], ['naolido', 'Não lidos']]} value={filters.leitura} onChange={v => setFilter('leitura', v)} />
               </Field></div>
 
-              <label className={`flex items-center justify-center gap-2 rounded-full border px-3 py-2.5 text-corpo font-semibold cursor-pointer transition ${filters.importado ? 'border-moss text-moss bg-surface-2' : 'border-contorno text-ink-soft'}`}>
+              <label className={`flex items-center justify-center gap-2 rounded-full border px-3 py-2.5 text-corpo font-semibold cursor-pointer transition ${filters.importado ? 'border-moss text-acento-texto bg-surface-2' : 'border-contorno text-ink-soft'}`}>
                 <input type="checkbox" className="accent-moss w-[15px] h-[15px]" checked={filters.importado} onChange={e => setFilter('importado', e.target.checked)} /> Importados
               </label>
-              <label className={`flex items-center justify-center gap-2 rounded-full border px-3 py-2.5 text-corpo font-semibold cursor-pointer transition ${filters.urgencia ? 'border-moss text-moss bg-surface-2' : 'border-contorno text-ink-soft'}`}>
+              <label className={`flex items-center justify-center gap-2 rounded-full border px-3 py-2.5 text-corpo font-semibold cursor-pointer transition ${filters.urgencia ? 'border-moss text-acento-texto bg-surface-2' : 'border-contorno text-ink-soft'}`}>
                 <input type="checkbox" className="accent-moss w-[15px] h-[15px]" checked={filters.urgencia} onChange={e => setFilter('urgencia', e.target.checked)} /> Urgentes
               </label>
             </div>

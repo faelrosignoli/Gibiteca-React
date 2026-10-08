@@ -27,11 +27,12 @@
 }
 
 html, body { margin: 0; }
-html { background: #F4F0E6; }
+html { background: rgb(var(--paper)); }
 body {
   min-height: 100dvh;
-  background-color: #F4F0E6;
-  background-image: radial-gradient(rgba(75,93,58,.05) 1px, transparent 1px);
+  background-color: rgb(var(--paper));
+  /* o pontilhado segue o acento: cravado em moss, ele ficava verde no Nockout */
+  background-image: radial-gradient(rgb(var(--moss) / .05) 1px, transparent 1px);
   background-size: 22px 22px;
   color: #23271C;
   font-family: Inter, system-ui, sans-serif;
@@ -50,7 +51,7 @@ body {
   .neo-btn:active { transform: scale(.98); }
 
   .neo-btn-moss {
-    @apply bg-moss text-white;
+    @apply bg-moss text-sobre-acento;
     border-color: transparent;
     box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 12px 26px -14px rgba(35,39,28,.7);
   }
@@ -73,7 +74,7 @@ body {
      borda) fica 2px mais alto que os outros, e uma fileira de selos alinhada
      pela base sai desalinhada por 2px. */
   .pill { @apply inline-flex items-center font-mono text-rotulo font-bold uppercase px-2 py-0.5 rounded-full leading-none whitespace-nowrap border border-transparent; }
-  .pill-tenho { @apply bg-moss text-white; }
+  .pill-tenho { @apply bg-moss text-sobre-acento; }
   .pill-quero { @apply bg-paper-2 text-ink-soft border border-moss-line; }
   .pill-imp   { @apply bg-blue text-white; }
   /* tipo da edicao: cor propria, para nao competir com Tenho (moss) nem com
@@ -85,11 +86,11 @@ body {
     @apply w-full rounded-medio border border-contorno bg-surface px-3.5 py-2.5 text-corpo text-ink outline-none;
     transition: border-color var(--dur) var(--ease-prem), box-shadow var(--dur) var(--ease-prem);
   }
-  .field-input:focus { @apply border-moss; box-shadow: 0 0 0 3px rgba(94,113,70,.14); }
+  .field-input:focus { @apply border-moss; box-shadow: 0 0 0 3px rgb(var(--moss-2) / .14); }
 }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-thumb { background: #c4cbaf; border-radius: 99px; border: 2px solid #F4F0E6; }
+::-webkit-scrollbar-thumb { background: rgb(var(--moss-line)); border-radius: 99px; border: 2px solid rgb(var(--paper)); }
 
 @keyframes marquee { to { transform: translateX(-50%); } }
 @keyframes shine { to { background-position: -200% center; } }
@@ -100,6 +101,56 @@ body {
    Ver protótipo "Duas Gibitecas". Paleta e selos inalterados.
    ============================================================ */
 :root { --ease-prem: cubic-bezier(0.32, 0.72, 0, 1); }
+
+/* ------------------------------------------------------------------
+   OS DOIS TEMAS.
+
+   Só o acento muda — papel, tinta, gold, rust e blue são os mesmos nos dois.
+   Os valores são canais RGB separados por espaço porque o Tailwind monta
+   `rgb(var(--x) / <alpha-value>)` em cima deles; trocar por hex quebraria
+   todo `bg-moss/40` do app.
+
+   Três papéis, não um:
+     --moss…        preenchimento, borda, anel
+     --acento-texto o acento usado como TEXTO
+     --sobre-acento a tinta que vai EM CIMA do preenchimento
+
+   No Moss os três quase coincidem, e por isso a separação nunca fez falta.
+   No Nockout eles divergem: #FF5000 enche bem, mas como texto sobre creme dá
+   2,8:1, e com creme por cima dá 3,3:1 — os dois ilegíveis em corpo pequeno.
+   ------------------------------------------------------------------ */
+:root {
+  /* o papel de fundo, em três degraus */
+  --paper:         244 240 230;   /* #F4F0E6 */
+  --paper-2:       235 229 212;   /* #EBE5D4 */
+  --paper-3:       225 218 196;   /* #E1DAC4 */
+
+  --moss:          75 93 58;      /* #4B5D3A */
+  --moss-2:        94 113 70;     /* #5E7146 */
+  --moss-3:        135 146 102;   /* #879266 */
+  --moss-line:     196 203 175;   /* #c4cbaf */
+  --tinta-moss:    242 245 234;   /* #f2f5ea */
+  --acento-texto:  75 93 58;      /* o próprio moss: já passa de sobra */
+  --sobre-acento:  var(--paper);  /* 8,3:1 sobre o moss */
+}
+
+/* ---- Nockout ---- */
+[data-tema='nockout'] {
+  /* Prateado NEUTRO no lugar do creme: o laranja é quente demais para disputar
+     com um fundo também quente. Aqui R = G = B, sem nenhum calor — degraus
+     parelhos, para a rampa não ganhar cor ao escurecer. */
+  --paper:         240 240 240;   /* #F0F0F0 */
+  --paper-2:       228 228 228;   /* #E4E4E4 */
+  --paper-3:       214 214 214;   /* #D6D6D6 */
+
+  --moss:          255 80 0;      /* #FF5000 */
+  --moss-2:        255 107 38;    /* clareia no hover, como o moss faz */
+  --moss-3:        255 148 112;
+  --moss-line:     248 203 184;
+  --tinta-moss:    255 237 228;
+  --acento-texto:  194 58 0;      /* #C23A00 — 4,6:1 sobre o creme */
+  --sobre-acento:  35 39 28;      /* ink — 4,8:1 sobre o #FF5000 */
+}
 
 /* brilho ambiente + grão de filme, presos à viewport (sem repaint ao rolar) */
 body::before {
@@ -163,7 +214,7 @@ body::after {
   /* ---- etiqueta minúscula que antecede títulos ---- */
   .eyebrow {
     @apply inline-flex items-center gap-2 rounded-full px-3 py-1.5
-           font-mono text-rotulo font-medium uppercase text-moss-2;
+           font-mono text-rotulo font-medium uppercase text-acento-texto;
     background: rgba(75,93,58,.08);
   }
 }
@@ -208,8 +259,203 @@ body::after {
    ------------------------------------------------------------------ */
 .veu-abertura {
   position: fixed; inset: 0; z-index: 95;
-  background: #F4F0E6;            /* paper */
+  background: rgb(var(--paper));  /* o papel do tema */
   pointer-events: none;
   transition: opacity var(--dur-lento) var(--ease-prem), visibility 0s linear var(--dur-lento);
 }
 .veu-abertura[data-fora='1'] { opacity: 0; visibility: hidden; }
+
+/* ------------------------------------------------------------------
+   Barra do topo: véu desfocado no alto, cortina do acento quando preenchida.
+
+   `data-acento` diz o ESTADO, não a causa: a barra se enche ao rolar E com o
+   menu aberto. Chamava-se `data-rolado`, e o nome passou a mentir quando o
+   menu virou um segundo motivo.
+
+   A cortina NÃO é fade de opacidade — é um `clip-path` que descobre um
+   painel moss já opaco, da borda de baixo para cima. Com opacidade você
+   veria a página ATRAVÉS do acento durante toda a transição, que é o que
+   deixa esse efeito com cara de barato. O recorte dá aresta dura: o acento
+   nasce cheio, só está escondido.
+
+   O estado fechado tem os quatro vértices em y:100% — polígono de área
+   zero colado na borda de baixo. Quem viaja é a aresta de cima.
+
+   0.9s é deliberado e é o dobro do teto do resto do app (0.4s). Aqui o
+   movimento é encenação, não resposta a toque — por isso tem token
+   próprio, que NÃO deve ser reusado em botão nenhum.
+   ------------------------------------------------------------------ */
+:root {
+  --dur-cortina: .9s;
+  --ease-cortina: cubic-bezier(.22, 1, .36, 1);
+  --tinta-clara: #FFFDF8;
+}
+
+.barra-topo {
+  position: sticky; top: 0; z-index: 30;
+  background: rgb(var(--paper) / .62);           /* papel translúcido */
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  backdrop-filter: blur(16px) saturate(1.4);
+  border-bottom: 1px solid var(--linha);
+  transition: border-color var(--dur-cortina) var(--ease-cortina);
+}
+
+.barra-topo::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: rgb(var(--moss));                   /* o acento do tema */
+  clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
+  transition: clip-path var(--dur-cortina) var(--ease-cortina);
+}
+.barra-topo[data-acento='1']::before {
+  clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+}
+/* sobre o acento a divisória não tem o que separar */
+.barra-topo[data-acento='1'] { border-bottom-color: transparent; }
+
+/* o ::before é posicionado: sem isto ele pintaria POR CIMA dos botões */
+.barra-topo > * { position: relative; z-index: 1; }
+
+/* ---- inversão da tinta: escuro sobre papel → claro sobre moss ----
+   Em 0.45s, não em 0.9s: a cortina leva quase meio segundo para cobrir o
+   meio da barra, e um texto cinza-médio parado ali por 0.9s não se lê em
+   fundo nenhum. */
+.barra-topo .pill-btn,
+.barra-topo .isl-icon {
+  transition: color .45s var(--ease-prem), border-color .45s var(--ease-prem),
+              background var(--dur) var(--ease-prem), transform var(--dur) var(--ease-prem);
+}
+/* O contorno é componente de interface: precisa de 3:1 contra o fundo, não dos
+   4,5:1 de texto. A .34 que estava aqui dava 1,72:1 no Nockout e 2,11:1 no
+   Moss — reprovava nos dois. .75 leva a 3,39 e 4,37. */
+.barra-topo[data-acento='1'] .pill-btn {
+  color: rgb(var(--sobre-acento)); border-color: rgb(var(--sobre-acento) / .75);
+}
+.barra-topo[data-acento='1'] .pill-btn:hover {
+  background: rgb(var(--sobre-acento) / .14); border-color: rgb(var(--sobre-acento) / .9);
+}
+.barra-topo[data-acento='1'] .isl-icon { color: rgb(var(--sobre-acento) / .84); }
+.barra-topo[data-acento='1'] .isl-icon:hover {
+  color: rgb(var(--sobre-acento)); background: rgb(var(--sobre-acento) / .14);
+}
+
+/* A marca tem DUAS tintas — a sombra deslocada e as letras por cima — e elas
+   trocam de forma independente. Era PNG e o único recurso seria `filter`, que
+   achata o desenho numa cor só: a sombra sumiria dentro das letras. Em SVG
+   cada parte tem o próprio `fill`.
+
+   A marca NÃO inverte com a barra: sombra sempre ink, miolo sempre `paper`,
+   nos dois temas e nos dois estados. É a única peça do cabeçalho que fica
+   parada — ela é a assinatura, e trocar de cor a cada rolagem a fazia parecer
+   outra marca. O miolo é `paper` e não branco puro para o desenho ler como
+   recorte no papel, não como adesivo colado por cima. */
+/* ------------------------------------------------------------------
+   Tintas de capa ausente.
+
+   Oito tons por tema, sorteados pelo nome da editora. Ficam aqui, e não num
+   array de JS, justamente para seguirem o tema: a cor sai de variável, então
+   trocar de tema repinta na hora, sem o React precisar redesenhar cartão
+   nenhum.
+
+   Todos são escuros de propósito — as iniciais da obra vão em branco por cima.
+   A família do Nockout não é o #FF5000 puro, que com branco daria 3,3:1; são
+   terracotas e barros, o laranja levado para o mesmo registro terroso em que
+   os verdes já estavam.
+   ------------------------------------------------------------------ */
+.tinta { background: linear-gradient(155deg, rgb(var(--t)), rgb(var(--t) / .8)); }
+
+.tinta-0 { --t:  75  93  58 }   /* moss          */
+.tinta-1 { --t:  94 113  70 }   /* moss-2        */
+.tinta-2 { --t: 107 106  58 }   /* oliva         */
+.tinta-3 { --t: 122 106  72 }   /* caqui         */
+.tinta-4 { --t:  85 107  90 }   /* verde-cinza   */
+.tinta-5 { --t:  74  90  99 }   /* ardósia       */
+.tinta-6 { --t: 125  90  68 }   /* terra         */
+.tinta-7 { --t:  99  88  63 }   /* bronze        */
+
+[data-tema='nockout'] {
+  --tinta-0: 163  51   0;       /* laranja queimado */
+  --tinta-1: 184  73  31;       /* ferrugem         */
+  --tinta-2: 143  74  43;       /* terracota        */
+  --tinta-3: 122  74  51;       /* barro            */
+  --tinta-4: 110  74  60;       /* umbra            */
+  --tinta-5:  99  69  58;       /* tijolo           */
+  --tinta-6: 156  86  51;       /* ocre             */
+  --tinta-7: 125  90  68;       /* terra            */
+}
+[data-tema='nockout'] .tinta-0 { --t: var(--tinta-0) }
+[data-tema='nockout'] .tinta-1 { --t: var(--tinta-1) }
+[data-tema='nockout'] .tinta-2 { --t: var(--tinta-2) }
+[data-tema='nockout'] .tinta-3 { --t: var(--tinta-3) }
+[data-tema='nockout'] .tinta-4 { --t: var(--tinta-4) }
+[data-tema='nockout'] .tinta-5 { --t: var(--tinta-5) }
+[data-tema='nockout'] .tinta-6 { --t: var(--tinta-6) }
+[data-tema='nockout'] .tinta-7 { --t: var(--tinta-7) }
+
+/* ------------------------------------------------------------------
+   A segunda marca, no hover do logo.
+
+   Cada tema tem a sua arte, e as DUAS ficam no DOM — quem esconde uma é o
+   CSS, para a troca de tema não esperar o React. A troca no hover também é
+   CSS puro: passar isso por estado faria o cabeçalho redesenhar a cada
+   passada de mouse, para um efeito que o navegador já resolve sozinho.
+
+   A tinta ACOMPANHA a barra. Branca sempre deixaria a marca invisível no topo,
+   onde o fundo é papel translúcido; ali ela é ink, e só vira branca quando a
+   cortina do acento já subiu.
+
+   Só o ponteiro alcança isto. Em tela de toque não existe hover, então a
+   segunda arte simplesmente não aparece — é enfeite, não informação, e nada
+   se perde.
+   ------------------------------------------------------------------ */
+.marca-alt {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  fill: #23271C;                                  /* ink, para ler sobre o papel */
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(16%) scale(.96);
+}
+/* Sobre o acento a arte vira PAPEL, não branco puro: é a mesma tinta clara do
+   miolo da marca principal, e a casa não usa #fff em superfície nenhuma. */
+.barra-topo[data-acento='1'] .marca-alt { fill: rgb(var(--paper)); }
+
+/* uma arte por tema */
+.alt-nockout { display: none }
+[data-tema='nockout'] .alt-moss { display: none }
+[data-tema='nockout'] .alt-nockout { display: block }
+
+/* ---- a troca ----
+   As duas artes não têm nada em comum: letra gótica de um lado, katakana do
+   outro. Cruzar as opacidades ao mesmo tempo deixaria as duas meio visíveis
+   no meio do caminho, e duas palavras diferentes sobrepostas viram borrão.
+
+   Então é REVEZAMENTO, não mistura: quem sai vai primeiro e rápido, quem
+   entra começa 60ms depois. A sobreposição some, e o olho lê uma troca em vez
+   de uma dissolução.
+
+   Quem sai sobe, quem entra vem de baixo — o movimento dá direção à troca e,
+   por ser transform, roda no compositor. Na volta o revezamento se inverte:
+   o atraso acompanha sempre quem está chegando. */
+.marca,
+.marca-alt {
+  transition: opacity .15s var(--ease-prem), transform .3s var(--ease-prem), fill .45s var(--ease-prem);
+}
+.marca     { transition-delay: .06s, .06s, 0s }   /* em repouso, quem chega é a principal */
+.marca-alt { transition-delay: 0s,   0s,   0s }
+
+.grupo-marca:hover .marca     { opacity: 0; transform: translateY(-16%) scale(.96); transition-delay: 0s, 0s, 0s }
+.grupo-marca:hover .marca-alt { opacity: 1; transform: none; transition-delay: .06s, .06s, 0s }
+
+/* Movimento reduzido: fica só o esmaecimento, sem deslocamento. */
+@media (prefers-reduced-motion: reduce) {
+  .marca, .marca-alt,
+  .grupo-marca:hover .marca, .grupo-marca:hover .marca-alt {
+    transform: none;
+    transition: opacity .12s linear;
+  }
+}
+
+.marca { display: block; }
+.marca-sombra { fill: var(--marca-sombra, #23271C); transition: fill .45s var(--ease-prem); }
+.marca-letra  { fill: var(--marca-letra,  rgb(var(--paper))); transition: fill .45s var(--ease-prem); }

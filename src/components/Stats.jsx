@@ -118,7 +118,7 @@ export default function Stats({ open, onClose }) {
 
   const Kpi = ({ n, l, money, sub }) => (
     <div className="bg-surface px-5 py-6">
-      <div className={`font-mono font-medium tabular-nums whitespace-nowrap ${money ? 'text-secao text-moss' : 'text-titulo text-ink'}`}>
+      <div className={`font-mono font-medium tabular-nums whitespace-nowrap ${money ? 'text-secao text-acento-texto' : 'text-titulo text-ink'}`}>
         {money ? fmtBRL(n) : <Ticker value={n} />}{!money && sub ? <span className="text-corpo text-ink-faint font-sans font-semibold">{sub}</span> : null}
       </div>
       <div className="font-mono text-rotulo uppercase text-ink-faint mt-2">{l}</div>
@@ -173,12 +173,12 @@ export default function Stats({ open, onClose }) {
                   {/* médias */}
                   <div className="grid grid-cols-2 gap-4 px-5 sm:px-6 py-6 border-t border-linha">
                     <div className="rounded-medio border border-moss/15 bg-tinta-moss px-5 py-6">
-                      <div className="font-mono text-titulo font-medium tabular-nums whitespace-nowrap text-moss">{s.notaMed ? s.notaMed.toFixed(1) : '—'}{s.notaMed ? <span className="text-gold text-obra ml-1">★</span> : null}</div>
-                      <div className="font-mono text-rotulo uppercase text-moss/70 mt-2">Nota média</div>
+                      <div className="font-mono text-titulo font-medium tabular-nums whitespace-nowrap text-acento-texto">{s.notaMed ? s.notaMed.toFixed(1) : '—'}{s.notaMed ? <span className="text-gold text-obra ml-1">★</span> : null}</div>
+                      <div className="font-mono text-rotulo uppercase text-acento-texto/70 mt-2">Nota média</div>
                     </div>
                     <div className="rounded-medio border border-moss/15 bg-tinta-moss px-5 py-6">
-                      <div className="font-mono text-secao font-medium tabular-nums whitespace-nowrap text-moss">{fmtBRL(s.avg)}</div>
-                      <div className="font-mono text-rotulo uppercase text-moss/70 mt-2">Valor médio por item</div>
+                      <div className="font-mono text-secao font-medium tabular-nums whitespace-nowrap text-acento-texto">{fmtBRL(s.avg)}</div>
+                      <div className="font-mono text-rotulo uppercase text-acento-texto/70 mt-2">Valor médio por item</div>
                     </div>
                   </div>
 

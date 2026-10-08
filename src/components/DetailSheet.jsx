@@ -5,7 +5,7 @@ import {
 } from '../lib/motion.js'
 import { useStore } from '../lib/store.jsx'
 import { linkDoGuia } from '../lib/catalogo.js'
-import { coverOf, tipoOf, edOf, edicaoDe, isImp, authorsOf, paisesOf, unitsForStatus, avgNota, unitsOf, ownedCount, sumValor, fmtBRL, statusMatch, initials, tintFor } from '../lib/helpers.js'
+import { coverOf, tipoOf, edOf, edicaoDe, isImp, authorsOf, paisesOf, unitsForStatus, avgNota, unitsOf, ownedCount, sumValor, fmtBRL, statusMatch, initials, classeTinta } from '../lib/helpers.js'
 
 function Numero({ rotulo, valor, sub, capitalizar }) {
   return (
@@ -87,7 +87,7 @@ export default function DetailSheet({ obra, onClose, onEdit, onDuplicar }) {
               {/* Fixar destaca a obra na grade. Só uma por vez: fixar outra
                   troca a anterior, e clicar de novo desafixa. */}
               <button
-                className={`neo-icon !w-9 !h-9 shrink-0 ${estaFixada ? '!bg-moss !text-white' : ''}`}
+                className={`neo-icon !w-9 !h-9 shrink-0 ${estaFixada ? '!bg-moss !text-sobre-acento' : ''}`}
                 onClick={() => fixarObra(obra.id)}
                 aria-pressed={estaFixada}
                 title={estaFixada ? 'Desafixar da grade' : 'Fixar como destaque da grade'}
@@ -123,7 +123,7 @@ export default function DetailSheet({ obra, onClose, onEdit, onDuplicar }) {
               {/* ---- título, com a largura inteira para quebrar ---- */}
               <div className="px-5 pt-5">
                 {edOf(obra) && (
-                  <div className="font-mono text-rotulo uppercase text-moss-2">{edOf(obra)}</div>
+                  <div className="font-mono text-rotulo uppercase text-acento-texto">{edOf(obra)}</div>
                 )}
                 <h2 className="mt-2 font-display text-titulo text-ink break-words">{obra.nome}</h2>
               </div>
@@ -135,7 +135,7 @@ export default function DetailSheet({ obra, onClose, onEdit, onDuplicar }) {
                 <div className="w-24 sm:w-28 shrink-0 self-start aspect-square relative flex items-center justify-center">
                   {coverOf(obra, filters.status)
                     ? <img src={coverOf(obra, filters.status)} alt="" className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_18px_30px_-18px_rgba(35,39,28,.55)]" />
-                    : <div className="w-full h-full flex items-center justify-center text-white" style={{ background: `linear-gradient(160deg, ${tintFor(edOf(obra) || obra.nome)}, ${tintFor(edOf(obra) || obra.nome)}dd)` }}>
+                    : <div className={`w-full h-full flex items-center justify-center text-white ${classeTinta(edOf(obra) || obra.nome)}`}>
                         <span className="font-display font-semibold text-titulo leading-none">{initials(obra.nome)}</span>
                       </div>}
                 </div>
@@ -189,7 +189,7 @@ export default function DetailSheet({ obra, onClose, onEdit, onDuplicar }) {
                   <div className="font-mono text-rotulo uppercase text-ink-faint mb-3">
                     Volumes — {ownedCount(obra)} de {unidades}
                     {filtrando && (
-                      <span className="text-moss-2"> · {notaDoFiltro} ({volumes.length})</span>
+                      <span className="text-acento-texto"> · {notaDoFiltro} ({volumes.length})</span>
                     )}
                   </div>
                   {/* A grade estica todas as células até a altura da mais alta e o
@@ -206,8 +206,7 @@ export default function DetailSheet({ obra, onClose, onEdit, onDuplicar }) {
                           <div className={`w-full aspect-square relative flex items-center justify-center ${owns ? '' : 'opacity-55'}`}>
                             {v.imagem
                               ? <img src={v.imagem} alt="" loading="lazy" className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_10px_20px_-10px_rgba(35,39,28,.55)]" />
-                              : <div className="w-full h-full rounded-pequeno flex items-center justify-center shadow-[0_10px_20px_-10px_rgba(35,39,28,.55)]"
-                                     style={{ background: `linear-gradient(160deg, ${tintFor(label)}, ${tintFor(label)}dd)` }}>
+                              : <div className={`w-full h-full rounded-pequeno flex items-center justify-center shadow-[0_10px_20px_-10px_rgba(35,39,28,.55)] ${classeTinta(label)}`}>
                                   <span className="font-display font-semibold text-secao leading-none text-white">{initials(label)}</span>
                                 </div>}
                           </div>
