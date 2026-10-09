@@ -6,6 +6,7 @@ import Abertura from './components/Abertura.jsx'
 import { usaMovimentoReduzido } from './lib/motion.js'
 import Collection from './components/Collection.jsx'
 import Footer from './components/Footer.jsx'
+import Divisoria from './components/Divisoria.jsx'
 import FiltersDrawer from './components/FiltersDrawer.jsx'
 import DetailSheet from './components/DetailSheet.jsx'
 import SearchOverlay from './components/SearchOverlay.jsx'
@@ -94,6 +95,7 @@ export default function App() {
           aberturaNoAr={abrindo}
       />
       <Collection onOpen={setDetail} />
+      <Divisoria />
       <Footer />
 
       {/* FAB Nova obra */}

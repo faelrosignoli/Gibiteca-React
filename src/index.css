@@ -459,3 +459,22 @@ body::after {
 .marca { display: block; }
 .marca-sombra { fill: var(--marca-sombra, #23271C); transition: fill .45s var(--ease-prem); }
 .marca-letra  { fill: var(--marca-letra,  rgb(var(--paper))); transition: fill .45s var(--ease-prem); }
+
+/* ------------------------------------------------------------------
+   Divisória ilustrada entre a paginação e o rodapé.
+
+   De ponta a ponta, sem respiro em volta: a faixa é uma paisagem com chão,
+   e chão que não encosta nas bordas deixa de ser chão. Por isso ela ignora
+   o `max-w` do conteúdo e cola no rodapé.
+
+   `line-height: 0` no embrulho: <img> é elemento de linha e apoia na linha
+   de base — sem isto sobra uma fresta clara de alguns pixels entre o
+   desenho e o rodapé, e ela aparece justamente porque o pé da arte é
+   escuro.
+   ------------------------------------------------------------------ */
+.divisoria { line-height: 0 }
+/* o <picture> tambem precisa virar bloco: por padrao ele e elemento de linha,
+   e um bloco dentro de um inline reintroduz a fresta que o line-height: 0
+   acabou de tirar */
+.divisoria picture,
+.divisoria img { display: block; width: 100%; height: auto }

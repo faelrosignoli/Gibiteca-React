@@ -7,8 +7,11 @@ export default function Footer() {
   const sb = obras.filter(o => { const t = tipoOf(o); return t === 'serie' || t === 'box' }).length
   const tenho = obras.filter(o => statusMatch(o, 'biblioteca')).length
   const stats = [[obras.length, 'obras'], [sb, 'séries / boxes'], [tenho, 'na estante']]
+  /* Sem margem e sem borda no topo: quem separa agora é a Divisória, que
+     encosta aqui. Os dois juntos davam um vão de 44px mais um fio, e como o
+     pé da ilustração é escuro, a fresta clara aparecia. */
   return (
-    <footer className="mt-11 border-t border-separador">
+    <footer>
       <div className="mx-auto max-w-[1320px] px-5 sm:px-14 pt-8 pb-28">
         <div className="flex flex-wrap justify-between gap-8 items-start">
           <p className="max-w-[430px] text-ink-soft text-corpo leading-relaxed">
