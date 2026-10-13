@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1791925949861,
- "updated": "2026-10-13T21:12:29.861Z",
+ "atualizadoEm": 1791926003044,
+ "updated": "2026-10-13T21:13:23.044Z",
  "obras": [
   {
    "id": 1,
@@ -6722,14 +6722,17 @@
    "id": 408,
    "nome": "A Confluência da Forquilha",
    "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "",
+   "pais": "Brasil",
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
    "imagem": null,
    "roteirista": "Lourenço Mutarelli",
    "desenhista": "Lourenço Mutarelli",
-   "origem": "importado",
-   "editora": "",
-   "pais": "Brasil",
-   "urgencia": false,
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
