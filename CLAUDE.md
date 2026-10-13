@@ -175,15 +175,22 @@ no `index.css`), com dois estados ligados pelo `data-acento`:
 | Vazia | papel a 62% + `backdrop-filter: blur(16px) saturate(1.4)` | ink (escura) |
 | Cheia | painel do **acento** | `--sobre-acento` |
 
-**Ela se enche por DOIS motivos: a página rolou, ou o menu está aberto.** É o
-que `comAcento` resolve no `Header`, e tudo que muda de cor junto com a
-cortina olha para ele — nunca para `rolado` direto, senão o fundo vira acento
-e os botões ficam na tinta escura.
+**Ela se enche quando a página rola — e, SÓ NO CELULAR, também com o menu
+aberto:** `rolado || (menu && !ehDesktop)`. É o que `comAcento` resolve no
+`Header`, e tudo que muda de cor junto com a cortina olha para ele — nunca
+para `rolado` direto, senão o fundo vira acento e os botões ficam na tinta
+escura.
 
 O atributo chamava-se `data-rolado` e foi renomeado quando o menu virou um
-segundo motivo: ele diz o **estado**, não a causa. Com o menu aberto no topo da
-página a barra ficava translúcida, e o painel branco colado numa barra quase
-branca não tinha onde terminar.
+segundo motivo: ele diz o **estado**, não a causa.
+
+**Por que o menu só conta no celular.** O motivo nunca foi "menu aberto", foi o
+painel não ter onde terminar: no celular ele é de tela cheia e encosta na
+barra, e sobre uma barra quase branca os dois viravam uma mancha só. No desktop
+o menu é uma folha flutuante de 290px que sobrepõe a barra em 5px e no resto
+cai sobre o conteúdo — ela se delimita pela própria sombra, não pela cor da
+barra. Ali tingir a barra era efeito colateral: a página inteira mudava de cor
+por causa de um menu de três itens.
 
 **A cortina não é fade de opacidade — é `clip-path`.** Um painel moss já opaco
 mora no `::before` e fica escondido num polígono de área zero colado na borda
@@ -698,6 +705,79 @@ fora. O **Editor não**: ele tem formulário preenchido, e perder um cadastro po
 um clique no vazio custa caro. Saída só pelo **X**, **Cancelar** ou **Salvar**.
 Modal novo que tenha campo preenchível segue a mesma regra.
 
+### A tela de erro
+`Salvaguarda.jsx` é a rede que segura erro de renderização — e a única TELA de
+erro do app (o aviso de espaço é faixa, a falha de nuvem é linha de texto, e
+"Nada por aqui" é vazio, não erro).
+
+**Duas colunas: o quadrinho à esquerda, o texto à direita.** O cartão é bem
+mais largo que os outros do app e cresce num degrau — 720px, e **980px a partir
+de `lg`**. A ilustração de 500px só aparece nesse segundo degrau: num cartão de
+720 ela deixaria 148px para o texto, que não é coluna, é tira.
+
+Abaixo de `sm` as duas empilham e a ilustração se centra. Lado a lado numa tela
+de 375px sobrariam ~140px de texto, com o título quebrando em quatro linhas.
+
+| largura | ilustração | coluna de texto | cartão |
+|---|---|---|---|
+| 375 | **285×261** (travada) | largura toda | 335 |
+| 390 | 300×275 | largura toda | 350 |
+| 640 | 300×275 | 226px | 600 |
+| 1023 | 300×275 | 346px | 720 |
+| 1024+ | **500×458** | 406px | 980 |
+
+**`w-[300px]` anda com `max-w-full`.** Num aparelho de 375px o cartão só tem
+287px por dentro, e os 300 vazariam. A trava faz a imagem valer 300 onde cabe
+(de 390px para cima, que é o grosso dos telefones) e encolher onde não cabe, em
+vez de empurrar o cartão para fora da tela.
+
+A ilustração se centra com `mx-auto`, **não** com `items-center` no contêiner:
+centrar pelo flex centraria também a coluna de texto, que encolheria para o
+tamanho do conteúdo.
+
+**O texto fica um degrau abaixo do normal em todas as larguras**
+(`text-secao` 20px no título, `text-apoio` 12px no corpo). É a menor redução
+que a escala permite — entre 28 e 20 não há nada, e inventar um tamanho solto
+aqui quebraria a regra do projeto.
+
+A coluna de texto leva `min-w-0`. Sem isso ela não encolhe abaixo do próprio
+conteúdo, e o `pre` do detalhe técnico — que tem linhas longas de stack —
+empurra o cartão para fora da tela.
+
+**O `viewBox` foi apertado na tinta: `28.78 72.16 1022.36 935.61`.** O arquivo
+veio em `0 0 1080 1080` com 72 unidades de vazio no topo — a 500px isso vira
+33px de transparência, e o desenho aparecia 33px abaixo do título mesmo com as
+CAIXAS perfeitamente alinhadas. É a mesma armadilha do logo, e aqui ela se
+manifesta como desalinhamento em vez de encolhimento. A arte deixou de ser
+quadrada (1,09:1), então a imagem é 500×458 e não 500×500 — a tinta visível
+CRESCEU, o que sumiu foi margem vazia. Só o `viewBox` mudou no arquivo:
+nenhum traço, nenhuma cor.
+
+**Ao alinhar imagem com texto, meça a TINTA, não o elemento.** `items-start`
+alinha caixas; se o SVG tiver margem interna, o olho vê desalinhado e a medição
+do `getBoundingClientRect` diz que está certo. O jeito honesto é somar
+`(bbox.y - viewBox.y) × escala` ao topo do elemento.
+
+O quadrinho é `public/erro.svg`, painel preto sobre
+vermelho `#df3722` com a palavra "Erro" desenhada em curvas. **O vermelho não é
+o `rust` do projeto (`#9C4A2E`)** e fica assim de propósito: a arte vem com a
+cor dela, como as faixas da divisória.
+
+Vai num `<img>` apontando para `public/`, nunca importada pelo bundle. O motivo
+é o próprio lugar: aqui o bundle é o que acabou de falhar, e um arquivo
+estático é uma requisição que não depende de nada que quebrou. Pelo mesmo
+motivo o botão de backup lê o `localStorage` direto, sem passar pelo store.
+
+`aria-hidden` com `alt` vazio: o desenho já traz a palavra "Erro", mas quem dá
+o recado é o título ao lado — anunciar a imagem repetiria em voz alta o que o
+texto já diz.
+
+**Para ver a tela, acrescente `?erro=1` ao endereço** — vale no preview e no
+site publicado. Antes disso só dava editando o construtor e lembrando de
+desfazer, porque ela só aparece quando um componente estoura no render. O
+"Detalhe técnico" dessa tela forçada diz em voz alta que nada quebrou, para
+ninguém se assustar ao cair ali por um link.
+
 ### A divisória ilustrada
 Entre a paginação e o rodapé corre uma faixa de ponta a ponta. **Uma arte por
 TEMA e por LARGURA**, e elas são diferentes de verdade:
@@ -705,22 +785,34 @@ TEMA e por LARGURA**, e elas são diferentes de verdade:
 São QUATRO arquivos: dois temas × duas larguras. **A regra é a caixa** —
 desktop é sempre `1920×150` (12,8:1), celular é sempre `1920×200` (9,6:1):
 
-| arquivo | caixa | paths | cru | gzip |
+| arquivo | caixa | paths | peso | desenho |
 |---|---|---|---|---|
-| `ilustra-moss` | 1920×150 | 4 | 109 kB | 39 kB |
-| `ilustra-moss-m` | 1920×**200** | 4 | 110 kB | 41 kB |
-| `ilustra-nockout` | 1920×150 | 22 | 51 kB | 21 kB |
-| `ilustra-nockout-m` | 1920×**200** | 22 | 53 kB | 22 kB |
+| `ilustra-moss` | 1920×150 | 2 | 3,5 kB | terreno + uma plantinha |
+| `ilustra-moss-m` | 1920×**250** | 2 | 3,6 kB | idem |
+| `ilustra-nockout` | 1920×150 | 5 | 4,5 kB | terreno + sol se pondo |
+| `ilustra-nockout-m` | 1920×**250** | 5 | 4,6 kB | idem |
 
-A caixa mais alta no celular é o ponto: a 375px, 12,8:1 rende 29px de faixa e
-9,6:1 rende 39px. A arte de celular não é um recorte da outra — é um desenho
-recomposto para caber mais alto.
+A caixa mais alta no celular é o ponto. A 375px de largura, cada proporção dá
+uma faixa diferente — e a do `-m` já subiu duas vezes conforme as artes foram
+ganhando detalhe:
 
-**Cada visita baixa UM desses arquivos** (o do tema × o da largura), então o
-que pesa é 21–41 kB comprimido, não a soma. O Moss é caro porque as curvas
-saem do editor com duas casas decimais numa caixa de 1920: arredondar para uma
-casa corta 17% do gzip. Não está feito — mexer na precisão mexe na geometria,
-e isso é decisão de quem desenhou.
+| caixa | proporção | faixa a 375px |
+|---|---|---|
+| 1920×150 (desktop) | 12,8:1 | 29px |
+| 1920×200 | 9,6:1 | 39px |
+| 1920×250 (atual) | 7,68:1 | **49px** |
+
+A arte de celular não é um recorte da outra — é um desenho recomposto para
+caber mais alto. Quem trocar só o `-m` não precisa tocar no desktop: o gerador
+reescreve os quatro, mas os dois de desktop saem byte a byte idênticos quando
+a fonte não mudou (conferível por hash).
+
+**Cada visita baixa UM desses arquivos** (o do tema × o da largura), nunca a
+soma. Houve uma geração dessas artes em que o Moss chegou a 109 kB (39 kB
+comprimido) por excesso de precisão nas curvas; as atuais são silhuetas
+simples e cabem em 3,5–4,6 kB, então peso deixou de ser assunto aqui. Se uma
+arte futura voltar a passar de ~50 kB, a saída é reduzir a precisão decimal no
+editor — não no gerador, que não mexe em geometria.
 
 Houve uma versão com fonte única em que só a cor do sol mudava; não serve mais.
 Cada tema lê `src/assets/ilustra-<tema>.svg` e `tools/gerar-ilustra.cjs` escreve
