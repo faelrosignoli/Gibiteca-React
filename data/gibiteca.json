@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1791926795030,
- "updated": "2026-10-13T21:26:35.030Z",
+ "atualizadoEm": 1791926823429,
+ "updated": "2026-10-13T21:27:03.429Z",
  "obras": [
   {
    "id": 1,
@@ -4419,7 +4419,7 @@
    "id": 268,
    "nome": "Lost Girls",
    "tipo": "avulso",
-   "origem": "importado",
+   "origem": "nacional",
    "editora": "Mythos",
    "pais": "Reino Unido",
    "tags": [],
