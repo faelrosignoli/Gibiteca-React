@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1791927584681,
- "updated": "2026-10-13T21:39:44.681Z",
+ "atualizadoEm": 1791927591597,
+ "updated": "2026-10-13T21:39:51.597Z",
  "obras": [
   {
    "id": 1,
@@ -12797,6 +12797,25 @@
   {
    "id": 598,
    "nome": "A Liga Extraordinária: Dossiê Negro",
+   "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Devir",
+   "pais": "Reino Unido",
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "absoluta",
+   "imagem": null,
+   "roteirista": "Alan Moore",
+   "desenhista": "Kevin O'Neill / Benedict Dimagmaliw",
+   "status": "wishlist",
+   "urgencia": false,
+   "valorPago": 0,
+   "lido": false,
+   "nota": 0
+  },
+  {
+   "id": 599,
+   "nome": "A Liga Extraordinária: Dossiê Negro (cópia)",
    "tipo": "avulso",
    "origem": "nacional",
    "editora": "Devir",
