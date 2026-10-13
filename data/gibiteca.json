@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1791926014950,
- "updated": "2026-10-13T21:13:34.950Z",
+ "atualizadoEm": 1791926548009,
+ "updated": "2026-10-13T21:22:28.009Z",
  "obras": [
   {
    "id": 1,
@@ -12858,6 +12858,25 @@
    "imagem": "https://raw.githubusercontent.com/faelrosignoli/Gibiteca-React/main/covers/batman-a-piada-mortal-596.png",
    "roteirista": "Alan Moore",
    "desenhista": "Brian Bolland",
+   "status": "wishlist",
+   "urgencia": false,
+   "valorPago": 0,
+   "lido": false,
+   "nota": 0
+  },
+  {
+   "id": 597,
+   "nome": "Porcelana: Uma Saga de Fantasia Gótic",
+   "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "",
+   "pais": "",
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
+   "imagem": null,
+   "roteirista": "",
+   "desenhista": "",
    "status": "wishlist",
    "urgencia": false,
    "valorPago": 0,
