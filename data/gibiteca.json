@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1791914972329,
- "updated": "2026-10-13T18:09:32.329Z",
+ "atualizadoEm": 1791915315359,
+ "updated": "2026-10-13T18:15:15.359Z",
  "obras": [
   {
    "id": 1,
@@ -4870,16 +4870,73 @@
   {
    "id": 297,
    "nome": "100 Balas",
-   "tipo": "avulso",
+   "tipo": "serie",
    "origem": "importado",
-   "editora": "",
+   "editora": "Panini",
    "pais": "EUA",
    "tags": [],
    "resenha": "",
    "tipoEdicao": "",
+   "volumes": [
+    {
+     "nome": "100 Balas -  Vol. 1",
+     "imagem": null,
+     "roteirista": "Brian Azzarello",
+     "desenhista": "Eduardo Risso",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "100 Balas -  Vol. 2",
+     "imagem": null,
+     "roteirista": "Brian Azzarello",
+     "desenhista": "Eduardo Risso",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "100 Balas -  Vol. 3",
+     "imagem": null,
+     "roteirista": "Brian Azzarello",
+     "desenhista": "Eduardo Risso",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "100 Balas -  Vol. 4",
+     "imagem": null,
+     "roteirista": "Brian Azzarello",
+     "desenhista": "Eduardo Risso",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "100 Balas -  Vol. 5",
+     "imagem": null,
+     "roteirista": "Brian Azzarello",
+     "desenhista": "Eduardo Risso",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    }
+   ],
    "imagem": null,
-   "roteirista": "Brian Azzarello",
-   "desenhista": "Brian Azzarello",
+   "roteirista": "",
+   "desenhista": "",
    "status": "wishlist",
    "urgencia": false,
    "valorPago": 0,
