@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1791914328761,
- "updated": "2026-10-13T17:58:48.761Z",
+ "atualizadoEm": 1791914335869,
+ "updated": "2026-10-13T17:58:55.869Z",
  "obras": [
   {
    "id": 1,
@@ -12752,14 +12752,14 @@
   },
   {
    "id": 596,
-   "nome": "Batman: A Piada Mortal (cópia)",
+   "nome": "Batman: A Piada Mortal",
    "tipo": "avulso",
    "origem": "nacional",
    "editora": "Panini",
    "pais": "EUA",
    "tags": [],
    "resenha": "",
-   "tipoEdicao": "absoluta",
+   "tipoEdicao": "bolso",
    "imagem": null,
    "roteirista": "Alan Moore",
    "desenhista": "Brian Bolland",
