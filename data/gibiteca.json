@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1791927646878,
- "updated": "2026-10-13T21:40:46.878Z",
+ "atualizadoEm": 1791927654087,
+ "updated": "2026-10-13T21:40:54.087Z",
  "obras": [
   {
    "id": 1,
@@ -12835,6 +12835,25 @@
   {
    "id": 600,
    "nome": "A Liga Extraordinária: A Tempestade",
+   "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Devir",
+   "pais": "Reino Unido",
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "integral",
+   "imagem": null,
+   "roteirista": "Alan Moore",
+   "desenhista": "Kevin O'Neill / Benedict Dimagmaliw",
+   "status": "wishlist",
+   "urgencia": false,
+   "valorPago": 0,
+   "lido": false,
+   "nota": 0
+  },
+  {
+   "id": 601,
+   "nome": "A Liga Extraordinária: Século (cópia)",
    "tipo": "avulso",
    "origem": "nacional",
    "editora": "Devir",
