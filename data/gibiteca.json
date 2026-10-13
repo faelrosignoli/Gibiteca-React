@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1791915315359,
- "updated": "2026-10-13T18:15:15.359Z",
+ "atualizadoEm": 1791915321409,
+ "updated": "2026-10-13T18:15:21.409Z",
  "obras": [
   {
    "id": 1,
@@ -4871,7 +4871,7 @@
    "id": 297,
    "nome": "100 Balas",
    "tipo": "serie",
-   "origem": "importado",
+   "origem": "nacional",
    "editora": "Panini",
    "pais": "EUA",
    "tags": [],
