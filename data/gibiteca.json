@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1791927654087,
- "updated": "2026-10-13T21:40:54.087Z",
+ "atualizadoEm": 1791927741199,
+ "updated": "2026-10-13T21:42:21.199Z",
  "obras": [
   {
    "id": 1,
@@ -12853,17 +12853,52 @@
   },
   {
    "id": 601,
-   "nome": "A Liga Extraordinária: Século (cópia)",
-   "tipo": "avulso",
+   "nome": "A Liga Extraordinária: Nemo",
+   "tipo": "serie",
    "origem": "nacional",
    "editora": "Devir",
    "pais": "Reino Unido",
    "tags": [],
    "resenha": "",
    "tipoEdicao": "integral",
+   "volumes": [
+    {
+     "nome": "Nemo - Coração de Gelo",
+     "imagem": null,
+     "roteirista": "Alan Moore",
+     "desenhista": "Kevin O'Neill / Benedict Dimagmaliw",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "Nemo - As Rosas de Berlim",
+     "imagem": null,
+     "roteirista": "Alan Moore",
+     "desenhista": "Kevin O'Neill / Benedict Dimagmaliw",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "Nemo - Rio de Espíritos",
+     "imagem": null,
+     "roteirista": "Alan Moore",
+     "desenhista": "Kevin O'Neill / Benedict Dimagmaliw",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    }
+   ],
    "imagem": null,
-   "roteirista": "Alan Moore",
-   "desenhista": "Kevin O'Neill / Benedict Dimagmaliw",
+   "roteirista": "",
+   "desenhista": "",
    "status": "wishlist",
    "urgencia": false,
    "valorPago": 0,
