@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1791913834561,
- "updated": "2026-10-13T17:50:34.561Z",
+ "atualizadoEm": 1791914328761,
+ "updated": "2026-10-13T17:58:48.761Z",
  "obras": [
   {
    "id": 1,
@@ -12744,6 +12744,25 @@
    "imagem": "https://raw.githubusercontent.com/faelrosignoli/Gibiteca-React/main/covers/batman-ano-um-595.jpg",
    "roteirista": "Frank Miller",
    "desenhista": "David Mazzucchelli / Richmond Lewis",
+   "status": "wishlist",
+   "urgencia": false,
+   "valorPago": 0,
+   "lido": false,
+   "nota": 0
+  },
+  {
+   "id": 596,
+   "nome": "Batman: A Piada Mortal (cópia)",
+   "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Panini",
+   "pais": "EUA",
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "absoluta",
+   "imagem": null,
+   "roteirista": "Alan Moore",
+   "desenhista": "Brian Bolland",
    "status": "wishlist",
    "urgencia": false,
    "valorPago": 0,
