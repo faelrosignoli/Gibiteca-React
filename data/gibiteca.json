@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1791910078290,
- "updated": "2026-10-13T16:47:58.290Z",
+ "atualizadoEm": 1791910085320,
+ "updated": "2026-10-13T16:48:05.320Z",
  "obras": [
   {
    "id": 1,
@@ -12714,14 +12714,14 @@
   },
   {
    "id": 594,
-   "nome": "Reino do Amanhã (cópia)",
+   "nome": "Reino do Amanhã",
    "tipo": "avulso",
    "origem": "nacional",
    "editora": "Panini",
    "pais": "EUA",
    "tags": [],
    "resenha": "",
-   "tipoEdicao": "absoluta",
+   "tipoEdicao": "bolso",
    "imagem": null,
    "roteirista": "Mark Waid",
    "desenhista": "Alex Ross",
