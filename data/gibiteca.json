@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1791927466434,
- "updated": "2026-10-13T21:37:46.434Z",
+ "atualizadoEm": 1791927544899,
+ "updated": "2026-10-13T21:39:04.899Z",
  "obras": [
   {
    "id": 1,
@@ -9509,93 +9509,17 @@
   },
   {
    "id": 522,
-   "nome": "A Liga Extraordinária",
-   "tipo": "serie",
-   "imagem": null,
-   "volumes": [
-    {
-     "nome": "A Liga Extraordinária — Vol. 1",
-     "imagem": null,
-     "roteirista": "Alan Moore",
-     "desenhista": "Alan Moore",
-     "status": "wishlist",
-     "urgencia": false,
-     "valorPago": 0,
-     "lido": false,
-     "nota": 0
-    },
-    {
-     "nome": "A Liga Extraordinária — Vol. 2",
-     "imagem": null,
-     "roteirista": "Alan Moore",
-     "desenhista": "Alan Moore",
-     "status": "wishlist",
-     "urgencia": false,
-     "valorPago": 0,
-     "lido": false,
-     "nota": 0
-    },
-    {
-     "nome": "A Liga Extraordinária — Vol. 3",
-     "imagem": null,
-     "roteirista": "Alan Moore",
-     "desenhista": "Alan Moore",
-     "status": "wishlist",
-     "urgencia": false,
-     "valorPago": 0,
-     "lido": false,
-     "nota": 0
-    },
-    {
-     "nome": "A Liga Extraordinária — Vol. 4",
-     "imagem": null,
-     "roteirista": "Alan Moore",
-     "desenhista": "Alan Moore",
-     "status": "wishlist",
-     "urgencia": false,
-     "valorPago": 0,
-     "lido": false,
-     "nota": 0
-    },
-    {
-     "nome": "A Liga Extraordinária — Vol. 5",
-     "imagem": null,
-     "roteirista": "Alan Moore",
-     "desenhista": "Alan Moore",
-     "status": "wishlist",
-     "urgencia": false,
-     "valorPago": 0,
-     "lido": false,
-     "nota": 0
-    },
-    {
-     "nome": "A Liga Extraordinária — Vol. 6",
-     "imagem": null,
-     "roteirista": "Alan Moore",
-     "desenhista": "Alan Moore",
-     "status": "wishlist",
-     "urgencia": false,
-     "valorPago": 0,
-     "lido": false,
-     "nota": 0
-    },
-    {
-     "nome": "A Liga Extraordinária — Vol. 7",
-     "imagem": null,
-     "roteirista": "Alan Moore",
-     "desenhista": "Alan Moore",
-     "status": "wishlist",
-     "urgencia": false,
-     "valorPago": 0,
-     "lido": false,
-     "nota": 0
-    }
-   ],
+   "nome": "A Liga Extraordinária: 1898",
+   "tipo": "avulso",
    "origem": "importado",
-   "editora": "",
+   "editora": "Devir",
    "pais": "Reino Unido",
-   "roteirista": "",
-   "desenhista": "",
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
+   "imagem": null,
+   "roteirista": "Alan Moore",
+   "desenhista": "Kevin O'Neill / Benedict Dimagmaliw",
    "status": "wishlist",
    "urgencia": false,
    "valorPago": 0,
