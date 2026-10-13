@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1791927552317,
- "updated": "2026-10-13T21:39:12.317Z",
+ "atualizadoEm": 1791927584681,
+ "updated": "2026-10-13T21:39:44.681Z",
  "obras": [
   {
    "id": 1,
@@ -12796,14 +12796,14 @@
   },
   {
    "id": 598,
-   "nome": "A Liga Extraordinária: 1898 (cópia)",
+   "nome": "A Liga Extraordinária: Dossiê Negro",
    "tipo": "avulso",
    "origem": "nacional",
    "editora": "Devir",
    "pais": "Reino Unido",
    "tags": [],
    "resenha": "",
-   "tipoEdicao": "",
+   "tipoEdicao": "absoluta",
    "imagem": null,
    "roteirista": "Alan Moore",
    "desenhista": "Kevin O'Neill / Benedict Dimagmaliw",
