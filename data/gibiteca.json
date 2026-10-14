@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1792011344474,
- "updated": "2026-10-14T20:55:44.474Z",
+ "atualizadoEm": 1792011366186,
+ "updated": "2026-10-14T20:56:06.186Z",
  "obras": [
   {
    "id": 1,
@@ -9039,9 +9039,9 @@
      "imagem": "https://raw.githubusercontent.com/faelrosignoli/Gibiteca-React/main/covers/o-eternauta-510-v1.jpg",
      "roteirista": "Héctor Oesterheld",
      "desenhista": "Francisco Solano López",
-     "status": "wishlist",
-     "urgencia": true,
-     "valorPago": 0,
+     "status": "biblioteca",
+     "urgencia": false,
+     "valorPago": 131.94,
      "lido": false,
      "nota": 0
     },
