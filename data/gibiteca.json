@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1792011319428,
- "updated": "2026-10-14T20:55:19.428Z",
+ "atualizadoEm": 1792011344474,
+ "updated": "2026-10-14T20:55:44.474Z",
  "obras": [
   {
    "id": 1,
@@ -2678,12 +2678,13 @@
    "pais": "França",
    "tags": [],
    "resenha": "",
+   "tipoEdicao": "",
    "imagem": "https://raw.githubusercontent.com/faelrosignoli/Gibiteca-React/main/covers/eu-sou-o-seu-silencio-164.jpg",
    "roteirista": "Jordi Lafebre",
    "desenhista": "Jordi Lafebre",
-   "status": "wishlist",
+   "status": "biblioteca",
    "urgencia": false,
-   "valorPago": 0,
+   "valorPago": 54.95,
    "lido": false,
    "nota": 0
   },
