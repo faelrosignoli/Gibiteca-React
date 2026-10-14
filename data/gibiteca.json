@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1791993492023,
- "updated": "2026-10-14T15:58:12.023Z",
+ "atualizadoEm": 1791994344543,
+ "updated": "2026-10-14T16:12:24.543Z",
  "obras": [
   {
    "id": 1,
@@ -6374,16 +6374,19 @@
   },
   {
    "id": 385,
-   "nome": "Roseira, Medalha e Engenho",
+   "nome": "Roseira, Medalha, Engenho e Outras Histórias",
    "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Pipoca & Nanquim",
+   "pais": "Brasil",
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
    "imagem": null,
    "roteirista": "Jefferson Costa",
    "desenhista": "Jefferson Costa",
-   "origem": "importado",
-   "editora": "",
-   "pais": "Brasil",
-   "urgencia": false,
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
