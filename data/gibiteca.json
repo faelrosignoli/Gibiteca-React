@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1792010980546,
- "updated": "2026-10-14T20:49:40.546Z",
+ "atualizadoEm": 1792011122511,
+ "updated": "2026-10-14T20:52:02.511Z",
  "obras": [
   {
    "id": 1,
@@ -2818,12 +2818,13 @@
    "pais": "França",
    "tags": [],
    "resenha": "",
+   "tipoEdicao": "",
    "imagem": null,
    "roteirista": "Brandon Thomas",
    "desenhista": "Pete Woods",
-   "status": "wishlist",
+   "status": "biblioteca",
    "urgencia": false,
-   "valorPago": 0,
+   "valorPago": 29.97,
    "lido": false,
    "nota": 0
   },
