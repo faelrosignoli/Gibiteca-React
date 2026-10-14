@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1792011366186,
- "updated": "2026-10-14T20:56:06.186Z",
+ "atualizadoEm": 1792011403527,
+ "updated": "2026-10-14T20:56:43.527Z",
  "obras": [
   {
    "id": 1,
@@ -3218,12 +3218,13 @@
    "pais": "França",
    "tags": [],
    "resenha": "",
+   "tipoEdicao": "",
    "imagem": "https://raw.githubusercontent.com/faelrosignoli/Gibiteca-React/main/covers/os-exercitos-do-conquistador-195.jpg",
    "roteirista": "Jean-Pierre Dionnet",
    "desenhista": "Jean-Claude Gal /  Daniel Dan Brown",
-   "status": "wishlist",
+   "status": "biblioteca",
    "urgencia": false,
-   "valorPago": 0,
+   "valorPago": 35.97,
    "lido": false,
    "nota": 0
   },
