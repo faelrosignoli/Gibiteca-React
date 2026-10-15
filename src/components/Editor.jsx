@@ -35,9 +35,14 @@ function draftFromObra(o) {
    Todo botão de ícone leva title + aria-label: o desenho dá o substantivo,
    o rótulo ao lado dá o verbo, e o leitor de tela recebe a frase inteira. */
 const svg = { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }
+/* A tampa (a barra + a alça) sai num grupo próprio para poder girar sozinha.
+   Excluir obra é irreversível, e essa batida de tampa aberta no hover é uma
+   hesitação de meio segundo antes do clique — função, não enfeite. */
 const IconLixeira = () => (
-  <svg className="w-[15px] h-[15px]" {...svg}>
-    <path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+  <svg className="w-[15px] h-[15px] ico-lixo" {...svg}>
+    <g className="ico-lixo__tampa">
+      <path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    </g>
     <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
   </svg>
 )

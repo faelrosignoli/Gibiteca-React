@@ -7,6 +7,7 @@ import { usaMovimentoReduzido } from './lib/motion.js'
 import Collection from './components/Collection.jsx'
 import Footer from './components/Footer.jsx'
 import Divisoria from './components/Divisoria.jsx'
+import Welcome from './components/Welcome.jsx'
 import FiltersDrawer from './components/FiltersDrawer.jsx'
 import DetailSheet from './components/DetailSheet.jsx'
 import SearchOverlay from './components/SearchOverlay.jsx'
@@ -30,6 +31,12 @@ export default function App() {
     const t = setTimeout(() => setAbrindo(false), 550)
     return () => clearTimeout(t)
   }, [abrindo])
+
+  /* A capa da gibiteca. Aparece a cada carregamento e sai no clique do botão
+     — como abrir um gibi pela capa. Não fica guardada em lugar nenhum: se um
+     dia incomodar ver a capa toda vez, é aqui que se troca por um
+     localStorage. */
+  const [welcome, setWelcome] = useState(true)
 
   const [showFilters, setShowFilters] = useState(false)
   const [detail, setDetail] = useState(null)
@@ -83,6 +90,18 @@ export default function App() {
           qualquer outra coisa: as alterações só existem nesta aba. */}
       <AvisoSemEspaco onNuvem={() => setCloud(true)} onBackup={() => baixarBackup(obras, editoras)} />
 
+      {/* Na capa NÃO há cabeçalho — só o logo, grande e solto. Ele e o logo da
+          barra são o MESMO elemento para o framer-motion (`layoutId="marca"`),
+          então ao entrar na coleção a marca viaja até a barra encolhendo, em
+          vez de uma sumir e outra aparecer.
+
+          Por isso os dois nunca podem existir ao mesmo tempo: dois elementos
+          com o mesmo layoutId quebram a animação. É o ternário abaixo que
+          garante isso — um renderiza exatamente quando o outro não. */}
+      {welcome ? (
+        <Welcome onEntrar={() => setWelcome(false)} aberturaNoAr={abrindo} />
+      ) : (
+      <>
       {/* sem embrulho: o sticky e o espaçamento moram na própria barra agora */}
       <Header
           onCloud={() => setCloud(true)}
@@ -101,13 +120,15 @@ export default function App() {
       {/* FAB Nova obra */}
       <button
         onClick={() => openEditor(null)}
- className="cta group fixed right-5 bottom-5 z-40 !bg-moss hover:!bg-moss-2 !pl-6 !text-corpo !text-sobre-acento"
+ className="cta cta-carimbo group fixed right-5 bottom-5 z-40 !bg-moss hover:!bg-moss-2 !pl-6 !text-corpo !text-sobre-acento"
       >
         Nova obra
         <span className="knob" aria-hidden="true">
           <svg className="w-[15px] h-[15px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg>
         </span>
       </button>
+      </>
+      )}
 
       <FiltersDrawer open={showFilters} onClose={() => setShowFilters(false)} />
       <DetailSheet obra={detail} onClose={() => setDetail(null)} onEdit={openEditor} onDuplicar={duplicar} />

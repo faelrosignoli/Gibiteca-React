@@ -29,7 +29,16 @@ export default function Footer() {
         </div>
         <div className="flex flex-wrap justify-between items-center gap-4 mt-8 pt-4.5 pt-4 border-t border-dashed border-separador text-center sm:text-left">
           <span className="text-apoio text-ink-faint">© {new Date().getFullYear()} · Minha Gibiteca · feito com 📚 e ☕</span>
-          <button className="pill-btn mx-auto sm:mx-0" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Voltar ao topo <span className="text-obra">↑</span></button>
+          {/* Duas setas empilhadas numa janelinha com overflow escondido: no hover
+              o par sobe 100%, a de cima sai pelo teto e a de baixo toma o lugar.
+              É uma transição só, sem laço — o gesto conta a ação (subir) sem
+              ficar se repetindo enquanto o cursor descansa ali. */}
+          <button className="pill-btn mx-auto sm:mx-0" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+            Voltar ao topo
+            <span className="seta-topo text-obra" aria-hidden="true">
+              <span className="seta-topo__par"><span>↑</span><span>↑</span></span>
+            </span>
+          </button>
         </div>
       </div>
     </footer>

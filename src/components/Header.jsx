@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useLayoutEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { MOLA_TOQUE, MOLA_GAVETA, useEhDesktop } from '../lib/motion.js'
+import { MOLA_TOQUE, MOLA_GAVETA, MOLA_CALMA, useEhDesktop } from '../lib/motion.js'
 import { useStore } from '../lib/store.jsx'
 import Marca from './Marca.jsx'
 import MarcaAlt from './MarcaAlt.jsx'
@@ -45,22 +45,30 @@ function useRolado() {
 
 /* Barra única do topo.
  *
- *   desktop:  Busca · Filtros · Estatísticas · LOGO · Galeria/Lista · ☰
- *   celular:  Busca · LOGO · ☰          (primeira linha)
- *             Filtros ········ Galeria/Lista   (segunda linha)
+ *   em QUALQUER largura:
+ *     Busca · LOGO · ☰                   (barra fixa)
+ *     COLEÇÃO ········ Filtros · Galeria/Lista   (segunda linha, rola embora)
  *
- * No celular o logo passou para DENTRO da barra. Antes ele era um bloco solto
- * acima, que rolava embora; agora a marca acompanha a rolagem como em qualquer
- * site, e o que desceu para a segunda linha foi o que é ferramenta, não marca.
+ * Na página de boas-vindas esta barra NÃO existe — lá só há o logo, grande e
+ * solto. Ele chega aqui pelo `layoutId="marca"`: a mesma marca muda de
+ * tamanho e de lugar em vez de uma sumir e outra aparecer.
  *
- * A segunda linha fica FORA da barra fixa: ela rola embora com a página. Só a
- * marca, a busca e o ☰ acompanham a rolagem — o que é ferramenta da estante
- * fica com a estante.
+ * O logo mora DENTRO da barra. Antes ele era um bloco solto acima, que rolava
+ * embora; agora a marca acompanha a rolagem como em qualquer site, e o que
+ * desceu para a segunda linha foi o que é ferramenta, não marca.
+ *
+ * A segunda linha fica FORA da barra fixa, nos dois tamanhos: ela rola embora
+ * com a página. Só a marca, a busca e o ☰ acompanham a rolagem — o que é
+ * ferramenta da estante fica com a estante.
+ *
+ * Houve uma versão em que, no desktop, Filtros e Galeria/Lista moravam dentro
+ * da barra. Ficou igual ao celular: a barra tem três peças na mesma grade de
+ * três colunas em toda largura, e a marca fica centrada de verdade sempre.
  *
  * É uma BARRA de ponta a ponta. No topo da página ela é papel translúcido com
  * desfoque; quando se enche, um painel do acento sobe por dentro dela e a
- * tinta inverte. Ela se enche por DOIS motivos — a página rolou, ou o menu
- * está aberto —, e é isso que `comAcento` resolve. A mecânica está em
+ * tinta inverte. Ela se enche quando a página rola e, só no celular, também
+ * com o menu aberto — é isso que `comAcento` resolve. A mecânica está em
  * `.barra-topo`, no index.css; aqui só se liga o `data-acento`.
  */
 export default function Header({ onCloud, onBulk, onAtividades, onFilters, onStats, onSearch, filterCount, aberturaNoAr = false }) {
@@ -73,12 +81,19 @@ export default function Header({ onCloud, onBulk, onAtividades, onFilters, onSta
   const [menu, setMenu] = useState(false)
   const [alturaBarra, setAlturaBarra] = useState(0)
 
-  /* A barra se enche de acento por DOIS motivos: a página rolou, ou o menu
-     está aberto. Com o menu aberto no topo da página ela ficava translúcida,
-     e o painel branco colado numa barra quase branca não tinha onde terminar.
+  /* A barra se enche de acento quando a página rola — e, SÓ NO CELULAR,
+     também com o menu aberto.
+
+     O motivo do menu nunca foi "menu aberto", foi o painel não ter onde
+     terminar: no celular ele é de tela cheia e encosta na barra, e sobre uma
+     barra quase branca os dois viravam uma mancha só. No desktop o menu é uma
+     folha flutuante com borda e sombra próprias, que já se delimita sozinha —
+     ali tingir a barra era efeito colateral, não solução, e fazia a página
+     inteira mudar de cor por causa de um menu de três itens.
+
      Tudo que muda de cor junto com a cortina olha para isto, não para
      `rolado` — senão o fundo vira acento e os botões ficam na tinta escura. */
-  const comAcento = rolado || menu
+  const comAcento = rolado || (menu && !ehDesktop)
 
   /* O painel de tela cheia começa EMBAIXO da barra, então precisa saber a
      altura dela — que muda entre celular (duas linhas) e desktop (uma). */
@@ -89,6 +104,22 @@ export default function Header({ onCloud, onBulk, onAtividades, onFilters, onSta
     window.addEventListener('resize', medir)
     return () => window.removeEventListener('resize', medir)
   }, [menu])
+
+  /* A mesma altura publicada como variável CSS, para quem precisa dela no
+     ESTILO — hoje a página de boas-vindas, que ocupa "o que sobrou da tela".
+     Medir é melhor que cravar 57px: a altura muda com o conteúdo da barra. O
+     ResizeObserver cobre tanto o redimensionar da janela quanto mudanças que
+     o `resize` sozinho não veria. */
+  useLayoutEffect(() => {
+    const el = barraRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const medir = () => document.documentElement.style.setProperty(
+      '--altura-barra', Math.round(el.getBoundingClientRect().height) + 'px')
+    medir()
+    const ro = new ResizeObserver(medir)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   useEffect(() => {
     if (!menu) return
@@ -192,7 +223,6 @@ export default function Header({ onCloud, onBulk, onAtividades, onFilters, onSta
               <IconBusca />
               {filters.q ? <span className={`absolute right-1 bottom-1 w-[7px] h-[7px] rounded-full transition-colors duration-[450ms] ${comAcento ? 'bg-paper' : 'bg-moss'}`} /> : null}
             </button>
-            {ehDesktop && botaoFiltros(false)}
           </div>
 
           {/* centro: a marca */}
@@ -207,8 +237,11 @@ export default function Header({ onCloud, onBulk, onAtividades, onFilters, onSta
                  para o descendente empurra o logo 3px acima dos ícones. */
               className="grupo-marca inline-flex items-center shrink-0 rounded-full transition-transform duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-px active:scale-[.97]"
             >
+              {/* MOLA_CALMA (0,4s, sem ultrapassagem): a marca percorre meia tela
+                  ao vir da capa, e ultrapassar o alvo numa viagem dessas lê como
+                  tranco. */}
               {!aberturaNoAr && (
-                <motion.span layoutId="marca" className="relative inline-flex pointer-events-none">
+                <motion.span layoutId="marca" transition={MOLA_CALMA} className="relative inline-flex pointer-events-none">
                   {/* Medida pela LARGURA, não pela altura: a largura é o que aperta
                       aqui — é ela que disputa espaço com as duas pontas da barra —, e
                       é nela que a marca foi especificada. Com o viewBox encostado na
@@ -222,7 +255,6 @@ export default function Header({ onCloud, onBulk, onAtividades, onFilters, onSta
 
           {/* direita */}
           <div className="flex items-center gap-1.5 justify-self-end shrink-0">
-            {ehDesktop && alternadorVista}
             <div className="relative">
               <button
                 type="button"
@@ -261,18 +293,37 @@ export default function Header({ onCloud, onBulk, onAtividades, onFilters, onSta
       </div>
     </header>
 
-      {/* ---- segunda linha (só celular): o que é ferramenta ----
-           Fica FORA da barra: rola embora com a página, como pediram. Só a
-           marca e os dois acessos acompanham a rolagem.
+      {/* ---- segunda linha: o que é ferramenta ----
+           Fica FORA da barra, em TODAS as larguras: rola embora com a página.
+           Só a marca e os dois acessos acompanham a rolagem — o que é
+           ferramenta da estante fica com a estante.
+
+           Antes isto valia só no celular, e no desktop os dois moravam dentro
+           da barra fixa. Virou igual nos dois: a barra ficou com três peças
+           (busca · marca · menu) na mesma grade de três colunas, e a marca
+           passa a ficar centrada de verdade em qualquer largura.
+
            Como ela está no fluxo normal e o painel do menu é fixo começando
            embaixo da barra, o painel a cobre sozinho — não precisa sumir à
-           mão, e assim a página não dá um pulo ao abrir o menu. */}
-      {!ehDesktop && (
-        <div className="mx-auto w-full max-w-[1320px] px-3 flex items-center justify-between gap-2 py-2">
+           mão, e assim a página não dá um pulo ao abrir o menu.
+
+           Uma instância só, nunca duplicada por CSS: o alternador carrega
+           `layoutId`, e dois elementos com o mesmo id ao mesmo tempo quebram a
+           animação da pastilha. */}
+      <div className="mx-auto w-full max-w-[1320px] px-3 sm:px-5 flex items-center justify-between gap-3 py-2">
+        {/* Marca-d'água. A 10% de tinta ela não é texto que se lê — é textura
+            que preenche o vazio que sobrou à esquerda quando as ferramentas
+            foram para a direita. Por isso `aria-hidden`: anunciar "Coleção"
+            para quem ouve seria prometer um título que visualmente não existe.
+            `select-none` porque marca-d'água que se seleciona vira tropeço. */}
+        <span className="font-cartaz font-black uppercase leading-none
+                         text-secao sm:text-titulo text-ink-sussurro select-none shrink-0"
+              aria-hidden="true">Coleção</span>
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {botaoFiltros(true)}
           {alternadorVista}
         </div>
-      )}
+      </div>
 
       {/* ---- celular: painel de tela cheia, começando embaixo da barra ----
            Fica FORA do <header> de propósito: como filho dele, ele pegava a
@@ -343,19 +394,27 @@ function ConteudoMenu({ grande, tema, setTema, sync, acoes, onStats }) {
               key={v} role="menuitemradio" aria-checked={tema === v}
               onClick={() => setTema(v)}
               /* Sem contorno e sem bolinha: a palavra É a amostra. O que marca
-                 o escolhido é a opacidade — o apagado recua, o marcado fica
-                 cheio. Para leitor de tela quem conta é o aria-checked, que não
+                 o escolhido é a tinta — o apagado recua, o marcado fica cheio.
+                 Para leitor de tela quem conta é o aria-checked, que não
                  depende de cor nem de opacidade. */
-              className={`flex-1 rounded-medio px-2 font-display font-extrabold uppercase
-                transition-opacity duration-200 outline-none
+              className={`tema-palavra flex-1 rounded-medio px-2 font-display font-extrabold uppercase
+                outline-none
                 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-surface focus-visible:ring-ink/30
-                ${grande ? 'py-2.5 text-secao' : 'py-1.5 text-obra'}
-                ${tema === v ? 'opacity-100' : 'opacity-30 hover:opacity-65'}`}
+                ${grande ? 'py-2.5 text-secao' : 'py-1.5 text-obra'}`}
+              data-escolhido={tema === v ? '1' : '0'}
               /* hex cravado de propósito: a palavra MOSTRA a cor de cada tema,
                  então não pode seguir o tema atual */
               style={{ color: cor }}
             >
-              {rotulo}
+              {/* Duas camadas do mesmo texto: a de baixo apagada, a de cima
+                  cheia e recortada por clip-path. No hover o recorte abre da
+                  esquerda para a direita, e a palavra se ENTINTA como
+                  pincelada — em vez de só clarear de uma vez.
+                  A de cima é aria-hidden: para quem ouve, o texto é um só. */}
+              <span className="tema-palavra__camadas">
+                <span className="tema-palavra__base">{rotulo}</span>
+                <span className="tema-palavra__tinta" aria-hidden="true">{rotulo}</span>
+              </span>
             </button>
           ))}
         </div>
@@ -458,11 +517,30 @@ const SyncDot = ({ sync }) => {
   return <span className={`absolute -right-1 -bottom-1 w-[9px] h-[9px] rounded-full border-2 border-paper ${c}`} />
 }
 
+/* A lupa não aumenta nada — ela MOSTRA a trama do papel. No hover a lente dá
+   um arco curto de varredura e, por baixo do contorno, aparece o meio-tom:
+   aqueles pontinhos de impressão de gibi antigo. O padrão usa currentColor,
+   então acompanha a inversão da barra sem regra extra. */
 const IconBusca = () => (
-  <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+  <svg className="w-[18px] h-[18px] ico-lupa" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <defs>
+      <pattern id="reticula-lupa" width="2.6" height="2.6" patternUnits="userSpaceOnUse">
+        <circle cx="1.3" cy="1.3" r="0.62" fill="currentColor" stroke="none" />
+      </pattern>
+    </defs>
+    <circle className="ico-lupa__reticula" cx="11" cy="11" r="8" fill="url(#reticula-lupa)" stroke="none" />
+    <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+  </svg>
 )
+/* Funil, não mais três traços.
+   A gota existe só para o gesto: no hover ela desce pela garganta e esvanece —
+   filtrar é deixar passar o que interessa. É a mesma ideia da versão anterior
+   (movimento que DIZ o que o botão faz), portada para o desenho novo. */
 const IconFiltros = () => (
-  <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 6h16M7 12h10M10 18h4" /></svg>
+  <svg className="w-[18px] h-[18px] ico-funil" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
+    <path d="M2 4h20l-8 9v7l-4 2v-9z" />
+    <circle className="ico-funil__gota" cx="12" cy="8" r="1.15" fill="currentColor" stroke="none" />
+  </svg>
 )
 const IconStats = () => (
   <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 3v18h18" /><path d="M7 15l4-4 3 3 5-6" /></svg>
@@ -470,11 +548,27 @@ const IconStats = () => (
 const IconSeta = () => (
   <svg className="w-[15px] h-[15px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6" /></svg>
 )
+/* Galeria e Lista são DOIS botões lado a lado, sempre visíveis — não um ícone
+   que se transforma. Então não há morfose a fazer: o que cabe é cada ícone
+   prever o próprio resultado quando o cursor passa. Aqui os quadros brotam em
+   sequência, como a grade montando. */
 const IconGrade = () => (
-  <svg className="w-[15px] h-[15px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg>
+  <svg className="w-[15px] h-[15px] ico-grade" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <rect className="ico-grade__q1" x="3" y="3" width="7" height="7" />
+    <rect className="ico-grade__q2" x="14" y="3" width="7" height="7" />
+    <rect className="ico-grade__q3" x="3" y="14" width="7" height="7" />
+    <rect className="ico-grade__q4" x="14" y="14" width="7" height="7" />
+  </svg>
 )
+/* E aqui as linhas entram pela esquerda, uma depois da outra, como lista
+   sendo escrita. Os marcadores ficam parados: eles são a âncora. */
 const IconLista = () => (
-  <svg className="w-[15px] h-[15px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /></svg>
+  <svg className="w-[15px] h-[15px] ico-lista" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M3 6h.01M3 12h.01M3 18h.01" />
+    <path className="ico-lista__l1" d="M8 6h13" />
+    <path className="ico-lista__l2" d="M8 12h13" />
+    <path className="ico-lista__l3" d="M8 18h13" />
+  </svg>
 )
 const IconCloud = () => (
   <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.5 19a4.5 4.5 0 1 0-1.4-8.8A6 6 0 1 0 6 16" /><path d="M8 16h9.5" /></svg>

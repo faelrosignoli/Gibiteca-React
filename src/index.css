@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600&family=Lexend+Zetta:wght@900&family=Space+Mono:wght@400;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -478,3 +478,205 @@ body::after {
    acabou de tirar */
 .divisoria picture,
 .divisoria img { display: block; width: 100%; height: auto }
+
+/* ==================================================================
+   Animação de ícone nos botões.
+
+   Regra que separa estas das do site que as inspirou: AQUI NADA RODA EM
+   LAÇO. Uma página de portfólio pode ter um asterisco girando para sempre
+   porque o movimento É o produto. A Gibiteca é instrumento — você clica em
+   "Filtros" quinhentas vezes, e o que encanta na primeira irrita na
+   quinquagésima. Toda animação daqui tem início, fim e um motivo.
+
+   Todas cabem no teto de 0.4s do projeto.
+   ================================================================== */
+
+/* ---- Filtros: a gota desce pelo funil ---------------------------
+   O ícone virou funil, e os três traços que se assentavam deixaram de
+   existir. O gesto foi portado: a gota cai pela garganta e some —
+   filtrar é deixar passar o que interessa.
+
+   Keyframe, não transição, porque a gota precisa ESVANECER nas duas
+   pontas: aparece já dentro do cone e some ao sair. Com transição ela
+   voltaria subindo ao tirar o cursor, o que seria um filtro ao
+   contrário. Os valores são unidades do viewBox (24), não pixels. */
+@keyframes cai-gota {
+  0%   { transform: translateY(-5px); opacity: 0 }
+  30%  { opacity: 1 }
+  70%  { opacity: 1 }
+  100% { transform: translateY(10px); opacity: 0 }
+}
+.ico-funil__gota { opacity: 0 }
+.pill-btn:hover .ico-funil__gota { animation: cai-gota .38s var(--ease-prem) }
+
+/* ---- Lupa: varre e revela a retícula ----------------------------
+   A lente gira em torno do PRÓPRIO centro (11,11 num viewBox de 24 =
+   45.8%), não do centro do quadro — senão o cabo é que faria o arco.
+   `transform-box: fill-box` faz a porcentagem valer sobre a caixa do
+   desenho; sem isso o navegador mede pelo sistema de coordenadas e o
+   giro sai do lugar errado. */
+.ico-lupa {
+  transform-box: fill-box;
+  transform-origin: 45.8% 45.8%;
+  transition: transform .3s var(--ease-prem);
+}
+.ico-lupa__reticula {
+  opacity: 0;
+  transition: opacity .26s var(--ease-prem);
+}
+button:hover > .ico-lupa,
+button:hover .ico-lupa { transform: rotate(-14deg) }
+button:hover .ico-lupa__reticula { opacity: .55 }
+
+/* ---- Galeria e Lista: cada ícone prevê o próprio resultado -------
+   Só no botão INATIVO. No que já está escolhido o movimento não teria o
+   que prometer, e repetir o gesto do estado atual é ruído. */
+/* @keyframes, e NÃO transição com estado de repouso alterado. A primeira
+   versão deixava as linhas da Lista recuadas e a 40% enquanto ninguém
+   passava o mouse: o ícone ficava permanentemente meio-desenhado, parecendo
+   defeito. Com keyframe o repouso é o ícone inteiro e correto, e o gesto só
+   existe durante o hover. O `both` segura o quadro inicial durante o atraso
+   — é ele que produz o escalonamento. */
+@keyframes brota-quadro {
+  from { transform: scale(.5); opacity: .25 }
+  to   { transform: none;      opacity: 1 }
+}
+@keyframes entra-linha {
+  from { transform: translateX(-5px); opacity: .25 }
+  to   { transform: none;             opacity: 1 }
+}
+.ico-grade rect { transform-box: fill-box; transform-origin: 50% 50% }
+
+/* As regras de atraso precisam ter a MESMA especificidade da que declara a
+   animação, e vir depois. A primeira versão usava `.ico-grade rect` como base
+   — um seletor de TIPO a mais, portanto mais específico que `.ico-grade__q2`.
+   Como o atalho `animation` também zera o `animation-delay`, a base ganhava e
+   os quatro quadros brotavam ao mesmo tempo: o escalonamento existia no código
+   e não na tela. Listar as classes nas duas regras empata a especificidade, e
+   aí a ordem no arquivo decide. */
+[aria-pressed='false']:hover .ico-grade__q1,
+[aria-pressed='false']:hover .ico-grade__q2,
+[aria-pressed='false']:hover .ico-grade__q3,
+[aria-pressed='false']:hover .ico-grade__q4 { animation: brota-quadro .32s var(--ease-prem) both }
+[aria-pressed='false']:hover .ico-grade__q2 { animation-delay: .05s }
+[aria-pressed='false']:hover .ico-grade__q3 { animation-delay: .1s }
+[aria-pressed='false']:hover .ico-grade__q4 { animation-delay: .15s }
+
+[aria-pressed='false']:hover .ico-lista__l1,
+[aria-pressed='false']:hover .ico-lista__l2,
+[aria-pressed='false']:hover .ico-lista__l3 { animation: entra-linha .3s var(--ease-prem) both }
+[aria-pressed='false']:hover .ico-lista__l2 { animation-delay: .05s }
+[aria-pressed='false']:hover .ico-lista__l3 { animation-delay: .1s }
+
+/* ---- Lixeira: a tampa levanta -----------------------------------
+   Pivô na ponta ESQUERDA da barra (x=3 de 24 = 12,5%), para a tampa
+   abrir de lado como tampa de verdade, e não girar pelo meio. */
+.ico-lixo__tampa {
+  transform-box: fill-box;
+  transform-origin: 12.5% 100%;
+  transition: transform .26s var(--ease-prem);
+}
+button:hover .ico-lixo__tampa { transform: rotate(-18deg) translateY(-1px) }
+
+/* ---- MOSS / NOCKOUT: a palavra se entinta ------------------------
+   Duas camadas do mesmo texto. A de cima é a cor cheia, recortada por
+   `clip-path`; no hover o recorte abre da esquerda para a direita e a
+   palavra é pintada como pincelada. A escolhida já nasce pintada. */
+.tema-palavra__camadas { position: relative; display: inline-block; white-space: nowrap }
+.tema-palavra__base    { opacity: .3 }
+.tema-palavra__tinta {
+  position: absolute; left: 0; top: 0;
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path .34s var(--ease-prem);
+}
+.tema-palavra:hover .tema-palavra__tinta,
+.tema-palavra[data-escolhido='1'] .tema-palavra__tinta { clip-path: inset(0 0 0 0) }
+/* sem transição na escolhida: a troca de tema já é instantânea por toda a
+   página, e a palavra chegando depois pareceria atraso */
+.tema-palavra[data-escolhido='1'] .tema-palavra__tinta { transition-duration: 0s }
+
+/* ---- Voltar ao topo: a seta sobe e outra toma o lugar ------------ */
+.seta-topo { display: inline-block; overflow: hidden; height: 1em; line-height: 1 }
+.seta-topo__par {
+  display: flex; flex-direction: column;
+  transition: transform .3s var(--ease-prem);
+}
+.seta-topo__par > span { height: 1em; line-height: 1 }
+.pill-btn:hover .seta-topo__par { transform: translateY(-1em) }
+
+/* ---- Nova obra: carimbo ------------------------------------------
+   Esta é a única que acontece no CLIQUE, não no hover — por isso pode ser
+   mais expressiva sem cansar: cadastrar obra é raro perto de filtrar.
+   Achata no aperto (como carimbo encostando no papel) e volta com leve
+   ultrapassagem na soltura. */
+.cta-carimbo:active { transform: scale(1.04, .9) }
+.cta-carimbo { transition: transform .26s cubic-bezier(.34, 1.56, .64, 1), box-shadow var(--dur) var(--ease-prem), background var(--dur) var(--ease-prem) }
+
+/* ---- Movimento reduzido -----------------------------------------
+   Aqui não basta encurtar: o que incomoda é o deslocamento. Fica só o que
+   INFORMA (a retícula da lupa, a tinta da palavra), e some todo o resto. */
+@media (prefers-reduced-motion: reduce) {
+  .ico-funil__gota,
+  .ico-grade rect,
+  .ico-lista [class^='ico-lista__'],
+  .ico-lixo__tampa,
+  .ico-lupa,
+  .seta-topo__par,
+  .cta-carimbo {
+    transition: none !important;
+    transform: none !important;
+  }
+  .pill-btn:hover .ico-funil__gota,
+  button:hover .ico-lixo__tampa,
+  button:hover .ico-lupa,
+  .pill-btn:hover .seta-topo__par,
+  .cta-carimbo:active { transform: none !important }
+  .ico-grade rect,
+  .ico-lista path {
+    animation: none !important; opacity: 1 !important;
+  }
+}
+
+
+/* ------------------------------------------------------------------
+   Página de boas-vindas (a capa).
+
+   Ocupa a tela inteira: aqui não há barra no topo para descontar, porque a
+   capa não tem cabeçalho. `svh` e não `vh`: no celular o `vh` conta a barra
+   do navegador que se esconde ao rolar, e a capa ficaria mais alta que a
+   tela, criando rolagem numa página que não deveria rolar.
+   ------------------------------------------------------------------ */
+.welcome {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+/* `cover`: preenche sem distorcer, custe o corte. Numa capa o que não pode é
+   a arte esticar. */
+.welcome__imagem {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+/* O logo abaixo do topo — é daqui que ele sobe até a barra, e começar colado
+   no alto tornaria a viagem quase imperceptível. `flex: 1` no lugar de uma
+   margem fixa empurra o botão para o pé da tela sozinho. */
+.welcome__marca {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 14svh 1.25rem 0;
+}
+.welcome__rodape {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding: 4rem 1.25rem 2.5rem;
+  background: linear-gradient(to top, rgb(var(--paper) / .85), rgb(var(--paper) / 0));
+}
+.welcome__botao { font-size: 1rem; padding-left: 1.75rem }
