@@ -57,9 +57,6 @@ export default function Welcome({ onEntrar, aberturaNoAr = false }) {
         <button type="button" className="cta cta-carimbo welcome__botao" onClick={onEntrar}>
           Minha Gibiteca
           <span className="knob" aria-hidden="true">
-            <svg className="w-[15px] h-[15px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M5 12h14M13 6l6 6-6 6" />
-            </svg>
           </span>
         </button>
       </div>
