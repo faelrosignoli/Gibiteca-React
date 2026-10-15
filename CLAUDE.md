@@ -90,7 +90,9 @@ corrido e positiva só no rótulo. **Não escrever `tracking-*` à mão** — a 
 ### Cores por papel
 - Superfícies: `bg-paper` (fundo), `bg-surface` (**#FFFDF8, creme — não branco**).
   Branco puro existe como `surface-pure`, para uso pontual.
-- Texto: `text-ink` → `text-ink-soft` → `text-ink-faint` → `text-ink-mute`.
+- Texto: `text-ink` → `text-ink-soft` → `text-ink-faint` → `text-ink-mute`
+  → `text-ink-sussurro` (10%). O último não é texto para ler: é marca-d'água,
+  e existe como token justamente para ninguém escrever `ink/10` avulso.
 - Véus de tinta, nomeados pela função (antes eram 12 opacidades avulsas):
   `linha` (8%, fio de 1px) · `separador` (12%, divisória) ·
   `toque` (5,5%, fundo de hover) · `veu` (50%, backdrop de modal).
@@ -120,20 +122,25 @@ celular:  Busca ········ LOGO ········ ☰
 É uma grade `[1fr auto 1fr]` — só assim o logo fica no centro exato
 independente da largura dos dois lados.
 
-**No celular a marca entrou na barra.** Antes era um bloco solto acima, que
-rolava embora (`LogoMobile`, removido); agora acompanha a rolagem como em
-qualquer site, e o que desceu para a segunda linha foi o que é ferramenta, não
-marca.
+**A marca entrou na barra.** Antes era um bloco solto acima, que rolava embora
+(`LogoMobile`, removido); agora acompanha a rolagem como em qualquer site, e o
+que desceu para a segunda linha foi o que é ferramenta, não marca.
+
+**O arranjo é o MESMO em qualquer largura:** barra com três peças (busca ·
+marca · ☰) e, abaixo dela, a marca-d'água **COLEÇÃO** à esquerda e as
+ferramentas (Filtros · Galeria/Lista) juntas à direita. Houve uma versão em que no
+desktop esses dois moravam dentro da barra; unificar deixou a marca centrada de
+verdade sempre, e encolheu a barra de 69 para 57px.
 
 A segunda linha fica **fora** da barra fixa: ela rola embora com a página. Só a
 marca, a busca e o ☰ acompanham a rolagem — o que é ferramenta da estante fica
-com a estante. Medido: rolando 400px, a barra para em `top: 0` e a segunda
-linha vai para `-329`.
+com a estante. Medido a 1280px, rolando 600px: a barra para em `top: 0` e o
+Filtros vai para `-535`.
 
 **O alternador Galeria/Lista existe uma vez só no DOM.** Ele carrega um
 `layoutId`, e dois elementos com o mesmo id ao mesmo tempo quebram a animação
-da pastilha. Por isso a posição dele (barra no desktop, segunda linha no
-celular) é escolhida em **JS**, não duplicada e escondida por CSS.
+da pastilha. Hoje há uma instância só, na segunda linha — mas a regra continua
+valendo para quem for duplicá-lo por CSS para "mostrar em dois lugares".
 
 ### O ☰: um painel no celular, uma folha no desktop
 Três assuntos, nesta ordem: **cor do site**, **estatísticas** e **um tópico só**
@@ -704,6 +711,122 @@ Gavetas e painéis de leitura (Filtros, Detalhe, Estatísticas) fecham no clique
 fora. O **Editor não**: ele tem formulário preenchido, e perder um cadastro por
 um clique no vazio custa caro. Saída só pelo **X**, **Cancelar** ou **Salvar**.
 Modal novo que tenha campo preenchível segue a mesma regra.
+
+### A página de boas-vindas
+`Welcome.jsx` é a capa da gibiteca: uma imagem grande ocupando tudo abaixo da
+barra e um botão "Minha Gibiteca" no rodapé dela, centrado. Clicar entra na
+coleção.
+
+**A IMAGEM ainda não existe.** Ponha o arquivo em `public/welcome.jpg` e ele
+aparece sozinho. Sem ele a página não quebra: o `onError` esconde a imagem e
+fica o papel com o botão, que continua levando à coleção — era isso ou um
+ícone de imagem quebrada ocupando a tela inteira.
+
+**NÃO há cabeçalho na capa** — só o logo, grande e abaixo do topo. Ele e o
+logo da barra são o MESMO elemento para o framer-motion (`layoutId="marca"`),
+então ao entrar na coleção a marca **viaja** daqui até a barra encolhendo, em
+vez de uma sumir e outra aparecer.
+
+Por isso os dois nunca podem coexistir: dois elementos com o mesmo layoutId
+quebram a animação. Quem garante isso é o ternário do `App` — um renderiza
+exatamente quando o outro não. `aberturaNoAr` existe pelo mesmo motivo:
+enquanto a tela de abertura está no ar, é ELA quem desenha a marca.
+
+A viagem usa `MOLA_CALMA` (0,4s, sem ultrapassagem): a marca percorre meia
+tela, e ultrapassar o alvo numa distância dessas lê como tranco.
+
+O logo começa **abaixo do topo** de propósito — colado no alto, a viagem seria
+quase imperceptível, e é o deslocamento que conta a história. Medido:
+
+| | capa | barra | meio do voo |
+|---|---|---|---|
+| desktop | 420×63 @y126 | 190 @y14 | 218 @y28 |
+| celular | 293×44 @y114 | — | — |
+
+A capa ocupa `100svh` (não `vh`: no celular o `vh` conta a barra do navegador
+que se esconde ao rolar, e a capa ficaria mais alta que a tela). Medido: 900 e
+812, exatamente a janela, sem rolagem.
+
+**Ao medir essa transição, desconfie de "não animou".** Uma primeira leitura
+deu 420 → 418 → 190, um salto — mas era o painel congelando o `rAF` em
+segundo plano. Alongando a transição para 1,6s os quadros intermediários
+apareceram. Com screenshot forçando repaint entre as leituras, dá para pegar o
+meio do voo mesmo a 0,4s.
+
+**A capa aparece a cada carregamento** e sai no clique — como abrir um gibi
+pela capa. Não fica guardada: se um dia incomodar vê-la toda vez, o lugar de
+trocar por `localStorage` é o `useState` do `welcome` no `App.jsx`.
+
+**O véu atrás do botão não é enfeite.** Sem saber que imagem virá, um botão
+claro pode cair sobre área clara e sumir. O degradê garante contraste seja
+qual for a foto.
+
+### A marca-d'água COLEÇÃO
+Na segunda linha, à esquerda. Tinta a **10%** (`text-ink-sussurro`), em
+**Lexend Zetta Black** (`font-cartaz`, peso 900), caixa alta. A família entra
+pelo mesmo `@import` do Google Fonts das outras três — o nome do token diz o
+PAPEL (palavra grande como elemento gráfico), não a fonte. Não é título: é textura que preenche o vazio aberto
+quando as ferramentas foram todas para a direita. Por isso `aria-hidden` —
+anunciar "Coleção" para quem ouve seria prometer um título que visualmente não
+existe — e `select-none`, porque marca-d'água que se seleciona vira tropeço.
+
+**A entreletras é a da escala**, sem ajuste próprio: −0,02em no `text-secao`
+e −0,025em no `sm:text-titulo`. Houve uma versão com `-.05em` numa classe
+dedicada, desfeita a pedido.
+
+Se algum dia voltar a mexer nisso, saiba que `tracking-tighter` **não resolve**:
+ele pega no celular e não no desktop, porque `sm:text-titulo` traz a
+entreletras do próprio nível e o Tailwind emite as variantes de media DEPOIS
+das regras no fim do arquivo — estar por último não basta. O caminho é uma
+classe com especificidade dobrada (`.x.x`, que dá (0,2,0) contra (0,1,0) do
+utilitário), nunca `!important`.
+
+**O token de 10% foi criado para isto.** A rampa de tinta parava em
+`ink-mute` (38%), e a regra do projeto proíbe `ink/10` avulso. Mudança em
+`tailwind.config.js` **exige reiniciar o servidor de dev**: o Tailwind lê a
+config na subida, e enquanto o processo antigo roda a classe nova simplesmente
+não gera CSS — o texto sai com tinta cheia e parece erro de código. O build de
+produção já saía certo (`#23271c1a`) enquanto a tela mentia.
+
+### Animação de ícone nos botões
+No `index.css`, bloco próprio no fim. Seis gestos, todos dentro do teto de
+0.4s:
+
+| onde | gesto | mecânica |
+|---|---|---|
+| Filtros | a gota desce pelo funil e some | `@keyframes cai-gota` |
+| Busca | a lente gira 14° e revela meio-tom | `<pattern>` de pontos + `transform-box: fill-box` |
+| Galeria (inativa) | os quatro quadros brotam em sequência | `@keyframes brota-quadro` |
+| Lista (inativa) | as três linhas entram pela esquerda | `@keyframes entra-linha` |
+| Lixeira | a tampa levanta 18° | grupo próprio, pivô em `12.5% 100%` |
+| MOSS / NOCKOUT | a palavra se entinta da esquerda | duas camadas + `clip-path` |
+| Voltar ao topo | a seta sobe e outra toma o lugar | duas setas em janela de `1em` |
+| Nova obra | carimbo no CLIQUE | `:active` + easing com ultrapassagem |
+
+**A regra que separa estas das do site que as inspirou: nada roda em laço.**
+Uma página de portfólio pode ter um asterisco girando para sempre porque o
+movimento É o produto. Aqui você clica em "Filtros" quinhentas vezes, e o que
+encanta na primeira irrita na quinquagésima. Toda animação tem início, fim e
+motivo. A do carimbo é a única expressiva, e pode ser porque acontece no
+clique — cadastrar obra é raro perto de filtrar.
+
+**Keyframe, não transição com repouso alterado.** A primeira versão do
+alternador deixava as linhas da Lista recuadas e a 40% enquanto ninguém
+passava o mouse: o ícone ficava permanentemente meio-desenhado, parecendo
+defeito. Com `@keyframes` o repouso é o ícone inteiro e o gesto só existe
+durante o hover.
+
+**Armadilha de especificidade no escalonamento.** O atalho `animation` também
+zera `animation-delay`. Se a regra que declara a animação for mais específica
+que as que definem os atrasos, os atrasos somem e tudo dispara junto — o
+escalonamento existe no código e não na tela. Foi o que aconteceu com
+`.ico-grade rect` (seletor de tipo a mais) contra `.ico-grade__q2`. A saída é
+listar as mesmas classes nas duas regras, empatando a especificidade, e deixar
+a ordem do arquivo decidir. **Conferir sempre lendo `animationDelay`
+computado**, não só olhando: a tela em movimento engana.
+
+**Movimento reduzido desliga o deslocamento, não tudo.** Ficam a retícula da
+lupa e a tinta da palavra, que INFORMAM; some todo o resto, que só se mexe.
 
 ### A tela de erro
 `Salvaguarda.jsx` é a rede que segura erro de renderização — e a única TELA de

@@ -20,6 +20,7 @@ export default {
           soft:    'rgba(35,39,28,.78)',    // subtítulo
           faint:   'rgba(35,39,28,.56)',    // apoio
           mute:    'rgba(35,39,28,.38)',    // desabilitado
+          sussurro:'rgba(35,39,28,.10)',    // marca-d'água: lê como textura, não como texto
           2:       '#2c3124',               // hover de superfície escura
         },
         /* O ACENTO é temável: os valores moram em variáveis no index.css, e
@@ -70,6 +71,10 @@ export default {
         display: ['"Bricolage Grotesque"', 'Georgia', 'serif'],
         sans:    ['Inter', 'system-ui', 'sans-serif'],
         mono:    ['"Space Mono"', 'ui-monospace', 'monospace'],
+        /* Lexend Zetta Black: larga e pesadíssima, só serve para palavra
+           grande usada como elemento gráfico — hoje a marca-d'água COLEÇÃO.
+           Nome pelo PAPEL, não pela fonte, como as outras três. */
+        cartaz:  ['"Lexend Zetta"', '"Bricolage Grotesque"', 'sans-serif'],
       },
 
       // ---- escala tipográfica: 7 níveis no lugar de 25 tamanhos avulsos ----
