@@ -68,7 +68,9 @@ export default function Cloud({ open, onClose, onNotice }) {
             transition={MOLA_GAVETA}
           >
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-separador">
-              <h3 className="font-cartaz font-semibold uppercase text-secao text-acento-texto">Sincronizar com o GitHub</h3>
+              {/* Mesmo título do item que abre este painel. Um nome por assunto: quem
+                  clicou em "Nuvem" precisa chegar numa tela que diz "Nuvem". */}
+              <h3 className="font-cartaz font-semibold uppercase text-secao text-acento-texto">Nuvem</h3>
               <button className="neo-icon !w-9 !h-9" onClick={onClose}>×</button>
             </div>
 

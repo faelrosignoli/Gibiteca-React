@@ -157,9 +157,9 @@ export default function Header({ onCloud, onBulk, onAtividades, onBackup, onFilt
      duas ações. São o mesmo assunto, e lado a lado numa lista de atalhos eles
      se pareciam demais para a diferença que têm. */
   const acoesDados = [
-    { rotulo: rotuloNuvem(sync), ponto: sync, aoClicar: () => { fechar(); onCloud?.() } },
+    { rotulo: 'Nuvem', ponto: sync, aoClicar: () => { fechar(); onCloud?.() } },
     { rotulo: 'Atividades', aoClicar: () => { fechar(); onAtividades?.() } },
-    { rotulo: 'Enviar capas', aoClicar: () => { fechar(); onBulk?.() } },
+    { rotulo: 'Capas', aoClicar: () => { fechar(); onBulk?.() } },
     { rotulo: 'Backup', aoClicar: () => { fechar(); onBackup?.() } },
   ]
 
@@ -227,8 +227,8 @@ export default function Header({ onCloud, onBulk, onAtividades, onBackup, onFilt
                 não uma `pill-btn` com a borda apagada. Os dois são botões de
                 ícone redondos nas pontas da barra; usar a mesma classe mantém
                 tamanho, cor e o comportamento sobre o acento em um lugar só.
-                O ponto de "há busca ativa" vai para fora do fluxo, como o
-                SyncDot do ☰: sem contorno não há espaço interno para ele. */}
+                O ponto de "há busca ativa" vai para fora do fluxo: sem
+                contorno não há espaço interno para ele. */}
             <button className="isl-icon !w-10 !h-10 sm:!w-9 sm:!h-9 relative" onClick={onSearch} title="Buscar" aria-label="Buscar">
               <IconBusca />
               {filters.q ? <span className={`absolute right-1 bottom-1 w-[7px] h-[7px] rounded-full transition-colors duration-[450ms] ${comAcento ? 'bg-paper' : 'bg-moss'}`} /> : null}
@@ -276,8 +276,6 @@ export default function Header({ onCloud, onBulk, onAtividades, onBackup, onFilt
                 title="Cor do site, estatísticas, nuvem e backup"
               >
                 <Hamburguer aberto={menu} />
-                {/* o aviso de sincronização acompanha o menu que guarda a Nuvem */}
-                <SyncDot sync={sync} />
               </button>
 
               {/* ---- desktop: folha suspensa ---- */}
@@ -461,15 +459,13 @@ function ConteudoMenu({ grande, tema, setTema, sync, acoes, onStats }) {
         >
           {!grande && (
             <span className="relative text-ink-soft shrink-0 inline-flex">
-              <IconCloud />{sync && sync !== 'off' ? <SyncDot sync={sync} /> : null}
+              <IconCloud />
             </span>
           )}
+          {/* Sem ponto aqui: ele mora UMA vez, ao lado de "Nuvem" lá dentro.
+              Repetido no título e no ☰, o mesmo alerta aparecia três vezes na
+              mesma tela e deixava de chamar atenção em qualquer uma delas. */}
           Nuvem e backup
-          {/* sem o ícone, o aviso de sincronização precisa de um lugar próprio:
-              a ação pode se esconder atrás de uma porta, o alerta não pode */}
-          {grande && sync && sync !== 'off' && (
-            <span className="relative inline-flex w-[9px] h-[9px] shrink-0"><SyncDot sync={sync} /></span>
-          )}
           <motion.span
             className="ml-auto text-ink-faint inline-flex"
             animate={{ rotate: dadosAberto ? 180 : 0 }} transition={MOLA_TOQUE}
@@ -495,11 +491,16 @@ function ConteudoMenu({ grande, tema, setTema, sync, acoes, onStats }) {
                       ? 'w-full flex items-center gap-3 py-2.5 text-corpo text-ink-soft text-left'
                       : 'w-full flex items-center gap-2.5 rounded-medio px-3 py-2 text-corpo text-ink-soft text-left hover:bg-toque'}
                   >
-                    {/* sem ícone; só o ponto de sincronização, que é alerta */}
-                    {a.ponto && a.ponto !== 'off' && (
-                      <span className="relative inline-flex w-[9px] h-[9px] shrink-0"><SyncDot sync={a.ponto} /></span>
-                    )}
-                    {a.rotulo}
+                    {/* O ponto vem DEPOIS da palavra e dentro do mesmo span:
+                        assim ele acompanha a linha do texto e `items-center`
+                        o alinha pela altura da palavra, não pela da linha do
+                        botão inteiro. */}
+                    <span className="inline-flex items-center gap-2">
+                      {a.rotulo}
+                      {a.ponto && a.ponto !== 'off' && (
+                        <PontoNuvem sync={a.ponto} />
+                      )}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -512,16 +513,23 @@ function ConteudoMenu({ grande, tema, setTema, sync, acoes, onStats }) {
 }
 
 /* o rótulo da nuvem diz o estado, não só a categoria */
-function rotuloNuvem(sync) {
+/* O rótulo do menu é só "Nuvem"; quem diz o ESTADO é o ponto ao lado dele.
+ *
+ * Mas cor sozinha não é informação: quem não distingue verde de laranja, ou
+ * usa leitor de tela, ficaria sem saber. Por isso o estado continua existindo
+ * em texto — no `title` e num rótulo só para leitor. O que saiu foi o estado
+ * ESCRITO no meio do menu, não o estado.
+ */
+function estadoNuvem(sync) {
   return {
-    ok: 'Nuvem — em dia',
-    sync: 'Nuvem — sincronizando',
-    pending: 'Nuvem — envio pendente',
-    err: 'Nuvem — erro ao sincronizar',
+    ok: 'em dia',
+    sync: 'sincronizando',
+    pending: 'envio pendente',
+    err: 'erro ao sincronizar',
     // conflito nao pode passar calado: e o aviso de que a nuvem tem algo mais
     // novo, e que o envio foi barrado de proposito para nao apagar
-    conflito: 'Nuvem — há algo mais novo lá',
-  }[sync] || 'Conectar à nuvem'
+    conflito: 'há algo mais novo lá',
+  }[sync] || 'não conectada'
 }
 
 /* Três linhas que viram um X. Só transform e opacity — as duas propriedades
@@ -537,10 +545,22 @@ function Hamburguer({ aberto }) {
   )
 }
 
-const SyncDot = ({ sync }) => {
-  const c = { off: 'bg-ink-mute', ok: 'bg-moss', sync: 'bg-gold animate-pulse', pending: 'bg-gold animate-pulse', err: 'bg-rust', conflito: 'bg-rust animate-pulse' }[sync] || 'bg-ink-mute'
+/* Ponto de estado da nuvem, para ficar EM LINHA ao lado de uma palavra.
+ *
+ * O antecessor (`SyncDot`) era um selo colado no canto de um ícone: posição
+ * absoluta e anel de 2px da cor do papel, para se destacar do desenho embaixo.
+ * Nenhuma das duas coisas serve aqui — sobre papel liso o anel só engorda o
+ * ponto, e a posição absoluta o tiraria da linha do texto. */
+const PontoNuvem = ({ sync }) => {
+  const c = { ok: 'bg-moss', sync: 'bg-gold animate-pulse', pending: 'bg-gold animate-pulse', err: 'bg-rust', conflito: 'bg-rust animate-pulse' }[sync] || 'bg-ink-mute'
   if (sync === 'off' || !sync) return null
-  return <span className={`absolute -right-1 -bottom-1 w-[9px] h-[9px] rounded-full border-2 border-paper ${c}`} />
+  const estado = estadoNuvem(sync)
+  return (
+    <span className="inline-flex items-center shrink-0" title={'Nuvem — ' + estado}>
+      <span className={`w-[9px] h-[9px] rounded-full ${c}`} aria-hidden="true" />
+      <span className="sr-only">{' — ' + estado}</span>
+    </span>
+  )
 }
 
 /* A lupa não aumenta nada — ela MOSTRA a trama do papel. No hover a lente dá
