@@ -54,6 +54,9 @@ src/
     Stats.jsx              # painel de estatísticas (KPIs, médias, histograma, barras) com escopo
     Cloud.jsx              # modal de conexão/sincronização com o GitHub
     BulkCovers.jsx         # envio de capas em massa (casa por nome, sobe p/ covers/)
+    Welcome.jsx            # a capa: uma imagem por visita (lista CAPAS), celular/desktop por <picture>
+    Backup.jsx             # pop-up de exportar/importar a coleção
+    Tema.jsx               # pop-up da escolha de tema (Moss / Nockout) — mesmo molde do Backup
 ```
 
 ## Regras inegociáveis
@@ -185,10 +188,16 @@ da pastilha. Hoje há uma instância só, na segunda linha — mas a regra conti
 valendo para quem for duplicá-lo por CSS para "mostrar em dois lugares".
 
 ### O ☰: um painel no celular, uma folha no desktop
-Três assuntos, nesta ordem: **cor do site**, **estatísticas** e **um tópico só**
-para tudo que é dado — nuvem, atividades, capas em massa e os dois backups.
-Eram cinco itens soltos competindo com o resto; agora são cinco coisas da mesma
+Três assuntos, nesta ordem: **tema**, **estatísticas** e **um tópico só** para
+tudo que é dado — nuvem, atividades, capas em massa e os dois backups. Eram
+cinco itens soltos competindo com o resto; agora são cinco coisas da mesma
 família atrás de uma porta que abre em sanfona.
+
+**Os três são PORTAS: cada linha abre uma tela.** O tema era a exceção — a
+escolha de cor morava aqui dentro, feita ali mesmo, com um fio mais forte
+(`separador`, não `linha`) em volta para avisar que aquilo não era item de
+lista, era ajuste. Virou pop-up e entrou na fila; o fio de exceção saiu junto,
+e com ele a única regra do menu que precisava de explicação.
 
 O menu é o **mesmo nos dois tamanhos**. Estatísticas chegou a viver na barra do
 desktop; manter os dois caminhos daria duas portas para a mesma tela, então ela
@@ -759,10 +768,100 @@ Modal novo que tenha campo preenchível segue a mesma regra.
 barra e um botão "Minha Gibiteca" no rodapé dela, centrado. Clicar entra na
 coleção.
 
-**A imagem é `public/welcome.jpg`.** Sem ela a página não quebra: o
-`onError` esconde a imagem e fica o papel com o logo e o botão.
+**A capa muda a cada abertura.** A lista de arquivos é a constante `CAPAS` no
+topo do `Welcome.jsx`; para acrescentar uma, ponha o arquivo em `public/` e
+escreva o nome na lista. Qualquer nome, qualquer formato que o navegador abra
+— a lista guarda NOMES, não um padrão de numeração, para não obrigar ninguém
+a renomear arte.
 
-**O arquivo não perde nada no caminho.** `public/` é copiado byte a byte para
+Lista no código, e não um manifesto JSON em `public/` que desse para editar
+direto no GitHub sem recompilar: o manifesto seria uma requisição a mais
+*antes* de o navegador saber qual imagem buscar, e essa imagem é a coisa mais
+pesada e mais importante da tela. A lista vem no bundle, então o download da
+capa começa no primeiro render.
+
+**Só UMA é baixada por visita**, nunca a soma — as outras o navegador nem sabe
+que existem.
+
+**Cada capa tem DUAS versões: celular e desktop.** Só a de desktop se escreve
+na lista; a de celular é o mesmo nome com **`-m` antes da extensão**, igual ao
+par `divisoria` / `divisoria-m` do rodapé:
+
+```
+moore.alan.jpg     ->  moore.alan-m.jpg
+hurlant.metal.jpg  ->  hurlant.metal-m.jpg
+```
+
+Convenção, e não um par escrito à mão (`{d: ..., m: ...}`): toda capa TEM as
+duas versões, e um campo que nunca varia é um campo que só serve para ser
+esquecido. O `-m` entra por `lastIndexOf('.')`, não por `split('.')` — os
+nomes têm ponto no meio, e quebrar no primeiro daria `moore-m.alan.jpg`.
+
+**A escolha é `<picture>` com `<source media>`, não CSS escondendo uma das
+duas.** Escondendo por CSS o navegador baixaria as DUAS, e aqui cada uma é uma
+foto inteira. O corte é 640px, o mesmo do `sm:` do Tailwind, do
+`useEhDesktop()` e da divisória. Medido no build: **um arquivo por visita** —
+a 1280 só a de desktop, a 375 só a `-m`.
+
+**No servidor de desenvolvimento aparecem DOIS downloads a 375px.** É artefato
+do StrictMode remontando o componente, não defeito: no build de produção é um
+só. Vale lembrar na próxima vez que alguém for medir isso — a medição que
+importa é contra `vite preview`, não contra `vite dev`.
+
+**A `key` do `<picture>` carrega o nome da capa E o degrau de queda.** O
+navegador decide a fonte uma vez, quando o elemento nasce; trocar só os filhos
+não o faz decidir de novo.
+
+**Falha cai em dois degraus**, porque há duas perdas de tamanhos diferentes:
+
+| o que faltou | o que acontece |
+|---|---|
+| só a versão `-m` | fica a de desktop: mais pesada num telefone, mas é a capa certa |
+| a capa inteira | tenta outra capa |
+| todas as capas | papel com o logo e o botão |
+
+Quem diz qual arquivo falhou é o `currentSrc`, que traz o endereço que o
+`<picture>` escolheu de verdade — no celular ele não é o `src`. O primeiro
+degrau existe para o estado normal de hoje: **as versões `-m` ainda não
+existem**, e sem ele a capa sumiria no celular em vez de aparecer em desktop.
+
+O conjunto de capas sem celular mora em ESTADO (muda o que se desenha: o
+`<source>` some); o de capas mortas mora num ref (não desenha nada, e em
+estado só custaria um render a mais).
+
+Medido no build de produção, a 375px: com `-m` presente baixa só o `-m`; com
+`-m` ausente tenta o `-m`, falha e mostra a de desktop, visível. O servidor do
+`vite preview` devolve `index.html` com status 200 para arquivo que não
+existe, e o `onError` dispara do mesmo jeito — não é imagem. No GitHub Pages
+seria um 404 de verdade, com o mesmo resultado.
+
+**O sorteio foge da capa da visita anterior** (`gibiteca_capa` no
+localStorage). Sorteio puro repete: com 3 capas, uma abertura em cada 3 cairia
+na mesma de antes, e "cada vez uma imagem diferente" quebraria já na segunda.
+É memória de navegador, por aparelho; perdê-la não quebra nada, volta a ser
+sorteio puro por uma visita.
+
+A mesma regra vale no caminho de erro, e isso custou um defeito para
+descobrir: enquanto só o sorteio da abertura a obedecia, uma capa inexistente
+na lista fazia a substituta ser sorteada do zero, caindo na capa anterior com
+frequência de 1 em N. Apareceu num teste de 14 aberturas — a mesma capa duas
+vezes seguidas. Hoje os dois caminhos passam por `escolherEntre(lista,
+anterior)`. Medido depois da correção: **20 aberturas, 0 repetições seguidas**,
+distribuição 6/8/6 entre três capas.
+
+**Com uma capa só**, falhar significava esconder a imagem e ficar o papel com
+o logo — melhor que um ícone de imagem quebrada ocupando a tela. Com uma LISTA
+falhar ficou mais provável (basta escrever um nome e esquecer de subir o
+arquivo), e por isso a queda ganhou os degraus da tabela acima.
+
+**O sorteio mora em `useState`, não em variável de módulo**: módulo roda uma
+vez por carregamento de página, e voltar à abertura dentro da mesma sessão
+traria sempre a mesma capa. E a GRAVAÇÃO mora num efeito, não no sorteio — em
+modo estrito o React roda o inicializador de estado duas vezes e fica com o
+primeiro resultado; gravando ali, o registro guardaria a capa descartada e a
+visita seguinte evitaria a imagem errada.
+
+**Os arquivos não perdem nada no caminho.** `public/` é copiado byte a byte para
 o `dist/` — conferido com `md5sum` e `cmp` na imagem real —, e o projeto não
 tem plugin de imagem, `sharp` nem `imagemin`. O que chega ao navegador é
 exatamente o que se pôs lá.
@@ -822,9 +921,13 @@ meio do voo mesmo a 0,4s.
 pela capa. Não fica guardada: se um dia incomodar vê-la toda vez, o lugar de
 trocar por `localStorage` é o `useState` do `welcome` no `App.jsx`.
 
-**O véu atrás do botão não é enfeite.** Sem saber que imagem virá, um botão
-claro pode cair sobre área clara e sumir. O degradê garante contraste seja
-qual for a foto.
+**O contraste do botão sobre foto desconhecida** era o que o véu resolvia, e
+com capas sorteadas o problema cresceu: o botão cai sobre uma imagem
+diferente a cada abertura, nenhuma conhecida de antemão. A regra continua a
+mesma de quando o degradê saiu — se a área sob o botão ficar clara demais em
+alguma capa, escurece-se o BOTÃO, não se devolve a névoa sobre a arte. Quem
+escolhe as capas também escolhe isso: uma foto estourada no rodapé é um
+problema da foto.
 
 ### Acento não conta: nem na ordem, nem na busca
 **Ordem alfabética.** `sortList` comparava com `<`/`>` cru sobre texto
@@ -995,6 +1098,42 @@ países. Com etiquetas, cada país vira item que se vê e se apaga sozinho.
 `paisesOf` já lia — os dois usam o mesmo `splitLista`. Conferido ponta a
 ponta: cadastrando Brasil e Argentina, o `localStorage` gravou
 `"Brasil / Argentina"`.
+
+
+### O pop-up de Tema
+Mesmo molde do Backup — mesma moldura, mesma entrada, mesmo título em Lexend
+caixa alta, tela cheia no celular e cartão de 460px no desktop. Dois pop-ups
+abertos do mesmo menu que chegassem de jeitos diferentes fariam o menu parecer
+duas coisas.
+
+**As opções ficam LADO A LADO, e no Backup em coluna.** Não é capricho: no
+Backup são duas ações de pesos diferentes — uma delas substitui a coleção
+inteira —, e a coluna serve para afastá-las. Aqui são dois pares, uma escolha
+entre iguais, e lado a lado é como se lê escolha entre iguais.
+
+**A palavra É a amostra** (`.tema-palavra`, no index.css): sem contorno e sem
+bolinha. Duas camadas do mesmo texto, a de baixo em 30% e a de cima cheia,
+recortada por `clip-path`; no hover o recorte abre da esquerda para a direita
+e a palavra se **entinta como pincelada**. Na escolhida a transição é zerada —
+a troca de tema já é instantânea na página inteira, e a palavra chegando
+depois pareceria atraso.
+
+O hex de cada tema é **cravado no `style`**, não token: a palavra mostra a cor
+daquele tema, então não pode seguir o tema atual.
+
+`role="radiogroup"` com `aria-checked`: são duas faces da MESMA escolha. Sem
+isso o leitor de tela anuncia "Moss, botão" sem dizer de que pergunta aquilo é
+resposta — e, como o que marca o escolhido é tinta e opacidade, sem o
+`aria-checked` não sobraria nada para quem não enxerga a diferença.
+
+**O pop-up NÃO fecha ao escolher.** A troca repinta a página inteira atrás do
+véu, e fechar junto tiraria da vista justamente o que mudou — além de impedir
+experimentar os dois sem reabrir o menu duas vezes.
+
+Herda do Backup o vazio no celular: o painel é de tela cheia e o conteúdo é
+curto, então sobra fundo embaixo. É traço do molde, não deste pop-up — o
+Backup faz igual, e mexer num sem mexer no outro quebraria a semelhança que é
+o ponto.
 
 ### O menu de dados e o pop-up de Backup
 **Um nome por assunto, nos dois lugares.** O item do menu e o título do painel
@@ -1195,9 +1334,27 @@ que o navegador já resolve.
 A classe do hover mora no **botão**, não no `span` interno — ele é
 `pointer-events-none` e nunca receberia o evento.
 
-**A tinta acompanha a barra**: ink no topo, `paper` com a cortina do acento no
-ar — a mesma tinta clara do miolo da marca principal, nunca `#fff`. Clara
-sempre deixaria a arte invisível no topo, onde o fundo é papel translúcido.
+**A tinta acompanha a barra, em dois registros.** No topo, sobre papel, a arte
+sai na **cor do tema** (`--acento-texto`): moss no Moss, laranja no Nockout.
+Com a cortina do acento no ar ela vira `paper` — a mesma tinta clara do miolo
+da marca principal, nunca `#fff`.
+
+É a única peça do cabeçalho que muda de cor com o tema, e pode: ela só aparece
+no hover, então não é a assinatura. Quem assina é a marca principal, que fica
+**parada de propósito** nos dois temas e nos dois estados. Esta é a piscada do
+tema.
+
+Sobre o acento a cor do tema se perde por necessidade, não por gosto: arte na
+cor do acento, em cima do acento, não existe.
+
+`--acento-texto` e **não** `--moss` cru: no Nockout o `#FF5000` sobre o
+prateado dá 2,8:1 e a arte quase some. O `--acento-texto` é o mesmo laranja
+levado ao ponto em que ainda se lê (`#C23A00`, 4,6:1). No Moss os dois são a
+mesma cor, e por isso a diferença só aparece num dos temas.
+
+Antes disto a arte era ink fixo (`#23271C`) no topo. Ficava legível, mas
+igualzinha nos dois temas — e o hover do logo era justamente o lugar barato de
+mostrar em que tema a pessoa está.
 
 **A troca é revezamento, não mistura.** As duas artes não têm nada em comum —
 letra gótica de um lado, katakana do outro —, e cruzar as opacidades ao mesmo
@@ -1654,6 +1811,73 @@ seguida, e um rascunho que só existisse no modal se perderia num Cancelar.
 Consequência a lembrar: duplicar uma série com capas embutidas **dobra** o peso
 dela no armazenamento.
 
+
+### Desmembrar: uma série vira N obras avulsas
+O caminho inverso do cadastro. Quem comprou a série inteira a cadastrou como
+série; quem depois quer tratar cada volume como obra própria — porque vendeu
+metade, porque só lê salteado, porque a "série" na verdade era um punhado de
+histórias sem ordem — não tinha saída a não ser recadastrar volume por volume.
+
+Botão **Desmembrar** no cabeçalho da seção **Volumes**, na gaveta de detalhe.
+Ali, e não junto de Fixar/Duplicar/Editar: aquele cabeçalho já carrega quatro
+controles, e desmembrar não é irmão deles — é ação de **estrutura**, e só
+existe para quem tem volumes. Encostada no que ela desfaz.
+
+**A regra de herança mora em `helpers.js`, não no store.** `fragmentosDe(obra,
+ultimoId)` é função pura: recebe a obra e o último id em uso, devolve os
+registros novos. Fica ao lado de `tipoOf` e `volsOf`, que são quem define a
+forma do registro; o store só cuida de ids e de estado.
+
+| sai de | campos |
+|---|---|
+| do **conjunto** | `origem`, `editora`, `pais`, `tipoEdicao`, `tags` (clonadas), `resenha` |
+| do **volume** | `imagem`, `status`, `urgencia`, `valorPago`, `lido`, `nota` |
+| do volume, caindo para o conjunto | `roteirista`, `desenhista` |
+
+Autor e artista caem para os da série quando o volume não os traz: numa série
+de autor único eles só foram preenchidos uma vez, lá em cima. As tags saem
+**clonadas** — um array compartilhado faria editar os gêneros de uma obra
+mexer nas outras N−1.
+
+**O nome ganha a série na frente.** "Vol. 3" sozinho na estante não diz nada: o
+nome da série era o contexto, e desmembrar é tirar esse contexto. Salvo quando
+ele já está lá — quem nomeou os volumes de "Sandman 3" não quer "Sandman —
+Sandman 3". A comparação passa por `gNorm`, então acento e caixa não contam.
+Caso conhecido e aceito: um box "Box Akira" com volumes "Akira 1" vira "Box
+Akira — Akira 1", verboso. É o preço de não usar casamento aproximado, que
+poderia **engolir** o nome da série e deixar obras chamadas "1", "2", "3".
+
+**Capa: a do volume, e só.** Se NENHUM volume tem capa própria — é o box, onde
+o editor nem oferece o campo —, a capa do conjunto desce para todos; sem isso,
+desmembrar um box apagaria a única capa que existia. Havendo uma capa de
+volume que seja, cada um fica com a sua e quem não tem fica sem: herdar ali
+espalharia a capa do volume 1 pela série inteira, e **capa errada é pior que
+capa nenhuma**.
+
+**As travas do editor valem aqui.** Urgência só no que falta; valor, lido e
+nota só no que está na estante. Sem isso, desmembrar criaria obras em estados
+que o editor não deixa salvar.
+
+**Uma passada de estado**, não "apaga e depois cria": entre as duas o app
+renderizaria uma coleção sem a série e sem os volumes, e a gravação automática
+poderia pegar justamente esse intervalo e salvar o buraco.
+
+**Ids corridos, nenhum reaproveitado.** Dar o id da série ao primeiro volume
+economizaria um número e custaria caro: a obra fixada é guardada POR ID, e o
+alfinete passaria sozinho da série para o volume 1. Pelo mesmo motivo a
+fixação some junto quando é a série que está fixada — escolher um volume para
+herdar o destaque seria o app decidindo no lugar de quem fixou.
+
+**Pergunta com números, porque não tem desfazer.** O `confirm` diz quantas
+obras vão nascer e **quantas vão ficar sem capa** — capa é o que não dá para
+recuperar digitando de novo. E conta o TOTAL, não o que está na tela: com o
+filtro em "Tenho" a lista abaixo mostra 3 de 8 volumes, mas o desmembramento
+vale para os 8, e quem só olhasse a tela contaria errado.
+
+**Fecha a gaveta e NÃO abre o editor**, ao contrário de Duplicar. Duplicar
+entrega uma obra só, que a pessoa vai renomear na hora; desmembrar entrega N, e
+abrir o editor em qualquer uma delas seria escolher uma por conta própria.
+
 ### O × da busca limpa a busca
 Não só fecha: apaga o termo. Antes a coleção continuava filtrada por um texto
 que não estava mais à vista, e dava a impressão de que obras tinham sumido.
@@ -1777,8 +2001,9 @@ No Card é `whileTap`; nos botões é `:active` no CSS, que já dispara ao apert
 - Chaves no localStorage: `gibiteca_v1` (`{version, obras, editoras}`),
   `gibiteca_pagesize`, `gibiteca_cloud` (config da nuvem, inclui o token).
 - Um `ref` `dirty` evita persistir/enviar antes da 1ª alteração real.
-- Mutações: `upsertObra`, `deleteObra`, `setCovers`, `loadBackup`. Toda alteração
-  persiste local e, se a nuvem estiver conectada, **agenda push** (debounce 1,5s).
+- Mutações: `upsertObra`, `duplicarObra`, `desmembrarObra`, `deleteObra`,
+  `setCovers`, `loadBackup`. Toda alteração persiste local e, se a nuvem
+  estiver conectada, **agenda push** (debounce 1,5s).
 - `skipPush` evita reenviar dados recém-puxados da nuvem (senão vira loop).
 
 ## Nuvem (GitHub Contents API — lib/cloud.js + store)
