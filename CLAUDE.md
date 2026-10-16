@@ -46,7 +46,7 @@ src/
     Marca.jsx              # a marca em SVG inline, duas tintas trocáveis (gerada de assets/logo.svg)
     Selos.jsx              # linha de selos do card com teto de 2 linhas e pílula "+N"
     Pessoas.jsx            # autor/artista como etiquetas; entrega a string com " / "
-    Divisoria.jsx          # faixa ilustrada entre a paginação e o rodapé (<img>, uma arte por tema)
+    Divisoria.jsx          # faixa ilustrada entre a paginação e o rodapé (<img>, uma arte por largura)
     Ticker.jsx, Pagination.jsx, Footer.jsx   (Marquee e Resumo foram removidos)
     FiltersDrawer.jsx      # gaveta de filtros (grid content-start para não esticar as linhas)
     DetailSheet.jsx        # painel de detalhe; botão Editar; grade de capas por volume
@@ -826,6 +826,25 @@ trocar por `localStorage` é o `useState` do `welcome` no `App.jsx`.
 claro pode cair sobre área clara e sumir. O degradê garante contraste seja
 qual for a foto.
 
+### Acento não conta: nem na ordem, nem na busca
+**Ordem alfabética.** `sortList` comparava com `<`/`>` cru sobre texto
+minúsculo — comparação por ponto de código, onde "é" (U+00E9) cai DEPOIS de
+"z" (U+007A). Uma estante com Zorro, Ésfera e Últimas Balas saía nessa ordem.
+Agora usa um `Intl.Collator('pt', { sensitivity: 'base' })`, que faz "é"
+valer igual a "e" — como num índice de papel. Medido: Água Viva · Alpha ·
+Ésfera · Esfera · Últimas Balas · Zorro.
+
+O Collator é **um só, criado fora do comparador**: construí-lo dentro custaria
+uma instância por par comparado.
+
+**Busca.** `passes` usava `toLowerCase()` nos dois lados, que baixa a caixa
+mas mantém o acento — procurar "esfera" não achava "Ésfera". Agora usa o
+`gNorm` que o projeto já tinha, nos DOIS lados. Conferido nos dois sentidos:
+"esfera" acha Ésfera e Esfera; "ésfera" também; "ultimas" acha Últimas Balas.
+
+Ninguém digita acento numa caixa de busca, e quem catalogou a obra com acento
+não deveria ser punido por isso.
+
 ### A marca-d'água COLEÇÃO
 Na segunda linha, à esquerda. Tinta a **10%** (`text-ink-sussurro`), em
 **Lexend Zetta Black** (`font-cartaz`, peso 900), caixa alta. A família entra
@@ -1041,99 +1060,73 @@ elemento com o mesmo id quebraria a viagem do logo. Hoje há duas marcas no DOM
 da coleção (barra e rodapé) e só a da barra é `motion`.
 
 ### A divisória ilustrada
-Entre a paginação e o rodapé corre uma faixa de ponta a ponta. **Uma arte por
-TEMA e por LARGURA**, e elas são diferentes de verdade:
+Entre a paginação e o rodapé corre uma faixa de ponta a ponta: um rasgo de
+papel, escuro, encostado no rodapé.
 
-São QUATRO arquivos: dois temas × duas larguras. **A regra é a caixa** —
-desktop é sempre `1920×150` (12,8:1), celular é sempre `1920×200` (9,6:1):
+**Uma arte por LARGURA, e só.** São DOIS arquivos — `divisoria` (telas largas)
+e `divisoria-m` (celular) — e eles valem igual no Moss e no Nockout.
 
-| arquivo | caixa | paths | peso | desenho |
-|---|---|---|---|---|
-| `ilustra-moss` | 1920×150 | 2 | 3,5 kB | terreno + uma plantinha |
-| `ilustra-moss-m` | 1920×**250** | 2 | 3,6 kB | idem |
-| `ilustra-nockout` | 1920×150 | 5 | 4,5 kB | terreno + sol se pondo |
-| `ilustra-nockout-m` | 1920×**250** | 5 | 4,6 kB | idem |
+| arquivo | caixa | paths | peso | faixa a 375px | faixa a 1280px |
+|---|---|---|---|---|---|
+| `divisoria` | 1920×100 | 1 | 1,9 kB | — | **66,7px** |
+| `divisoria-m` | 1920×100 | 1 | 2,0 kB | **19,5px** | — |
 
-A caixa mais alta no celular é o ponto. A 375px de largura, cada proporção dá
-uma faixa diferente — e a do `-m` já subiu duas vezes conforme as artes foram
-ganhando detalhe:
+Houve antes QUATRO arquivos (dois temas × duas larguras), com `useStore()`
+dentro do componente só para escolher entre eles e caixas diferentes por
+largura (1920×150 no desktop, 1920×250 no celular). A arte nova é a mesma nos
+dois temas — decisão de desenho — e o código seguiu: sumiram metade dos
+arquivos, o eixo de tema do gerador e a dependência do componente em relação ao
+store.
 
-| caixa | proporção | faixa a 375px |
-|---|---|---|
-| 1920×150 (desktop) | 12,8:1 | 29px |
-| 1920×200 | 9,6:1 | 39px |
-| 1920×250 (atual) | 7,68:1 | **49px** |
+**A caixa agora é a mesma nos dois (1920×100); quem muda é o DESENHO dentro
+dela.** O rasgo de desktop ocupa os 26,85 últimos pontos da caixa, o de celular
+ocupa 74,18 — é assim que a arte de celular compensa a faixa mais curta que uma
+tela estreita produz. Mantenha a caixa ao trocar a arte: mudá-la muda a altura
+da faixa em todas as larguras de uma vez.
 
-A arte de celular não é um recorte da outra — é um desenho recomposto para
-caber mais alto. Quem trocar só o `-m` não precisa tocar no desktop: o gerador
-reescreve os quatro, mas os dois de desktop saem byte a byte idênticos quando
-a fonte não mudou (conferível por hash).
+**AS CORES DA ARTE NÃO SE TOCAM.** Houve uma versão do gerador com tabela de
+cores por tema: ela trocava o preto dos caminhos sem classe por ink (`#23271C`)
+e reescrevia o acento. Estava errado. A arte é de quem desenhou, e um gerador
+que decide a cor faz o arquivo de saída mentir sobre o de entrada. Hoje `fill` e
+`opacity` saem do próprio SVG como vieram, e caminho sem classe continua **sem
+classe** — o que no SVG é preto, que é a cor que a arte tem. Conferido a cada
+troca: a saída tem exatamente os mesmos hex da fonte.
 
-**Cada visita baixa UM desses arquivos** (o do tema × o da largura), nunca a
-soma. Houve uma geração dessas artes em que o Moss chegou a 109 kB (39 kB
-comprimido) por excesso de precisão nas curvas; as atuais são silhuetas
-simples e cabem em 3,5–4,6 kB, então peso deixou de ser assunto aqui. Se uma
-arte futura voltar a passar de ~50 kB, a saída é reduzir a precisão decimal no
-editor — não no gerador, que não mexe em geometria.
+Hoje a arte inteira é uma silhueta `#212121`, declarada na própria arte. Os dois
+papéis são claros (`#F4F0E6` no Moss, `#F0F0F0` no Nockout), então a mesma
+silhueta escura funciona nos dois — é por isso que a arte única é possível aqui,
+e não só uma economia de arquivos.
 
-Houve uma versão com fonte única em que só a cor do sol mudava; não serve mais.
-Cada tema lê `src/assets/ilustra-<tema>.svg` e `tools/gerar-ilustra.cjs` escreve
-`public/ilustra-<tema>.svg`.
-
-**O par `-m` sempre existe.** Quando não há arte própria de celular, o gerador
-escreve uma cópia da versão larga. A alternativa seria uma lista de "quem tem
-versão mobile" no componente, mas essa lista mora longe dos arquivos e sai de
-sincronia na primeira arte nova — e o preço do erro é um `<source>` apontando
-para um arquivo que não existe. Custa 1 kB no Moss.
-
-**AS CORES DA ARTE NÃO SE TOCAM.** Houve uma versão deste gerador com uma
-tabela de cores por tema: ela trocava o preto dos caminhos sem classe por ink
-(`#23271C`) e reescrevia o acento. Estava errado. A arte é de quem desenhou, e
-um gerador que decide a cor faz o arquivo de saída mentir sobre o de entrada.
-Hoje `fill` e `opacity` saem do próprio SVG como vieram, e caminho sem classe
-continua **sem classe** — o que no SVG é preto, que é a cor que a arte tem.
-Medido a cada troca: os quatro arquivos de saída têm exatamente os mesmos hex
-da fonte.
-
-A silhueta hoje é `#212121` e o acento é `#4b5d3a` (Moss) ou `#ff5000`
-(Nockout), tudo declarado na própria arte. A silhueta já foi o preto padrão do
-SVG, e essa mudança quebrou a regra de nomes do gerador — ver abaixo.
-
-O gerador faz só o que a arte não traz pronto:
+O gerador (`tools/gerar-ilustra.cjs`) lê `src/assets/divisoria[-m].svg` e
+escreve `public/divisoria[-m].svg`, fazendo só o que a arte não traz pronto:
 - **joga fora as sobras de `fill: none`**: caminhos que não desenham nada. Nos
   exports atuais não há nenhuma, mas já houve 48 de 79 num deles — a limpeza
   fica porque o editor volta a produzi-las sem aviso.
 - **renomeia as classes** por PAPEL (`silhueta`, `acento`, `acento-meio`), uma
   por combinação de `fill`+`opacity`, numerando só quando há colisão de
   verdade. Os nomes do editor são sorteados a cada export: `.cls-1` é
-  `fill: none` num arquivo e a cor do tema no outro.
+  `fill: none` num arquivo e a cor do desenho no outro.
 
   **Quem é a silhueta é a cor MAIS ESCURA do arquivo**, por luminância. A regra
   antes era "tem cor declarada = acento", e ela quebrou quando a arte passou a
-  declarar a silhueta (`#212121`) em vez de deixá-la no preto padrão: a massa
-  do desenho ia sair rotulada de acento. Contar caminhos também não resolve —
-  no `moss-desktop` são 4 de cada. Isto é só NOME: nenhuma cor é lida de tabela
-  nem reescrita.
-- **avisa sobre caminho solto.** Um arquivo que declara a silhueta e ainda
-  deixa caminhos sem classe quase sempre é lapso de export: essas formas saem
-  `#000` enquanto o resto da massa sai na cor declarada. O gerador imprime um
-  AVISO e **não corrige** — corrigir seria escolher uma cor pela arte. Já
-  aconteceu (3 caminhos num `moss-mobile`), foi arrumado na origem, e é para
-  pegar o próximo que o aviso fica.
+  declarar a silhueta (`#212121`) em vez de deixá-la no preto padrão: a massa do
+  desenho ia sair rotulada de acento. Contar caminhos também não resolve — numa
+  arte antiga eram 4 de cada. Isto é só NOME: nenhuma cor é lida de tabela nem
+  reescrita.
+- **recusa `<text>`.** Sem a fonte instalada o navegador troca por outra e o
+  desenho muda de forma; tem de vir em curvas.
 - **fixa o `preserveAspectRatio`.**
 
-**Vai num `<img>`, não inline como a Marca.** O Nockout sozinho são 49,6 kB de
-caminhos; inline, as duas artes entrariam no bundle de JS e pesariam mais do
-que a divisória inteira vale. Em `<img>` o navegador busca só a do tema em uso. O `src` sai do
-`tema` do store porque é a única forma de carregar UM arquivo: com as duas no
-DOM e CSS escondendo uma, o navegador baixaria as duas.
+**Vai num `<img>`, não inline como a Marca.** Inline, a arte entraria no bundle
+de JS e pesaria mais do que a divisória vale. Em `<img>` o navegador busca o
+arquivo uma vez, guarda em cache e nunca passa pelo JS. (Quando havia arte por
+tema, o `src` TINHA de sair do store: com as duas no DOM e CSS escondendo uma, o
+navegador baixaria as duas. Sem tema, esse problema não existe mais.)
 
-**A largura é escolhida por `<picture>`, não por hook.** O tema vem do store,
-porque só o React sabe dele; a largura vem de um `<source media>` porque o
-navegador resolve melhor: ele baixa SÓ a fonte que casa com a consulta. Um hook
-de viewport montaria o `<img>` depois do primeiro render e, ao trocar o `src`
-no resize, já teria baixado o arquivo errado antes. Medido: cada largura faz
-exatamente uma requisição.
+**A largura é escolhida por `<picture>`, não por hook.** O navegador baixa SÓ a
+fonte que casa com a consulta. Um hook de viewport montaria o `<img>` depois do
+primeiro render e, ao trocar o `src` no resize, já teria baixado o arquivo
+errado antes. Medido: cada largura faz exatamente uma requisição.
 
 O corte é 640px — o mesmo do `sm:` do Tailwind e do `useEhDesktop()`.
 
@@ -1145,10 +1138,10 @@ não atravessa 640px arrastando a janela; só atrapalha quem está medindo.
 em subpasta no GitHub Pages, e um caminho absoluto quebraria lá.
 
 **A faixa aparece inteira em qualquer largura** (`preserveAspectRatio` em
-`meet`), mesmo caindo para 39px de altura a 375px. Cortar daria figuras
-maiores, mas os dois desenhos são compostos de ponta a ponta — no Nockout é
-justamente nas PONTAS que estão o pinheiro e o samurai, e o corte deixaria o
-miolo, que é o trecho mais vazio.
+`meet`). Cortar daria uma faixa mais alta, mas o rasgo é composto de ponta a
+ponta, e o corte comeria as bordas deixando o miolo, que é o trecho mais vazio.
+O Y em `Max`: se algum dia alguém impuser altura fixa aqui, o que se preserva é
+a BASE do desenho, que é onde a faixa encosta no rodapé.
 
 **O rodapé perdeu a margem e a borda de topo.** Quem separa agora é a faixa, e
 ela encosta. Os dois juntos davam 44px de vão mais um fio — e como o pé da
