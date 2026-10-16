@@ -978,6 +978,28 @@ ponta: cadastrando Brasil e Argentina, o `localStorage` gravou
 `"Brasil / Argentina"`.
 
 ### O menu de dados e o pop-up de Backup
+**Um nome por assunto, nos dois lugares.** O item do menu e o título do painel
+que ele abre usam a MESMA palavra: Nuvem · Atividades · Capas · Backup. Antes
+"Enviar capas" abria "Capas em massa" e "Nuvem — em dia" abria "Sincronizar
+com o GitHub" — quem clicava chegava numa tela que parecia outra.
+
+**O ponto de estado da nuvem existe UMA vez**, logo depois da palavra "Nuvem"
+na subcategoria, centrado na altura dela. Saiu do ☰ e do título "Nuvem e
+backup": repetido em três lugares, o mesmo alerta deixava de chamar atenção em
+qualquer um deles.
+
+**O estado saiu do rótulo, não do app.** O menu dizia "Nuvem — em dia",
+"Nuvem — sincronizando". Agora diz só "Nuvem", e quem informa é a cor do
+ponto. Mas cor sozinha não é informação — quem não distingue verde de laranja,
+ou usa leitor de tela, ficaria sem saber. Por isso o estado continua em texto
+no `title` e num `sr-only`: visualmente é um ponto, para quem ouve é
+"Nuvem — em dia".
+
+`PontoNuvem` substituiu o `SyncDot`. O antigo era um selo colado no canto de
+um ícone — posição absoluta e anel de 2px da cor do papel, para se destacar do
+desenho embaixo. Em linha ao lado de uma palavra, o anel só engorda o ponto e
+a posição absoluta o tiraria da linha do texto.
+
 As ações sob "Nuvem e backup" **não têm ícone**: são frases curtas numa lista
 já recuada, e ali o ícone vira enfeite ao lado de uma palavra que já se lê. O
 ponto de sincronização continua — é alerta, não decoração.
