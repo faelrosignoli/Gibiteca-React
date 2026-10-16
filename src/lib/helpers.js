@@ -97,9 +97,11 @@ export function passes(o, f){
   if(f.leitura==='lido' && !unitsOf(o).some(u=>u.status==='biblioteca'&&u.lido)) return false;
   if(f.leitura==='naolido' && !unitsOf(o).some(u=>u.status==='biblioteca'&&!u.lido)) return false;
   if(f.q){
-    const q=f.q.toLowerCase();
-    const hay=[o.nome,edOf(o),o.roteirista,o.desenhista,o.pais,o.resenha,
-      volsOf(o).map(v=>v.nome+' '+(v.roteirista||'')+' '+(v.desenhista||'')).join(' ')].join(' ').toLowerCase();
+    // gNorm nos DOIS lados: tira acento e caixa. Sem isto, procurar "esfera"
+    // nao achava "Ésfera" — e ninguem digita acento numa caixa de busca.
+    const q=gNorm(f.q);
+    const hay=gNorm([o.nome,edOf(o),o.roteirista,o.desenhista,o.pais,o.resenha,
+      volsOf(o).map(v=>v.nome+' '+(v.roteirista||'')+' '+(v.desenhista||'')).join(' ')].join(' '));
     if(!hay.includes(q)) return false;
   }
   return true;
@@ -116,11 +118,25 @@ function sortKey(o, by){
     default: return (o.nome||'').toLowerCase();
   }
 }
+/* Comparador de texto para a lista.
+ *
+ * O `<`/`>` cru compara por ponto de codigo: "é" (U+00E9) cai DEPOIS de "z"
+ * (U+007A), e uma estante com Zorro, Ésfera e Últimas Balas saia nessa ordem.
+ * `sensitivity: 'base'` faz "é" valer igual a "e" — que e como se procura num
+ * indice de papel.
+ *
+ * Um Collator so, criado uma vez: construi-lo dentro do comparador custaria
+ * uma instancia por par comparado. */
+const COLACAO = new Intl.Collator('pt', { sensitivity: 'base' });
+
 export function sortList(arr, sort){
   return arr.slice().sort((a,b)=>{
     const ka=sortKey(a,sort.by), kb=sortKey(b,sort.by);
-    let r = ka<kb?-1:ka>kb?1:0;
-    if(r===0) r=(a.nome||'').localeCompare(b.nome||'','pt');
+    let r = (typeof ka==='string' && typeof kb==='string')
+      ? COLACAO.compare(ka,kb)
+      : (ka<kb?-1:ka>kb?1:0);
+    // empate no criterio escolhido: o nome decide, pela mesma regra
+    if(r===0) r=COLACAO.compare(a.nome||'', b.nome||'');
     return sort.dir==='desc'?-r:r;
   });
 }
