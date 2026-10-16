@@ -92,10 +92,12 @@ function BotaoIcone({ children, perigo, ...resto }) {
 function Secao({ titulo, children }) {
   return (
     <section className="col-span-2">
-      <h4 className="font-mono text-rotulo uppercase font-bold text-acento-texto flex items-center gap-2.5 mb-2.5">
-        {/* o quadradinho ancora o título: sem ele a seção era só mais um texto
-            miúdo creme no meio de outros textos miúdos cremes */}
-        <span className="w-[6px] h-[6px] rounded-[2px] bg-moss shrink-0" />
+      {/* Sem o quadradinho que ancorava o título: quem separa a seção é o fio
+          que corre até a borda, e ele já basta. O marcador entrou quando o
+          título era só mais um texto miúdo creme entre outros — hoje ele está
+          em caixa alta, em negrito e na cor do acento, e o ponto virou ruído
+          repetido cinco vezes na mesma tela. */}
+      <h4 className="font-rotulo text-rotulo uppercase font-bold text-acento-texto flex items-center gap-2.5 mb-2.5">
         {titulo}<span className="flex-1 h-px bg-separador" />
       </h4>
       <div className="grid grid-cols-2 gap-x-3 gap-y-3">{children}</div>
@@ -114,7 +116,7 @@ function Switch({ options, value, onChange }) {
     </div>
   )
 }
-const lbl ="font-mono text-rotulo uppercase text-ink-soft pl-0.5"
+const lbl ="font-rotulo text-rotulo uppercase text-ink-soft pl-0.5"
 const box ="flex flex-col gap-1"
 
 // checkbox estilizado com a mesma altura dos inputs (para alinhar em linha/coluna)
@@ -212,7 +214,7 @@ function VolPanel({ v, i, withCover, autores, onChange, onCopyAll, onCover, onRe
               O rótulo fica à vista de propósito: ícone sozinho vira charada,
               e em celular não existe o balãozinho do title para salvar. */}
           <div className="col-span-2 flex items-center gap-1.5 pt-2 mt-1 border-t border-linha">
-            <span className="font-mono text-rotulo uppercase text-ink-faint mr-0.5">Copiar p/ todos</span>
+            <span className="font-rotulo text-rotulo uppercase text-ink-faint mr-0.5">Copiar p/ todos</span>
             <BotaoIcone onClick={() => onCopyAll(i, 'roteirista')}
               title="Copiar o autor deste volume para todos os volumes"
               aria-label="Copiar o autor deste volume para todos os volumes"><IconAutor /></BotaoIcone>
@@ -335,7 +337,7 @@ export default function Editor({ target, onClose, onSaved }) {
               transition={MOLA_GAVETA}
             >
               <div className="flex items-center justify-between px-5 py-3.5 border-b border-separador">
-                <h3 className="font-display text-secao text-acento-texto">{d.id == null ? 'Nova obra' : 'Editar obra'}</h3>
+                <h3 className="font-cartaz font-semibold uppercase text-secao text-acento-texto">{d.id == null ? 'Nova obra' : 'Editar obra'}</h3>
                 <button className="neo-icon !w-9 !h-9" onClick={onClose}>×</button>
               </div>
 
@@ -372,9 +374,18 @@ export default function Editor({ target, onClose, onSaved }) {
                     <label className={lbl}>{d.origem === 'importado' ? 'Editora' : 'Editora no Brasil'}</label>
                     <Combo options={eds} value={d.editora} onChange={x => patch({ editora: x })} placeholder="Nome da editora" />
                   </div>
-                  <div className={`${box} col-span-2 sm:col-span-1`}>
-                    <label className={lbl}>País de origem</label>
-                    <Combo multi options={paises} value={d.pais} onChange={x => patch({ pais: x })} placeholder="Use / p/ separar" />
+                  {/* País usa o MESMO campo de etiquetas de Autor e Artista.
+                      Antes era texto livre pedindo "Use / p/ separar": a barra
+                      é detalhe de armazenamento, e o campo obrigava a pessoa a
+                      conhecê-lo para cadastrar dois países. Com etiquetas, cada
+                      país vira um item que se vê e se apaga sozinho.
+
+                      O dado guardado não muda: `Pessoas` devolve a mesma
+                      string unida por " / " que o `paisesOf` já lê — os dois
+                      usam o mesmo `splitLista`. Nada a migrar. */}
+                  <div className="col-span-2 sm:col-span-1">
+                    <Pessoas rotulo="País de origem" options={paises} value={d.pais}
+                      onChange={x => patch({ pais: x })} placeholder="Digite um país e aperte Enter" />
                   </div>
 
                   {/* Formato da edição: escolha ÚNICA, e clicar na marcada

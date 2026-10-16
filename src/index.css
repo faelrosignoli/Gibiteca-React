@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600&family=Lexend+Zetta:wght@900&family=Space+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600&family=Montserrat:wght@500;600;700&family=Lexend+Zetta:wght@600;900&family=Space+Mono:wght@400;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -654,7 +654,19 @@ button:hover .ico-lixo__tampa { transform: rotate(-18deg) translateY(-1px) }
   overflow: hidden;
 }
 /* `cover`: preenche sem distorcer, custe o corte. Numa capa o que não pode é
-   a arte esticar. */
+   a arte esticar.
+
+   SOBRE QUALIDADE. O arquivo não sofre nada no caminho: ele mora em
+   `public/`, que o Vite copia byte a byte para o `dist/` — conferido por
+   md5 —, e o projeto não tem nenhum plugin de imagem, sharp ou imagemin. O
+   que chega ao navegador é exatamente o que você pôs lá.
+
+   O único jeito de perder nitidez aqui é AMPLIAÇÃO: com `cover`, se a tela
+   (em pixels REAIS, ou seja, largura × densidade) for maior que a imagem, o
+   navegador estica e borra. Numa tela de 1920 com densidade 2, isso são 3840
+   pixels reais. Por isso a recomendação é entregar a arte com pelo menos
+   ~3840px de largura: daí para baixo o navegador só reduz, e reduzir não
+   borra. */
 .welcome__imagem {
   position: absolute; inset: 0;
   width: 100%; height: 100%;
@@ -672,11 +684,33 @@ button:hover .ico-lixo__tampa { transform: rotate(-18deg) translateY(-1px) }
   align-items: flex-start;
   padding: 14svh 1.25rem 0;
 }
+/* Sem véu atrás do botão: a imagem chega limpa até a borda de baixo. Houve um
+   degradê aqui para garantir contraste do botão sobre qualquer foto; saiu a
+   pedido. Se a área da imagem sob o botão for clara demais, o caminho é
+   escurecer o BOTÃO, não devolver a névoa sobre a arte. */
 .welcome__rodape {
   position: relative;
   display: flex;
   justify-content: center;
   padding: 4rem 1.25rem 2.5rem;
-  background: linear-gradient(to top, rgb(var(--paper) / .85), rgb(var(--paper) / 0));
 }
-.welcome__botao { font-size: 1rem; padding-left: 1.75rem }
+/* Lexend Zetta Black, a mesma do COLEÇÃO: é a tipografia de palavra grande
+   deste projeto, e aqui a palavra É o botão. Sendo larguíssima, pede padding
+   menor que o normal — senão a pílula não cabe num telefone estreito. */
+/* #212121 e não o `ink` (#23271C) do resto do app: é a cor da capa, pedida
+   para casar com a parte escura do logo ali. Fica presa ao escopo `.welcome`
+   — solta, viraria uma segunda tinta preta competindo com a do projeto. */
+.welcome { --marca-sombra: #212121 }
+.welcome__botao {
+  background: #212121;
+  font-family: theme('fontFamily.cartaz');
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: .8125rem;
+  letter-spacing: -.01em;
+  padding: .75rem 1.5rem;
+  max-width: calc(100vw - 2.5rem);
+}
+/* `.cta:hover` devolveria o `ink-2` do projeto; na capa o botão clareia
+   dentro do próprio tom, para não trocar de família de preto no hover. */
+.welcome__botao:hover { background: #2c2c2c }

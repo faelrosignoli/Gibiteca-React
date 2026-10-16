@@ -36,7 +36,7 @@ function TypeBadge({ t, count }) {
   /* A tinta NÃO fica na base: o selo de box é marrom fixo e o de série segue o
      acento, que troca de tema. Juntos na base, o branco do box arrastava o de
      série junto e o laranja o deixava em 3,28:1. */
-  const base = 'inline-flex items-center gap-1 shrink-0 font-mono text-rotulo font-extrabold uppercase px-1.5 py-0.5 rounded-pequeno'
+  const base = 'inline-flex items-center gap-1 shrink-0 font-rotulo text-rotulo font-extrabold uppercase px-1.5 py-0.5 rounded-pequeno'
   if (t === 'box') return (
     <span className={`${base} bg-box text-white`}>
       <svg className="w-[10px] h-[10px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M3 8l9-5 9 5-9 5-9-5zM3 8v8l9 5 9-5V8" /></svg>Box {count || ''}
@@ -126,7 +126,7 @@ export default function Card({ obra, index = 0, onOpen, feature = false, animarE
           ) : (
             <div className={`w-full h-full rounded-medio p-3 sm:p-3.5 flex flex-col text-white shadow-[0_18px_30px_-18px_rgba(35,39,28,.55)] ${classeTinta(edOf(obra) || obra.nome)} ${feature ? 'lg:min-h-[260px]' : ''}`}>
               {(edOf(obra) || (isImp(obra) ? 'Importado' : '')) &&
-                <div className="font-mono text-rotulo uppercase opacity-85 truncate">{edOf(obra) || 'Importado'}</div>}
+                <div className="font-rotulo text-rotulo uppercase opacity-85 truncate">{edOf(obra) || 'Importado'}</div>}
               <div className={`font-display font-semibold leading-none my-auto text-center  ${feature ? 'text-[clamp(22px,5vw,48px)] lg:text-[clamp(44px,6vw,86px)]' : 'text-[clamp(22px,5vw,48px)]'}`}>
                 {initials(obra.nome)}
               </div>
@@ -158,7 +158,7 @@ export default function Card({ obra, index = 0, onOpen, feature = false, animarE
               {/* sob filtro a capa é de um volume específico — o nome dele
                   entra ao lado do selo */}
               {volDaVez && (
-                <span className="font-mono text-rotulo uppercase text-ink-faint truncate">{volDaVez}</span>
+                <span className="font-rotulo text-rotulo uppercase text-ink-faint truncate">{volDaVez}</span>
               )}
             </div>
           ) : (

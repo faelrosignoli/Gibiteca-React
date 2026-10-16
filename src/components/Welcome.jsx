@@ -18,7 +18,9 @@ import Marca from './Marca.jsx'
  * ar, ela é quem desenha a marca, e esta precisa ficar calada.
  *
  * A IMAGEM ainda não existe no projeto: ponha o arquivo em
- * `public/welcome.jpg` e ele aparece sozinho. Enquanto não houver, a página
+ * `public/welcome.jpg` e ele aparece sozinho. O arquivo vai para o site
+ * intacto — `public/` é copiado byte a byte, sem reencodar; o que pode
+ * borrar é AMPLIAÇÃO, e a regra está no `.welcome__imagem` do index.css. Enquanto não houver, a página
  * não quebra — o `onError` esconde a imagem e fica o papel com o logo e o
  * botão. Era isso ou um ícone de imagem quebrada ocupando a tela inteira.
  */
@@ -50,14 +52,18 @@ export default function Welcome({ onEntrar, aberturaNoAr = false }) {
         )}
       </div>
 
-      {/* O véu atrás do botão não é enfeite: sem saber que imagem virá, um
-          botão claro pode cair sobre área clara e sumir. O degradê garante
-          contraste seja qual for a foto. */}
+      {/* Sem véu atrás do botão: a imagem chega limpa até a borda de baixo. */}
       <div className="welcome__rodape">
+        {/* Só o texto, sem o disco da seta. O `.cta` nasceu com padding
+            assimétrico (bastante à esquerda, pouco à direita) justamente para
+            abrigar esse disco; sem ele o botão ficaria torto, e o
+            `.welcome__botao` devolve a simetria.
+
+            O texto fica em caixa alta por CSS e não escrito em maiúsculas:
+            assim o nome acessível continua "Minha Coleção", do jeito que se
+            fala. */}
         <button type="button" className="cta cta-carimbo welcome__botao" onClick={onEntrar}>
-          Minha Gibiteca
-          <span className="knob" aria-hidden="true">
-          </span>
+          Minha Coleção
         </button>
       </div>
     </main>

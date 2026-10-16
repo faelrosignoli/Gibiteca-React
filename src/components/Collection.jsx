@@ -58,13 +58,13 @@ function Ficha({ obra, index, onOpen }) {
         </div>
         {/* sob filtro a capa é de um volume específico — diz qual */}
         {volDaVez && (
-          <div className="mt-0.5 font-mono text-rotulo uppercase text-ink-faint truncate">{volDaVez}</div>
+          <div className="mt-0.5 font-rotulo text-rotulo uppercase text-ink-faint truncate">{volDaVez}</div>
         )}
 
         {/* apoio categórico em rótulo mono, como manda a convenção */}
         <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-          {edOf(obra) && <span className="font-mono text-rotulo uppercase text-acento-texto">{edOf(obra)}</span>}
-          <span className="font-mono text-rotulo uppercase text-ink-faint">{tipoLabel}</span>
+          {edOf(obra) && <span className="font-rotulo text-rotulo uppercase text-acento-texto">{edOf(obra)}</span>}
+          <span className="font-rotulo text-rotulo uppercase text-ink-faint">{tipoLabel}</span>
           {/* sob filtro a ficha fala de um volume — o selo é o dele */}
           <span className={`pill ${(vitrine ? vitrine.status === 'biblioteca' : possui) ? 'pill-tenho' : 'pill-quero'}`}>
             {(vitrine ? vitrine.status === 'biblioteca' : possui) ? 'Tenho' : 'Quero'}
@@ -83,7 +83,7 @@ function Ficha({ obra, index, onOpen }) {
         {/* sem barra: a pílula acima já diz a fração. Aqui fica só o que
             ela não diz — QUAIS volumes faltam. */}
         {multi && tem < total && filters.status === 'todos' && (
-          <div className="mt-1.5 font-mono text-rotulo uppercase text-ink-faint">
+          <div className="mt-1.5 font-rotulo text-rotulo uppercase text-ink-faint">
             {falta.length > 0 && falta.length <= 4
               ? `falta${falta.length > 1 ? 'm' : ''} ${falta.length > 1 ? 'os vols.' : 'o vol.'} ${falta.join(', ')}`
               : `faltam ${total - tem}`}
@@ -93,14 +93,14 @@ function Ficha({ obra, index, onOpen }) {
         {/* no celular o valor desce para cá, já que não há terceira coluna */}
         {valor > 0 && (
           <div className="sm:hidden mt-2 font-mono text-corpo tabular-nums text-ink">
-            {fmtBRL(valor)} <span className="font-mono text-rotulo uppercase text-ink-faint">investido</span>
+            {fmtBRL(valor)} <span className="font-rotulo text-rotulo uppercase text-ink-faint">investido</span>
           </div>
         )}
       </div>
 
       <div className="hidden sm:block text-right self-center">
         <div className="font-mono text-obra tabular-nums text-ink">{valor > 0 ? fmtBRL(valor) : '—'}</div>
-        <div className="font-mono text-rotulo uppercase text-ink-faint mt-1">investido</div>
+        <div className="font-rotulo text-rotulo uppercase text-ink-faint mt-1">investido</div>
       </div>
     </motion.button>
   )

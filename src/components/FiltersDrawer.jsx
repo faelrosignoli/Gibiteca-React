@@ -12,7 +12,7 @@ import Selecao from './Selecao.jsx'
 function Field({ label, changed, children }) {
   return (
     <div className="flex flex-col gap-1">
-      <label className={`font-mono text-rotulo uppercase pl-0.5 ${changed ? 'text-acento-texto font-bold' : 'text-ink-soft'}`}>
+      <label className={`font-rotulo text-rotulo uppercase pl-0.5 ${changed ? 'text-acento-texto font-bold' : 'text-ink-soft'}`}>
         {label}{changed && <span className="ml-1.5 inline-block w-[7px] h-[7px] rounded-full bg-gold align-middle" />}
       </label>
       {children}
@@ -127,7 +127,7 @@ export default function FiltersDrawer({ open, onClose }) {
  className="flex items-center justify-between px-5 py-3.5 border-b border-separador cursor-grab active:cursor-grabbing touch-none"
               onPointerDown={e => arrasto.start(e)}
             >
-              <h3 className="font-display text-secao text-acento-texto">Filtros</h3>
+              <h3 className="font-cartaz font-semibold uppercase text-secao text-acento-texto">Filtros</h3>
               <button className="neo-icon !w-9 !h-9" onClick={onClose}>×</button>
             </div>
 

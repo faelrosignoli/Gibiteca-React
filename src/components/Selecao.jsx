@@ -138,7 +138,7 @@ export default function Selecao({
       >
         <span className={`flex-1 min-w-0 truncate ${ligado ? '' : 'text-ink-soft'}`}>{rotuloAtual}</span>
         {extras > 0 && (
-          <span className="shrink-0 rounded-full bg-tinta-moss text-acento-texto font-mono text-rotulo font-bold px-1.5 py-0.5">
+          <span className="shrink-0 rounded-full bg-tinta-moss text-acento-texto font-rotulo text-rotulo font-bold px-1.5 py-0.5">
             +{extras}
           </span>
         )}

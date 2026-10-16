@@ -8,6 +8,7 @@ import Collection from './components/Collection.jsx'
 import Footer from './components/Footer.jsx'
 import Divisoria from './components/Divisoria.jsx'
 import Welcome from './components/Welcome.jsx'
+import Backup from './components/Backup.jsx'
 import FiltersDrawer from './components/FiltersDrawer.jsx'
 import DetailSheet from './components/DetailSheet.jsx'
 import SearchOverlay from './components/SearchOverlay.jsx'
@@ -46,6 +47,7 @@ export default function App() {
   const [cloud, setCloud] = useState(false)
   const [bulk, setBulk] = useState(false)
   const [atividades, setAtividades] = useState(false)
+  const [backup, setBackup] = useState(false)
   const [toast, setToast] = useState('')
 
   const say = (m) => { setToast(m); setTimeout(() => setToast(''), 2400) }
@@ -107,6 +109,7 @@ export default function App() {
           onCloud={() => setCloud(true)}
           onBulk={openBulk}
           onAtividades={() => setAtividades(true)}
+          onBackup={() => setBackup(true)}
           onFilters={() => setShowFilters(true)}
           onStats={() => setStats(true)}
           onSearch={() => setSearch(true)}
@@ -130,6 +133,7 @@ export default function App() {
       </>
       )}
 
+      <Backup open={backup} onClose={() => setBackup(false)} onNotice={say} />
       <FiltersDrawer open={showFilters} onClose={() => setShowFilters(false)} />
       <DetailSheet obra={detail} onClose={() => setDetail(null)} onEdit={openEditor} onDuplicar={duplicar} />
       <SearchOverlay open={search} onClose={() => setSearch(false)} />

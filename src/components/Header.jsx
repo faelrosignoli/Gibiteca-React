@@ -71,7 +71,7 @@ function useRolado() {
  * com o menu aberto — é isso que `comAcento` resolve. A mecânica está em
  * `.barra-topo`, no index.css; aqui só se liga o `data-acento`.
  */
-export default function Header({ onCloud, onBulk, onAtividades, onFilters, onStats, onSearch, filterCount, aberturaNoAr = false }) {
+export default function Header({ onCloud, onBulk, onAtividades, onBackup, onFilters, onStats, onSearch, filterCount, aberturaNoAr = false }) {
   const { obras, editoras, loadBackup, sync, view, setView, filters, tema, setTema } = useStore()
   const aoInicio = useVoltarAoInicio()
   const rolado = useRolado()
@@ -145,12 +145,22 @@ export default function Header({ onCloud, onBulk, onAtividades, onFilters, onSta
   }
 
   const fechar = () => setMenu(false)
+  /* Sem ícone: são quatro frases curtas numa lista já recuada sob "Nuvem e
+     backup", e ali o ícone não ajuda a varrer — vira enfeite ao lado de uma
+     palavra que já se lê. O ponto de sincronização continua, porque é alerta,
+     não decoração.
+
+     "(.json)" saiu dos rótulos: quem abre este menu quer salvar a coleção, não
+     escolher formato. A extensão aparece no arquivo que se baixa.
+
+     Baixar e restaurar viraram UM item, "Backup", que abre um pop-up com as
+     duas ações. São o mesmo assunto, e lado a lado numa lista de atalhos eles
+     se pareciam demais para a diferença que têm. */
   const acoesDados = [
-    { rotulo: rotuloNuvem(sync), icone: <IconCloud />, ponto: sync, aoClicar: () => { fechar(); onCloud?.() } },
-    { rotulo: 'Atividades', icone: <IconRelogio />, aoClicar: () => { fechar(); onAtividades?.() } },
-    { rotulo: 'Enviar capas', icone: <IconImage />, aoClicar: () => { fechar(); onBulk?.() } },
-    { rotulo: 'Baixar backup (.json)', icone: <IconBaixar />, aoClicar: () => { baixarBackup(obras, editoras); fechar() } },
-    { rotulo: 'Restaurar backup (.json)', icone: <IconRestaurar />, aoClicar: () => { fechar(); fileRef.current?.click() } },
+    { rotulo: rotuloNuvem(sync), ponto: sync, aoClicar: () => { fechar(); onCloud?.() } },
+    { rotulo: 'Atividades', aoClicar: () => { fechar(); onAtividades?.() } },
+    { rotulo: 'Enviar capas', aoClicar: () => { fechar(); onBulk?.() } },
+    { rotulo: 'Backup', aoClicar: () => { fechar(); onBackup?.() } },
   ]
 
   const botaoFiltros = (comRotulo) => (
@@ -311,16 +321,31 @@ export default function Header({ onCloud, onBulk, onAtividades, onFilters, onSta
            `layoutId`, e dois elementos com o mesmo id ao mesmo tempo quebram a
            animação da pastilha. */}
       <div className="mx-auto w-full max-w-[1320px] px-3 sm:px-5 flex items-center justify-between gap-3 py-2">
-        {/* Marca-d'água. A 10% de tinta ela não é texto que se lê — é textura
-            que preenche o vazio que sobrou à esquerda quando as ferramentas
-            foram para a direita. Por isso `aria-hidden`: anunciar "Coleção"
-            para quem ouve seria prometer um título que visualmente não existe.
-            `select-none` porque marca-d'água que se seleciona vira tropeço. */}
-        <span className="font-cartaz font-black uppercase leading-none
-                         text-secao sm:text-titulo text-ink-sussurro select-none shrink-0"
-              aria-hidden="true">Coleção</span>
+        {/* No DESKTOP, marca-d'água à esquerda e as duas ferramentas juntas à
+            direita. No CELULAR a marca sai e o Filtros toma o lugar dela na
+            esquerda — numa tela estreita o vazio que a marca preenchia não
+            existe, e empurrar o Filtros para a ponta oposta do alternador dá
+            alvo maior para o polegar nos dois cantos.
+
+            A escolha é em JS, não duas cópias escondidas por CSS: duplicar
+            poria dois botões "Filtros" na árvore de acessibilidade, e quem
+            navega por leitor de tela ouviria o mesmo comando duas vezes.
+
+            A marca-d'água a 10% de tinta não é texto que se lê — é textura.
+            Por isso `aria-hidden`: anunciar "Coleção" para quem ouve seria
+            prometer um título que visualmente não existe. `select-none`
+            porque marca-d'água que se seleciona vira tropeço. */}
+        {ehDesktop
+          ? <span className="font-cartaz font-black uppercase leading-none
+                             text-titulo text-ink-sussurro select-none shrink-0"
+                  aria-hidden="true">Coleção</span>
+          : botaoFiltros(true)}
+
+        {/* O alternador fica SEMPRE neste mesmo embrulho, em qualquer largura:
+            ele carrega `layoutId`, e tirá-lo de um pai para pôr noutro ao
+            cruzar o corte remontaria a pastilha no meio da animação. */}
         <div className="flex items-center gap-1.5 sm:gap-2">
-          {botaoFiltros(true)}
+          {ehDesktop && botaoFiltros(true)}
           {alternadorVista}
         </div>
       </div>
@@ -371,7 +396,7 @@ function ConteudoMenu({ grande, tema, setTema, sync, acoes, onStats }) {
      ao lado de uma palavra que já se lê de longe. Na folha do desktop, que é
      compacta, o ícone continua ajudando a varrer. */
   const linha = grande
-    ? 'w-full flex items-center gap-3 py-5 font-display text-titulo font-semibold text-ink text-left'
+    ? 'w-full flex items-center gap-3 py-4 font-cartaz text-obra font-semibold uppercase text-ink text-left'
     : 'w-full flex items-center gap-2.5 rounded-medio px-3 py-2.5 text-corpo font-medium text-ink text-left hover:bg-toque'
   const risco = grande ? 'border-b border-linha' : ''
   /* A cor do site não é um item da lista: é um ajuste do app, e os dois de
@@ -387,7 +412,7 @@ function ConteudoMenu({ grande, tema, setTema, sync, acoes, onStats }) {
     <div className="flex flex-col">
       {/* ---- cor do site ---- */}
       <div className={quebra}>
-        <span className={`block font-mono text-rotulo uppercase text-ink-faint ${grande ? 'pb-2.5' : 'px-2 pb-1.5'}`}>Cor do site</span>
+        <span className={`block font-rotulo text-rotulo uppercase text-ink-faint ${grande ? 'pb-2.5' : 'px-2 pb-1.5'}`}>Cor do site</span>
         <div className="flex gap-1">
           {TEMAS.map(([v, rotulo, cor]) => (
             <button
@@ -470,9 +495,10 @@ function ConteudoMenu({ grande, tema, setTema, sync, acoes, onStats }) {
                       ? 'w-full flex items-center gap-3 py-2.5 text-corpo text-ink-soft text-left'
                       : 'w-full flex items-center gap-2.5 rounded-medio px-3 py-2 text-corpo text-ink-soft text-left hover:bg-toque'}
                   >
-                    <span className="relative shrink-0 inline-flex">
-                      {a.icone}{a.ponto ? <SyncDot sync={a.ponto} /> : null}
-                    </span>
+                    {/* sem ícone; só o ponto de sincronização, que é alerta */}
+                    {a.ponto && a.ponto !== 'off' && (
+                      <span className="relative inline-flex w-[9px] h-[9px] shrink-0"><SyncDot sync={a.ponto} /></span>
+                    )}
                     {a.rotulo}
                   </button>
                 ))}
@@ -572,16 +598,4 @@ const IconLista = () => (
 )
 const IconCloud = () => (
   <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.5 19a4.5 4.5 0 1 0-1.4-8.8A6 6 0 1 0 6 16" /><path d="M8 16h9.5" /></svg>
-)
-const IconRelogio = () => (
-  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
-)
-const IconImage = () => (
-  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21" /></svg>
-)
-const IconBaixar = () => (
-  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>
-)
-const IconRestaurar = () => (
-  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 9l5-5 5 5M12 4v12" /></svg>
 )

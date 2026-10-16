@@ -70,7 +70,7 @@ function Histogram({ counts, buckets }) {
         })}
       </div>
       <div className="flex gap-1.5 mt-1">
-        {buckets.map(b => <span key={b} className="flex-1 text-center font-mono text-rotulo text-ink-faint">{b}</span>)}
+        {buckets.map(b => <span key={b} className="flex-1 text-center font-rotulo text-rotulo text-ink-faint">{b}</span>)}
       </div>
     </div>
   )
@@ -121,7 +121,7 @@ export default function Stats({ open, onClose }) {
       <div className={`font-mono font-medium tabular-nums whitespace-nowrap ${money ? 'text-secao text-acento-texto' : 'text-titulo text-ink'}`}>
         {money ? fmtBRL(n) : <Ticker value={n} />}{!money && sub ? <span className="text-corpo text-ink-faint font-sans font-semibold">{sub}</span> : null}
       </div>
-      <div className="font-mono text-rotulo uppercase text-ink-faint mt-2">{l}</div>
+      <div className="font-rotulo text-rotulo uppercase text-ink-faint mt-2">{l}</div>
     </div>
   )
 
@@ -138,14 +138,25 @@ export default function Stats({ open, onClose }) {
             initial={{ y: 24, opacity: 0.4 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 24, opacity: 0 }}
             transition={MOLA_GAVETA}
           >
+            {/* No celular o seletor de escopo DESCE para uma faixa própria: na
+                mesma linha do título ele espremia a palavra em três linhas, e
+                um título de uma palavra não deveria quebrar. No desktop sobra
+                largura, então ele continua ao lado. */}
             <div className="flex items-center gap-3 px-5 sm:px-6 py-4 border-b border-linha">
-              <h3 className="font-display text-secao text-ink flex-1">{s.obras ? `${s.tenho} de ${s.itens} itens na estante` : 'Painel da coleção'}</h3>
-              <div className="flex rounded-pequeno border border-separador overflow-hidden text-apoio font-medium">
+              <h3 className="font-cartaz font-semibold uppercase text-secao text-ink flex-1">Estatísticas</h3>
+              <div className="hidden sm:flex rounded-pequeno border border-separador overflow-hidden text-apoio font-medium">
                 {[['all', 'Coleção'], ['filtered', 'Filtro atual']].map(([v, l]) => (
                   <button key={v} onClick={() => setScope(v)} className={`px-3.5 py-1.5 transition-colors ${scope === v ? 'bg-ink text-paper' : 'bg-transparent text-ink-soft hover:text-ink'}`}>{l}</button>
                 ))}
               </div>
-              <button className="neo-icon !w-9 !h-9" onClick={onClose}>×</button>
+              <button className="neo-icon !w-9 !h-9" onClick={onClose} aria-label="Fechar">×</button>
+            </div>
+            <div className="sm:hidden px-5 py-3 border-b border-linha">
+              <div className="flex rounded-pequeno border border-separador overflow-hidden text-apoio font-medium">
+                {[['all', 'Coleção'], ['filtered', 'Filtro atual']].map(([v, l]) => (
+                  <button key={v} onClick={() => setScope(v)} className={`flex-1 px-3.5 py-2 transition-colors ${scope === v ? 'bg-ink text-paper' : 'bg-transparent text-ink-soft hover:text-ink'}`}>{l}</button>
+                ))}
+              </div>
             </div>
 
             <div className="flex-1 overflow-auto">
@@ -174,11 +185,11 @@ export default function Stats({ open, onClose }) {
                   <div className="grid grid-cols-2 gap-4 px-5 sm:px-6 py-6 border-t border-linha">
                     <div className="rounded-medio border border-moss/15 bg-tinta-moss px-5 py-6">
                       <div className="font-mono text-titulo font-medium tabular-nums whitespace-nowrap text-acento-texto">{s.notaMed ? s.notaMed.toFixed(1) : '—'}{s.notaMed ? <span className="text-gold text-obra ml-1">★</span> : null}</div>
-                      <div className="font-mono text-rotulo uppercase text-acento-texto/70 mt-2">Nota média</div>
+                      <div className="font-rotulo text-rotulo uppercase text-acento-texto/70 mt-2">Nota média</div>
                     </div>
                     <div className="rounded-medio border border-moss/15 bg-tinta-moss px-5 py-6">
                       <div className="font-mono text-secao font-medium tabular-nums whitespace-nowrap text-acento-texto">{fmtBRL(s.avg)}</div>
-                      <div className="font-mono text-rotulo uppercase text-acento-texto/70 mt-2">Valor médio por item</div>
+                      <div className="font-rotulo text-rotulo uppercase text-acento-texto/70 mt-2">Valor médio por item</div>
                     </div>
                   </div>
 

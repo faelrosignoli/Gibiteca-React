@@ -6,7 +6,7 @@ import { SYNC_TXT } from '../lib/cloud.js'
 import { inventario, moverCapasParaNuvem } from '../lib/capas.js'
 
 const dotColor = { off: 'bg-ink-mute', ok: 'bg-moss', sync: 'bg-gold animate-pulse', pending: 'bg-gold animate-pulse', err: 'bg-rust', conflito: 'bg-rust animate-pulse' }
-const lbl = 'font-mono text-rotulo uppercase text-ink-faint pl-0.5'
+const lbl = 'font-rotulo text-rotulo uppercase text-ink-faint pl-0.5'
 
 export default function Cloud({ open, onClose, onNotice }) {
   const { cloud, sync, syncErro, obras, aplicarObras, guessRepo, cloudConnect, cloudDisconnect, pullFromCloud, cloudPushNow } = useStore()
@@ -68,19 +68,31 @@ export default function Cloud({ open, onClose, onNotice }) {
             transition={MOLA_GAVETA}
           >
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-separador">
-              <h3 className="font-display text-secao text-acento-texto">Sincronizar com o GitHub</h3>
+              <h3 className="font-cartaz font-semibold uppercase text-secao text-acento-texto">Sincronizar com o GitHub</h3>
               <button className="neo-icon !w-9 !h-9" onClick={onClose}>×</button>
             </div>
 
             <div className="flex-1 overflow-auto px-5 py-4 flex flex-col gap-3">
-              <p className="text-apoio text-ink-soft bg-surface-2 border border-separador rounded-medio px-3.5 py-3 leading-relaxed">
-                Isto salva sua coleção <b className="text-acento-texto">no seu próprio repositório</b>, para ela ficar igual em qualquer aparelho.
-                Você precisa de um <b className="text-acento-texto">token</b> do GitHub (uma chave de acesso limitada).{' '}
-                <button className="text-acento-texto underline font-semibold" onClick={() => setHelp(h => !h)}>Como gerar o token →</button>
-              </p>
+              {/* A explicação ficava sempre aberta no topo do painel, e quem já
+                  conectou uma vez não precisa dela nunca mais — mas lia o
+                  parágrafo inteiro toda vez antes de chegar nos campos. Agora
+                  ela mora atrás de "Como fazer?", junto com o passo a passo que
+                  já era escondido: um assunto, uma porta. */}
+              <button
+                type="button"
+                className="pill-btn self-start !py-2 !text-apoio"
+                aria-expanded={help}
+                onClick={() => setHelp(h => !h)}
+              >
+                Como fazer?
+              </button>
 
               {help && (
                 <div className="text-apoio text-ink-soft bg-surface-2 border border-separador rounded-medio px-3.5 py-3 leading-relaxed">
+                  <p className="mb-2">
+                    Isto salva sua coleção <b className="text-acento-texto">no seu próprio repositório</b>, para ela ficar igual em qualquer aparelho.
+                    Você precisa de um <b className="text-acento-texto">token</b> do GitHub (uma chave de acesso limitada).
+                  </p>
                   <b className="text-acento-texto">Passo a passo:</b> 1) Acesse <b>github.com/settings/tokens</b> → <b>Fine-grained tokens</b> → <b>Generate new token</b>.
                   2) Em <b>Repository access</b>, escolha <b>Only select repositories</b> e marque o repositório da sua gibiteca.
                   3) Em <b>Permissions → Repository permissions → Contents</b>, mude para <b>Read and write</b>.

@@ -1,4 +1,5 @@
 import { useStore } from '../lib/store.jsx'
+import Marca from './Marca.jsx'
 import { tipoOf, statusMatch } from '../lib/helpers.js'
 import Ticker from './Ticker.jsx'
 
@@ -14,21 +15,26 @@ export default function Footer() {
     <footer>
       <div className="mx-auto max-w-[1320px] px-5 sm:px-14 pt-8 pb-28">
         <div className="flex flex-wrap justify-between gap-8 items-start">
+          {/* O logo no lugar do "A Gibiteca" escrito: os dois diziam a mesma
+              coisa, e a marca diz melhor. Sem `layoutId` aqui — ele pertence
+              ao par capa↔barra, e um terceiro com o mesmo id quebraria a
+              viagem do logo. O `Marca` já traz `role="img"` com nome
+              acessível, então o rodapé não perde o texto para quem ouve. */}
           <p className="max-w-[430px] text-ink-soft text-corpo leading-relaxed">
-            <span className="font-display font-bold text-lg block text-ink mb-1">A Gibiteca</span>
+            <Marca className="w-[150px] h-auto mb-2.5" />
             Sua organização pessoal, pra nunca perder o fio da meada.
           </p>
           <div className="flex gap-7 flex-wrap">
             {stats.map(([n, l]) => (
               <div key={l} className="flex flex-col gap-1">
                 <span className="font-display font-extrabold text-secao leading-none text-ink"><Ticker value={n} /></span>
-                <span className="font-mono text-rotulo  uppercase text-ink-faint font-bold">{l}</span>
+                <span className="font-rotulo text-rotulo  uppercase text-ink-faint font-bold">{l}</span>
               </div>
             ))}
           </div>
         </div>
         <div className="flex flex-wrap justify-between items-center gap-4 mt-8 pt-4.5 pt-4 border-t border-dashed border-separador text-center sm:text-left">
-          <span className="text-apoio text-ink-faint">© {new Date().getFullYear()} · Minha Gibiteca · feito com 📚 e ☕</span>
+          <span className="text-apoio text-ink-faint">© {new Date().getFullYear()} · Gibiteca · feito com 📚 e 🚬</span>
           {/* Duas setas empilhadas numa janelinha com overflow escondido: no hover
               o par sobe 100%, a de cima sai pelo teto e a de baixo toma o lugar.
               É uma transição só, sem laço — o gesto conta a ação (subir) sem

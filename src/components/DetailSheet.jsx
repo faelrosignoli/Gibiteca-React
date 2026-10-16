@@ -10,7 +10,7 @@ import { coverOf, tipoOf, edOf, edicaoDe, isImp, authorsOf, paisesOf, unitsForSt
 function Numero({ rotulo, valor, sub, capitalizar }) {
   return (
     <div className="bg-surface px-3.5 py-3">
-      <dt className="font-mono text-rotulo uppercase text-ink-faint">{rotulo}</dt>
+      <dt className="font-rotulo text-rotulo uppercase text-ink-faint">{rotulo}</dt>
       <dd className="mt-1.5 flex items-baseline gap-1.5 min-w-0">
         <span className={`font-mono text-secao text-ink tabular-nums truncate ${capitalizar ? 'capitalize' : ''}`}>{valor}</span>
         {sub ? <span className="text-apoio text-ink-faint shrink-0">{sub}</span> : null}
@@ -123,7 +123,7 @@ export default function DetailSheet({ obra, onClose, onEdit, onDuplicar }) {
               {/* ---- título, com a largura inteira para quebrar ---- */}
               <div className="px-5 pt-5">
                 {edOf(obra) && (
-                  <div className="font-mono text-rotulo uppercase text-acento-texto">{edOf(obra)}</div>
+                  <div className="font-rotulo text-rotulo uppercase text-acento-texto">{edOf(obra)}</div>
                 )}
                 <h2 className="mt-2 font-display text-titulo text-ink break-words">{obra.nome}</h2>
               </div>
@@ -163,7 +163,7 @@ export default function DetailSheet({ obra, onClose, onEdit, onDuplicar }) {
                     multi ? ['Volumes', `${ownedCount(obra)} de ${unidades}`] : null,
                   ].filter(l => l && l[1]).map(([k, v], i) => (
                     <div key={k} className={`flex items-baseline gap-4 px-4 py-2.5 ${i ? 'border-t border-linha' : ''}`}>
-                      <dt className="font-mono text-rotulo uppercase text-ink-faint w-[86px] shrink-0">{k}</dt>
+                      <dt className="font-rotulo text-rotulo uppercase text-ink-faint w-[86px] shrink-0">{k}</dt>
                       <dd className={`text-corpo text-ink min-w-0 ${k === 'Tipo' ? 'capitalize' : ''}`}>{v}</dd>
                     </div>
                   ))}
@@ -178,7 +178,7 @@ export default function DetailSheet({ obra, onClose, onEdit, onDuplicar }) {
 
               {obra.resenha && (
                 <div className="px-5 pb-5">
-                  <div className="font-mono text-rotulo uppercase text-ink-faint mb-2">Anotação</div>
+                  <div className="font-rotulo text-rotulo uppercase text-ink-faint mb-2">Anotação</div>
                   <p className="max-w-[62ch] text-corpo text-ink-soft leading-relaxed whitespace-pre-wrap">{obra.resenha}</p>
                 </div>
               )}
@@ -186,7 +186,7 @@ export default function DetailSheet({ obra, onClose, onEdit, onDuplicar }) {
               {/* ---- volumes ---- */}
               {multi && (
                 <div className="px-5 pb-6 border-t border-linha pt-5">
-                  <div className="font-mono text-rotulo uppercase text-ink-faint mb-3">
+                  <div className="font-rotulo text-rotulo uppercase text-ink-faint mb-3">
                     Volumes — {ownedCount(obra)} de {unidades}
                     {filtrando && (
                       <span className="text-acento-texto"> · {notaDoFiltro} ({volumes.length})</span>

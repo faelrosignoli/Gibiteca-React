@@ -64,7 +64,7 @@ function Entrada({ item }) {
           >
             <span className="min-w-0 flex-1">
               <span className="block text-corpo text-ink leading-snug break-words">{assunto}</span>
-              <span className="block font-mono text-rotulo uppercase text-ink-faint mt-1">
+              <span className="block font-rotulo text-rotulo uppercase text-ink-faint mt-1">
                 {hora(item.quando)} · {detalhes.length} {detalhes.length > 1 ? 'itens' : 'item'}
               </span>
             </span>
@@ -80,7 +80,7 @@ function Entrada({ item }) {
         ) : (
           <>
             <div className="text-corpo text-ink leading-snug break-words">{assunto}</div>
-            <div className="font-mono text-rotulo uppercase text-ink-faint mt-1">{hora(item.quando)}</div>
+            <div className="font-rotulo text-rotulo uppercase text-ink-faint mt-1">{hora(item.quando)}</div>
           </>
         )}
 
@@ -159,7 +159,7 @@ export default function Atividades({ open, onClose }) {
             transition={MOLA_GAVETA}
           >
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-separador">
-              <h3 className="font-display text-secao text-acento-texto">Atividades</h3>
+              <h3 className="font-cartaz font-semibold uppercase text-secao text-acento-texto">Atividades</h3>
               <button className="neo-icon !w-9 !h-9" onClick={onClose}>×</button>
             </div>
 

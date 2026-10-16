@@ -119,7 +119,7 @@ export default class Salvaguarda extends Component {
               </div>
 
               <details className="mt-5">
-                <summary className="font-mono text-rotulo uppercase text-ink-faint cursor-pointer">
+                <summary className="font-rotulo text-rotulo uppercase text-ink-faint cursor-pointer">
                   Detalhe técnico
                 </summary>
                 <pre className="mt-2 max-h-[180px] overflow-auto rounded-medio border border-linha bg-paper p-3 text-apoio text-ink-soft whitespace-pre-wrap break-words">

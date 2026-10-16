@@ -85,7 +85,7 @@ export default function BulkCovers({ open, onClose, onNotice }) {
             transition={MOLA_GAVETA}
           >
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-separador">
-              <h3 className="font-display text-secao text-acento-texto">Capas em massa</h3>
+              <h3 className="font-cartaz font-semibold uppercase text-secao text-acento-texto">Capas em massa</h3>
               <button className="neo-icon !w-9 !h-9 disabled:opacity-40" onClick={onClose} disabled={sending}>×</button>
             </div>
 
