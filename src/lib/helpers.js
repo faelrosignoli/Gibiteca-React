@@ -81,6 +81,99 @@ export function missingVols(o){
   return volsOf(o).map((v,i)=>({i:i+1,own:v.status==='biblioteca'})).filter(x=>!x.own).map(x=>x.i);
 }
 export function gNorm(s){ return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(); }
+/* ------------------------------------------------------------------
+   DESMEMBRAR: uma série (ou box) vira N obras avulsas.
+
+   O caminho inverso do cadastro. Quem comprou a série inteira a cadastrou
+   como série; quem depois quer tratar cada volume como obra própria — porque
+   vendeu metade, porque só lê salteado, porque a "série" na verdade era um
+   punhado de histórias sem ordem — não tinha saída a não ser recadastrar
+   volume por volume à mão.
+
+   É função pura: recebe a obra e o último id em uso, devolve os registros
+   novos. O store só cuida de ids e de estado, e assim a regra de quem herda o
+   quê mora ao lado de `tipoOf` e `volsOf`, que são quem define a forma do
+   registro.
+   ------------------------------------------------------------------ */
+
+/* O nome que o volume leva ao sair da série.
+
+   "Vol. 3" sozinho na estante não diz nada — o nome da série era o contexto,
+   e desmembrar é justamente tirar esse contexto. Então o nome da série entra
+   no nome do volume.
+
+   Salvo quando ele JÁ está lá: quem nomeou os volumes de "Sandman 3",
+   "Sandman 4" não quer "Sandman — Sandman 3". A comparação passa por gNorm,
+   que ignora acento e caixa: "akira" reconhece "Akira". */
+export function nomeDesmembrado(obra, vol, i){
+  const serie = ((obra && obra.nome) || '').trim();
+  const nome  = ((vol && vol.nome) || '').trim() || ('Vol. ' + (i+1));
+  if(!serie) return nome;
+  if(gNorm(nome).includes(gNorm(serie))) return nome;
+  return serie + ' — ' + nome;
+}
+
+/* Quantos volumes ficariam SEM capa se a obra fosse desmembrada agora.
+   A tela pergunta isto antes de confirmar: desmembrar não tem desfazer, e
+   capa é a perda que mais dói. */
+export function volumesSemCapa(o){
+  const v = volsOf(o);
+  if(!v.length) return 0;
+  if(v.every(x=>!x.imagem)) return o.imagem ? 0 : v.length;   // todos herdam a do conjunto
+  return v.filter(x=>!x.imagem).length;
+}
+
+export function fragmentosDe(obra, ultimoId){
+  const vols = volsOf(obra);
+  if(!vols.length) return [];
+
+  /* NENHUM volume tem capa própria: é o caso do box, onde o editor nem
+     oferece o campo. Aí a capa do conjunto desce para todos — sem isso,
+     desmembrar um box apagaria a única capa que existia.
+
+     Havendo UMA capa de volume que seja, cada um fica com a sua e quem não
+     tem fica sem. Herdar ali espalharia a capa do volume 1 pela série
+     inteira, e capa errada é pior que capa nenhuma. */
+  const herdada = vols.every(v=>!v.imagem) ? (obra.imagem || null) : null;
+
+  return vols.map((v,i)=>{
+    const tem = v.status==='biblioteca';
+    return {
+      id: ultimoId + 1 + i,
+      nome: nomeDesmembrado(obra, v, i),
+      tipo: 'avulso',
+
+      /* Do CONJUNTO: o que descrevia a série descreve cada parte dela. A
+         editora, o país e o tipo de edição de um volume são os da série; as
+         tags saem clonadas para o array não ficar compartilhado entre as N
+         obras novas. A anotação vai junto porque é o único lugar onde ela
+         existia — melhor repetida em N obras do que perdida. */
+      origem: obra.origem,
+      editora: obra.editora || '',
+      pais: obra.pais || '',
+      tags: Array.isArray(obra.tags) ? obra.tags.slice() : [],
+      resenha: obra.resenha || '',
+      tipoEdicao: obra.tipoEdicao || '',
+
+      /* Do VOLUME: o que já era dele continua dele. Autor e artista caem para
+         os da série quando o volume não os traz — numa série de autor único
+         eles só foram preenchidos uma vez, lá em cima. */
+      imagem: v.imagem || herdada,
+      roteirista: v.roteirista || obra.roteirista || '',
+      desenhista: v.desenhista || obra.desenhista || '',
+
+      /* Status, valor, leitura e nota saem do volume com as MESMAS travas do
+         editor: urgência só vale no que falta, e valor, lido e nota só no que
+         está na estante. Sem isto, desmembrar criaria obras em estados que o
+         editor não deixa salvar. */
+      status: v.status || 'wishlist',
+      urgencia: !tem && !!v.urgencia,
+      valorPago: tem ? (Number(v.valorPago)||0) : 0,
+      lido: tem && !!v.lido,
+      nota: tem ? (Number(v.nota)||0) : 0,
+    };
+  });
+}
 /* Campo de filtro multi-seleção: aceita lista, mas também o valor solto de
    antes — assim um filtro guardado por uma versão velha não quebra o app. */
 export function comoLista(v){ return Array.isArray(v) ? v.filter(Boolean) : (v ? [v] : []); }

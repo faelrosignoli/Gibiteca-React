@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useMemo, useEffect, useCallback, useRef } from 'react'
-import { passes, sortList } from './helpers.js'
+import { passes, sortList, fragmentosDe } from './helpers.js'
 import { EDITORAS } from '../data.js'
 import { ghCheckRepo, ghGet, ghPut, lerColecao, b64enc, b64dec, guessRepo } from './cloud.js'
 import { compararColecoes, mensagemDeCommit } from './diario.js'
@@ -358,6 +358,40 @@ export function StoreProvider({ children }) {
     setFixada(f => { if (f === id) { try { localStorage.removeItem('gibiteca_fixada') } catch (e) { /* */ } return null } return f })
     marcarAlterado(); setObras(list => list.filter(o => o.id !== id)) }, [])
 
+  /* Desmembra uma série ou box: cada volume vira uma obra avulsa, e o
+   * registro que os agrupava deixa de existir.
+   *
+   * Os registros novos saem de `fragmentosDe`, em helpers.js, que é quem sabe
+   * o que cada parte herda. Aqui fica só o que é do estado: os ids, a
+   * fixação e a troca da lista.
+   *
+   * UMA passada de estado, não "apaga e depois cria": entre as duas o app
+   * renderizaria uma coleção sem a série e sem os volumes, e a gravação
+   * automática poderia pegar justamente esse intervalo e salvar o buraco.
+   *
+   * Os ids saem corridos a partir do maior em uso. Reaproveitar o id da
+   * série para o primeiro volume economizaria um número e custaria caro: a
+   * obra fixada é guardada POR ID, e o alfinete passaria, sem pedir licença,
+   * da série para o volume 1.
+   *
+   * Por isso mesmo a fixação some junto quando é a série que está fixada —
+   * mesmo motivo e mesmo cuidado de `deleteObra`. Escolher um volume para
+   * herdar o destaque seria o app decidindo no lugar de quem fixou.
+   *
+   * SEM DESFAZER, como todo o resto do app. Quem pergunta antes é a tela —
+   * ver DetailSheet.jsx. */
+  const desmembrarObra = useCallback((id) => {
+    const orig = obras.find(o => o.id === id)
+    if (!orig) return null
+    const ultimo = obras.reduce((m, o) => Math.max(m, o.id || 0), 0)
+    const novas = fragmentosDe(orig, ultimo)
+    if (!novas.length) return null          // obra sem volumes: nada a desmembrar
+    setFixada(f => { if (f === id) { try { localStorage.removeItem('gibiteca_fixada') } catch (e) { /* */ } return null } return f })
+    marcarAlterado()
+    setObras(list => [...list.filter(o => o.id !== id), ...novas])
+    return novas
+  }, [obras])
+
   const setCovers = useCallback((updates) => {
     if (!updates || !updates.length) return
     marcarAlterado()
@@ -385,7 +419,7 @@ export function StoreProvider({ children }) {
     obras, editoras, filters, sort, view, page: safePage, pageSize,
     setSort, setView, setPage, setPageSize, setFilter, resetFilters, loadBackup, aplicarObras,
     tema, setTema,
-    nextId, upsertObra, duplicarObra, deleteObra, setCovers,
+    nextId, upsertObra, duplicarObra, desmembrarObra, deleteObra, setCovers,
     filtered, total, totalPages, start, pageItems, all,
     fixada, fixarObra,
     // nuvem

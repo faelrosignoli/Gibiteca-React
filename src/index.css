@@ -400,9 +400,18 @@ body::after {
    CSS puro: passar isso por estado faria o cabeçalho redesenhar a cada
    passada de mouse, para um efeito que o navegador já resolve sozinho.
 
-   A tinta ACOMPANHA a barra. Branca sempre deixaria a marca invisível no topo,
-   onde o fundo é papel translúcido; ali ela é ink, e só vira branca quando a
-   cortina do acento já subiu.
+   A tinta ACOMPANHA a barra, em dois registros. No TOPO, sobre papel, ela sai
+   na COR DO TEMA — moss no Moss, laranja no Nockout. É a única peça do
+   cabeçalho que muda de cor com o tema, e pode: ela só aparece no hover, então
+   não é a assinatura. Quem assina é a marca principal, que fica parada de
+   propósito; esta é a piscada do tema.
+
+   É `--acento-texto`, não `--moss` cru: no Nockout o #FF5000 sobre o prateado
+   dá 2,8:1 e a arte quase some. O `--acento-texto` é o mesmo laranja levado ao
+   ponto em que ainda se lê (#C23A00, 4,6:1). No Moss os dois são a mesma cor.
+
+   Sobre a cortina do acento ela vira papel, e aí a cor do tema se perde por
+   necessidade: acento sobre acento não existe.
 
    Só o ponteiro alcança isto. Em tela de toque não existe hover, então a
    segunda arte simplesmente não aparece — é enfeite, não informação, e nada
@@ -411,13 +420,15 @@ body::after {
 .marca-alt {
   position: absolute; inset: 0;
   width: 100%; height: 100%;
-  fill: #23271C;                                  /* ink, para ler sobre o papel */
+  fill: rgb(var(--acento-texto));                 /* a cor do tema, não ink */
   opacity: 0;
   pointer-events: none;
   transform: translateY(16%) scale(.96);
 }
 /* Sobre o acento a arte vira PAPEL, não branco puro: é a mesma tinta clara do
-   miolo da marca principal, e a casa não usa #fff em superfície nenhuma. */
+   miolo da marca principal, e a casa não usa #fff em superfície nenhuma.
+   Aqui ela TEM de abrir mão da cor do tema: a arte na cor do acento, em cima
+   do acento, não existe. */
 .barra-topo[data-acento='1'] .marca-alt { fill: rgb(var(--paper)); }
 
 /* uma arte por tema */

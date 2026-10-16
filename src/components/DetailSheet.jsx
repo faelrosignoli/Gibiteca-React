@@ -5,7 +5,7 @@ import {
 } from '../lib/motion.js'
 import { useStore } from '../lib/store.jsx'
 import { linkDoGuia } from '../lib/catalogo.js'
-import { coverOf, tipoOf, edOf, edicaoDe, isImp, authorsOf, paisesOf, unitsForStatus, avgNota, unitsOf, ownedCount, sumValor, fmtBRL, statusMatch, initials, classeTinta } from '../lib/helpers.js'
+import { coverOf, tipoOf, edOf, edicaoDe, isImp, authorsOf, paisesOf, unitsForStatus, avgNota, unitsOf, ownedCount, sumValor, fmtBRL, statusMatch, initials, classeTinta, volumesSemCapa } from '../lib/helpers.js'
 
 function Numero({ rotulo, valor, sub, capitalizar }) {
   return (
@@ -19,7 +19,7 @@ function Numero({ rotulo, valor, sub, capitalizar }) {
   )
 }
 
-export default function DetailSheet({ obra, onClose, onEdit, onDuplicar }) {
+export default function DetailSheet({ obra, onClose, onEdit, onDuplicar, onDesmembrar }) {
   const { fixada, fixarObra, filters } = useStore()
   const estaFixada = obra != null && fixada === obra.id
   const multi = obra != null && (tipoOf(obra) === 'serie' || tipoOf(obra) === 'box')
@@ -49,6 +49,31 @@ export default function DetailSheet({ obra, onClose, onEdit, onDuplicar }) {
     const tamanho = ehDesktop ? 460 : 420
     if (deveDispensar({ deslocamento, velocidade, tamanho })) onClose?.()
     // se não dispensar, o dragSnapToOrigin devolve a gaveta ao lugar
+  }
+
+
+  /* Desmembrar PERGUNTA, e pergunta com números.
+   *
+   * É a ação mais destrutiva da gaveta depois de excluir: a série some e no
+   * lugar dela aparecem N obras, sem desfazer. O confirm diz exatamente
+   * quantas obras vão nascer e quantas delas vão ficar sem capa — porque
+   * capa é o que não dá para recuperar digitando de novo.
+   *
+   * E diz o TOTAL, não o que está na tela. Com o filtro em "Tenho" a lista
+   * abaixo mostra 3 de 8 volumes; desmembrar mexe nos 8. Quem só olhasse a
+   * tela contaria errado, então o aviso conta por ele. */
+  const desmembrar = () => {
+    const semCapa = volumesSemCapa(obra)
+    const linhas = [
+      `Desmembrar "${obra.nome}"?`,
+      '',
+      `Os ${unidades} volumes viram ${unidades} obras avulsas, cada uma com o que já era dela: status, valor, nota e capa. A ${tipoOf(obra) === 'box' ? 'caixa' : 'série'} deixa de existir.`,
+    ]
+    if (filtrando) linhas.push('', `Atenção: o filtro mostra só ${volumes.length} volume${volumes.length === 1 ? '' : 's'} aqui, mas o desmembramento vale para os ${unidades}.`)
+    if (semCapa) linhas.push('', `${semCapa} ${semCapa === 1 ? 'volume não tem capa própria e vai ficar' : 'volumes não têm capa própria e vão ficar'} sem capa.`)
+    linhas.push('', 'Isso não tem desfazer.')
+    if (!confirm(linhas.join('\n'))) return
+    onDesmembrar?.(obra)
   }
 
   return (
@@ -186,11 +211,37 @@ export default function DetailSheet({ obra, onClose, onEdit, onDuplicar }) {
               {/* ---- volumes ---- */}
               {multi && (
                 <div className="px-5 pb-6 border-t border-linha pt-5">
-                  <div className="font-rotulo text-rotulo uppercase text-ink-faint mb-3">
-                    Volumes — {ownedCount(obra)} de {unidades}
-                    {filtrando && (
-                      <span className="text-acento-texto"> · {notaDoFiltro} ({volumes.length})</span>
-                    )}
+                  {/* O título dos volumes e o botão que os solta dividem a
+                      mesma linha: a ação fica encostada no que ela desfaz.
+
+                      Aqui, e não no cabeçalho da gaveta, porque lá já moram
+                      quatro controles e porque desmembrar não é irmão de
+                      fixar ou duplicar — é uma ação de estrutura, e ela só
+                      existe para quem tem volumes. */}
+                  <div className="flex items-baseline gap-3 mb-3">
+                    <div className="font-rotulo text-rotulo uppercase text-ink-faint flex-1 min-w-0">
+                      Volumes — {ownedCount(obra)} de {unidades}
+                      {filtrando && (
+                        <span className="text-acento-texto"> · {notaDoFiltro} ({volumes.length})</span>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      className="neo-btn !py-1 !px-2.5 shrink-0"
+                      onClick={desmembrar}
+                      title={`Transformar os ${unidades} volumes em ${unidades} obras avulsas`}
+                    >
+                      <svg className="w-[14px] h-[14px]" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                           strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        {/* um bloco em cima, três soltos embaixo: a figura diz
+                            o que o botão faz sem precisar da palavra */}
+                        <rect x="7" y="3" width="10" height="6" rx="1.5" />
+                        <path d="M12 9v3M5 15v-1.5a1.5 1.5 0 0 1 1.5-1.5h11a1.5 1.5 0 0 1 1.5 1.5V15" />
+                        <rect x="2" y="15" width="6" height="6" rx="1.5" />
+                        <rect x="16" y="15" width="6" height="6" rx="1.5" />
+                      </svg>
+                      Desmembrar
+                    </button>
                   </div>
                   {/* A grade estica todas as células até a altura da mais alta e o
                       selo é empurrado para baixo com mt-auto. Assim o nome pode

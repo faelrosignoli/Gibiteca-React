@@ -23,8 +23,6 @@ function useVoltarAoInicio() {
 
 const ROTULO_LOGO = 'Início — limpar filtros e voltar ao topo'
 
-// [valor, rótulo, amostra] — a amostra é o hex de cada tema, não um token
-const TEMAS = [['moss', 'Moss', '#4B5D3A'], ['nockout', 'Nockout', '#FF5000']]
 
 /* Passou do topo?
  *
@@ -71,8 +69,8 @@ function useRolado() {
  * com o menu aberto — é isso que `comAcento` resolve. A mecânica está em
  * `.barra-topo`, no index.css; aqui só se liga o `data-acento`.
  */
-export default function Header({ onCloud, onBulk, onAtividades, onBackup, onFilters, onStats, onSearch, filterCount, aberturaNoAr = false }) {
-  const { obras, editoras, loadBackup, sync, view, setView, filters, tema, setTema } = useStore()
+export default function Header({ onCloud, onBulk, onAtividades, onBackup, onTema, onFilters, onStats, onSearch, filterCount, aberturaNoAr = false }) {
+  const { obras, editoras, loadBackup, sync, view, setView, filters } = useStore()
   const aoInicio = useVoltarAoInicio()
   const rolado = useRolado()
   const ehDesktop = useEhDesktop()
@@ -205,8 +203,8 @@ export default function Header({ onCloud, onBulk, onAtividades, onBackup, onFilt
   const conteudoMenu = (
     <ConteudoMenu
       grande={!ehDesktop}
-      tema={tema} setTema={setTema}
       sync={sync} acoes={acoesDados}
+      onTema={() => { fechar(); onTema?.() }}
       onStats={() => { fechar(); onStats?.() }}
     />
   )
@@ -376,10 +374,13 @@ export default function Header({ onCloud, onBulk, onAtividades, onBackup, onFilt
 /* ---------------------------------------------------------------
    O conteúdo do menu, um só para os dois formatos.
 
-   Três assuntos, nesta ordem: a cor do site, as estatísticas e UM tópico que
-   guarda tudo que é dado — nuvem, capas e backup. Eram cinco itens soltos
-   competindo com o resto; agora são cinco coisas da mesma família atrás de uma
-   porta só.
+   Três assuntos, nesta ordem: o tema, as estatísticas e UM tópico que guarda
+   tudo que é dado — nuvem, capas e backup. Eram cinco itens soltos competindo
+   com o resto; agora são cinco coisas da mesma família atrás de uma porta só.
+
+   Os três são PORTAS: cada linha abre uma tela. O tema era a exceção — uma
+   escolha feita ali mesmo, com um fio mais forte em volta para avisar que não
+   era item de lista. Virando pop-up ele entrou na fila, e a exceção sumiu.
 
    O menu é o MESMO nos dois tamanhos. Estatísticas chegou a viver na barra do
    desktop, e manter os dois caminhos daria duas portas para a mesma tela.
@@ -387,7 +388,7 @@ export default function Header({ onCloud, onBulk, onAtividades, onBackup, onFilt
    `grande` muda só o tamanho dos alvos: no painel de tela cheia as linhas
    precisam de altura de dedo, na folha do desktop não.
    --------------------------------------------------------------- */
-function ConteudoMenu({ grande, tema, setTema, sync, acoes, onStats }) {
+function ConteudoMenu({ grande, acoes, onTema, onStats }) {
   const [dadosAberto, setDadosAberto] = useState(false)
   /* No painel de tela cheia as linhas são GRANDES e SEM ícone: são três
      assuntos, não uma lista de comandos, e a essa altura o ícone vira enfeite
@@ -397,51 +398,19 @@ function ConteudoMenu({ grande, tema, setTema, sync, acoes, onStats }) {
     ? 'w-full flex items-center gap-3 py-4 font-cartaz text-obra font-semibold uppercase text-ink text-left'
     : 'w-full flex items-center gap-2.5 rounded-medio px-3 py-2.5 text-corpo font-medium text-ink text-left hover:bg-toque'
   const risco = grande ? 'border-b border-linha' : ''
-  /* A cor do site não é um item da lista: é um ajuste do app, e os dois de
-     baixo são lugares aonde se vai. Com o mesmo fio das outras linhas ela
-     virava só mais uma fatia. O token `separador` existe para isto — tem
-     presença —, e o ar em volta é metade do recado: sem ele, um fio mais
-     escuro continua lendo como divisor de linha. */
-  const quebra = grande
-    ? 'pt-1 pb-5 mb-3 border-b border-separador'
-    : 'px-1 pb-2 mb-1 border-b border-linha'
 
   return (
     <div className="flex flex-col">
-      {/* ---- cor do site ---- */}
-      <div className={quebra}>
-        <span className={`block font-rotulo text-rotulo uppercase text-ink-faint ${grande ? 'pb-2.5' : 'px-2 pb-1.5'}`}>Cor do site</span>
-        <div className="flex gap-1">
-          {TEMAS.map(([v, rotulo, cor]) => (
-            <button
-              key={v} role="menuitemradio" aria-checked={tema === v}
-              onClick={() => setTema(v)}
-              /* Sem contorno e sem bolinha: a palavra É a amostra. O que marca
-                 o escolhido é a tinta — o apagado recua, o marcado fica cheio.
-                 Para leitor de tela quem conta é o aria-checked, que não
-                 depende de cor nem de opacidade. */
-              className={`tema-palavra flex-1 rounded-medio px-2 font-display font-extrabold uppercase
-                outline-none
-                focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-surface focus-visible:ring-ink/30
-                ${grande ? 'py-2.5 text-secao' : 'py-1.5 text-obra'}`}
-              data-escolhido={tema === v ? '1' : '0'}
-              /* hex cravado de propósito: a palavra MOSTRA a cor de cada tema,
-                 então não pode seguir o tema atual */
-              style={{ color: cor }}
-            >
-              {/* Duas camadas do mesmo texto: a de baixo apagada, a de cima
-                  cheia e recortada por clip-path. No hover o recorte abre da
-                  esquerda para a direita, e a palavra se ENTINTA como
-                  pincelada — em vez de só clarear de uma vez.
-                  A de cima é aria-hidden: para quem ouve, o texto é um só. */}
-              <span className="tema-palavra__camadas">
-                <span className="tema-palavra__base">{rotulo}</span>
-                <span className="tema-palavra__tinta" aria-hidden="true">{rotulo}</span>
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* ---- tema ----
+          Era um bloco de escolha aqui dentro, com um fio mais forte
+          (`separador`) separando-o do resto: ele não era um item de lista como
+          os outros, era um ajuste, e precisava de uma régua só para dizer
+          isso. Virou pop-up, igual ao Backup, e com isso virou um item como
+          qualquer outro — o fio de exceção saiu junto. */}
+      <button role="menuitem" onClick={onTema} className={`${linha} ${risco}`}>
+        {!grande && <span className="text-ink-soft shrink-0 inline-flex"><IconTema /></span>}
+        Tema
+      </button>
 
       {/* ---- estatísticas ---- */}
       <button role="menuitem" onClick={onStats} className={`${linha} ${risco}`}>
@@ -586,6 +555,15 @@ const IconFiltros = () => (
   <svg className="w-[18px] h-[18px] ico-funil" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
     <path d="M2 4h20l-8 9v7l-4 2v-9z" />
     <circle className="ico-funil__gota" cx="12" cy="8" r="1.15" fill="currentColor" stroke="none" />
+  </svg>
+)
+/* Círculo meio cheio: o símbolo de sempre para troca de tinta. Um balde ou
+   um pincel falaria de pintar; aqui não se pinta nada, escolhe-se entre duas
+   faces da mesma casa. */
+const IconTema = () => (
+  <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none" />
   </svg>
 )
 const IconStats = () => (
