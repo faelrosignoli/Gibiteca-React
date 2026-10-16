@@ -93,6 +93,28 @@ corrido e positiva só no rótulo. **Não escrever `tracking-*` à mão** — a 
 - Texto: `text-ink` → `text-ink-soft` → `text-ink-faint` → `text-ink-mute`
   → `text-ink-sussurro` (10%). O último não é texto para ler: é marca-d'água,
   e existe como token justamente para ninguém escrever `ink/10` avulso.
+- Famílias: `font-display` (Bricolage) para conteúdo · `font-sans` (Inter) para
+  corpo · `font-rotulo` (**Montserrat**) para rótulo em caixa alta ·
+  `font-mono` (Space Mono) para o que PRECISA de largura fixa · `font-cartaz`
+  (Lexend Zetta) para **títulos de painel**, sempre em CAIXA ALTA, e palavra
+  grande. A Lexend entra em dois pesos: **600** nos títulos e **900** na
+  marca-d'água — título em Black competiria com o conteúdo do painel.
+
+  **A Space Mono não saiu de cena, encolheu de papel.** Ela cobria três usos:
+  rótulo, número e string literal. Rótulo não precisa de monoespaçada — precisa
+  de legibilidade em corpo pequeno, e foi o que migrou (31 ocorrências). Ficam
+  em Space Mono os números com `tabular-nums`, que alinham em coluna, e as
+  strings literais (`100 Balas.jpg`, `data/gibiteca.json`), onde a largura fixa
+  sinaliza "isto é texto de máquina".
+
+  Ela é larguíssima: medido, "Sincronizar com o GitHub" ocupa 405px num modal
+  de 560 no desktop, e **quebra em duas linhas a 375px** — sem estouro, mas é
+  o custo de usá-la em frase, não em palavra.
+
+- **`#212121` existe só na capa** (`.welcome`), no botão e na sombra do logo.
+  É um preto diferente do `ink` (`#23271C`) do resto do app, e fica preso
+  àquele escopo de propósito — solto, viraria uma segunda tinta preta
+  competindo com a do projeto. No rodapé, por exemplo, o logo segue em `ink`.
 - Véus de tinta, nomeados pela função (antes eram 12 opacidades avulsas):
   `linha` (8%, fio de 1px) · `separador` (12%, divisória) ·
   `toque` (5,5%, fundo de hover) · `veu` (50%, backdrop de modal).
@@ -127,8 +149,28 @@ independente da largura dos dois lados.
 que desceu para a segunda linha foi o que é ferramenta, não marca.
 
 **O arranjo é o MESMO em qualquer largura:** barra com três peças (busca ·
-marca · ☰) e, abaixo dela, a marca-d'água **COLEÇÃO** à esquerda e as
-ferramentas (Filtros · Galeria/Lista) juntas à direita. Houve uma versão em que no
+marca · ☰) e, abaixo dela, a segunda linha. O conteúdo dela MUDA com a
+largura:
+
+| | esquerda | direita |
+|---|---|---|
+| desktop | marca-d'água **COLEÇÃO** | Filtros · Galeria/Lista |
+| celular | **Filtros** | Galeria/Lista |
+
+No celular a marca sai e o Filtros toma o lugar dela. Numa tela estreita o
+vazio que a marca preenchia não existe, e pôr o Filtros na ponta oposta do
+alternador dá alvo grande para o polegar nos dois cantos.
+
+**A escolha é em JS (`ehDesktop`), não duas cópias escondidas por CSS** —
+uma instância só, um lugar de verdade. (Ao contrário do que esta nota dizia
+antes: `display:none` REMOVE o elemento da árvore de acessibilidade, então
+duplicar por CSS não causaria leitura dobrada. O motivo aqui é manter um nó
+só. O seletor de escopo do painel de estatísticas usa o caminho do CSS, e
+está correto.)
+
+**O alternador fica sempre no mesmo embrulho**, em qualquer largura — ele
+carrega `layoutId`, e trocá-lo de pai ao cruzar o corte remontaria a pastilha
+no meio da animação. Houve uma versão em que no
 desktop esses dois moravam dentro da barra; unificar deixou a marca centrada de
 verdade sempre, e encolheu a barra de 69 para 57px.
 
@@ -717,10 +759,33 @@ Modal novo que tenha campo preenchível segue a mesma regra.
 barra e um botão "Minha Gibiteca" no rodapé dela, centrado. Clicar entra na
 coleção.
 
-**A IMAGEM ainda não existe.** Ponha o arquivo em `public/welcome.jpg` e ele
-aparece sozinho. Sem ele a página não quebra: o `onError` esconde a imagem e
-fica o papel com o botão, que continua levando à coleção — era isso ou um
-ícone de imagem quebrada ocupando a tela inteira.
+**A imagem é `public/welcome.jpg`.** Sem ela a página não quebra: o
+`onError` esconde a imagem e fica o papel com o logo e o botão.
+
+**O arquivo não perde nada no caminho.** `public/` é copiado byte a byte para
+o `dist/` — conferido com `md5sum` e `cmp` na imagem real —, e o projeto não
+tem plugin de imagem, `sharp` nem `imagemin`. O que chega ao navegador é
+exatamente o que se pôs lá.
+
+**O que PODE borrar é ampliação, e hoje borra.** Com `cover`, se a tela em
+pixels reais (largura × densidade) for maior que o arquivo, o navegador
+estica. Medido com o arquivo atual, de **1200×675**, numa janela de 1280×900 e
+densidade 1: **ampliação de 1,33×** — e numa tela de densidade 2 seriam 2,67×.
+Para nunca ampliar numa janela de 1920 com densidade 2, o arquivo precisa de
+~**3840px de largura**. Daí para cima o navegador só reduz, e reduzir não
+borra.
+
+**O botão é só texto**, em Lexend Zetta Black caixa alta (`font-cartaz`), sem
+o disco de seta. O `.cta` nasceu com padding assimétrico para abrigar esse
+disco; sem ele o `.welcome__botao` devolve a simetria. A fonte é larguíssima,
+então leva corpo menor (13px) e `max-width` — senão a pílula não cabe num
+telefone estreito. Medido a 375px: 217×44, centrado, sem rolagem lateral.
+
+**Não há véu atrás do botão.** Houve um degradê para garantir contraste sobre
+qualquer foto; saiu a pedido, e a imagem chega limpa até a borda de baixo. O
+botão se sustenta sozinho por ser pílula escura (`ink`) com tinta clara. Se um
+dia a área sob ele ficar clara demais, o caminho é escurecer o BOTÃO, não
+devolver a névoa sobre a arte.
 
 **NÃO há cabeçalho na capa** — só o logo, grande e abaixo do topo. Ele e o
 logo da barra são o MESMO elemento para o framer-motion (`layoutId="marca"`),
@@ -900,6 +965,58 @@ site publicado. Antes disso só dava editando o construtor e lembrando de
 desfazer, porque ela só aparece quando um componente estoura no render. O
 "Detalhe técnico" dessa tela forçada diz em voz alta que nada quebrou, para
 ninguém se assustar ao cair ali por um link.
+
+### País usa o campo de etiquetas
+O campo de **País de origem** é o MESMO `Pessoas` de Autor e Artista. Era
+texto livre com o aviso "Use / p/ separar": a barra é detalhe de
+armazenamento, e o campo obrigava a pessoa a conhecê-la para cadastrar dois
+países. Com etiquetas, cada país vira item que se vê e se apaga sozinho.
+
+**Nada a migrar.** `Pessoas` devolve a mesma string unida por " / " que o
+`paisesOf` já lia — os dois usam o mesmo `splitLista`. Conferido ponta a
+ponta: cadastrando Brasil e Argentina, o `localStorage` gravou
+`"Brasil / Argentina"`.
+
+### O menu de dados e o pop-up de Backup
+As ações sob "Nuvem e backup" **não têm ícone**: são frases curtas numa lista
+já recuada, e ali o ícone vira enfeite ao lado de uma palavra que já se lê. O
+ponto de sincronização continua — é alerta, não decoração.
+
+**Baixar e restaurar viraram um item só, "Backup"**, que abre pop-up próprio
+(`Backup.jsx`). Lado a lado numa lista de atalhos eles se pareciam demais para
+a diferença que têm: um grava um arquivo, o outro SUBSTITUI a coleção inteira.
+No pop-up ficam **em coluna**, e o de importar usa `cta-ghost` — botões irmãos
+de peso igual convidam ao clique rápido, e restaurar não é ação para clique
+rápido.
+
+O "(.json)" saiu dos rótulos: quem abre o menu quer salvar a coleção, não
+escolher formato.
+
+**As linhas do menu encolheram** de `text-titulo` para `text-obra`. Em Lexend
+e no tamanho de título, "ESTATÍSTICAS" e "NUVEM E BACKUP" dominavam a tela
+inteira do celular.
+
+### O painel de estatísticas
+Título **ESTATÍSTICAS**, fixo — antes trocava para "N de M itens na estante",
+e o cabeçalho do painel mudava de assunto conforme o conteúdo.
+
+No celular o seletor **Coleção / Filtro atual** desce para uma faixa própria
+abaixo do título. Na mesma linha ele espremia a palavra em três linhas.
+
+### A nuvem: "Como fazer?"
+A explicação do token ficava sempre aberta no topo do painel. Quem já conectou
+uma vez não precisa dela nunca mais, mas lia o parágrafo inteiro antes de
+chegar nos campos. Agora mora atrás de um botão **"Como fazer?"**, junto com o
+passo a passo que já era escondido: um assunto, uma porta.
+
+### O logo no rodapé
+Entrou no lugar do "A Gibiteca" escrito: os dois diziam a mesma coisa, e a
+marca diz melhor. O `Marca` já traz `role="img"` com nome acessível, então
+quem ouve não perde o texto.
+
+**Sem `layoutId` aqui.** Esse id pertence ao par capa↔barra; um terceiro
+elemento com o mesmo id quebraria a viagem do logo. Hoje há duas marcas no DOM
+da coleção (barra e rodapé) e só a da barra é `motion`.
 
 ### A divisória ilustrada
 Entre a paginação e o rodapé corre uma faixa de ponta a ponta. **Uma arte por

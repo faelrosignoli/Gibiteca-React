@@ -71,6 +71,12 @@ export default {
         display: ['"Bricolage Grotesque"', 'Georgia', 'serif'],
         sans:    ['Inter', 'system-ui', 'sans-serif'],
         mono:    ['"Space Mono"', 'ui-monospace', 'monospace'],
+        /* Rótulo em caixa alta. Era Space Mono por tabela, mas rótulo não
+           precisa de monoespaçada — precisa de legibilidade em corpo pequeno.
+           A Space Mono fica onde a largura fixa TEM função: números com
+           `tabular-nums` (que alinham em coluna) e strings literais como
+           nome de arquivo e caminho. */
+        rotulo:  ['Montserrat', 'Inter', 'system-ui', 'sans-serif'],
         /* Lexend Zetta Black: larga e pesadíssima, só serve para palavra
            grande usada como elemento gráfico — hoje a marca-d'água COLEÇÃO.
            Nome pelo PAPEL, não pela fonte, como as outras três. */
