@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1792428188528,
- "updated": "2026-10-19T16:43:08.528Z",
+ "atualizadoEm": 1792428194467,
+ "updated": "2026-10-19T16:43:14.467Z",
  "obras": [
   {
    "id": 1,
@@ -12899,7 +12899,7 @@
   },
   {
    "id": 610,
-   "nome": "BD Disney — A Juventude de Mickey",
+   "nome": "A Juventude de Mickey",
    "tipo": "avulso",
    "origem": "nacional",
    "editora": "Panini",
