@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1792428184434,
- "updated": "2026-10-19T16:43:04.434Z",
+ "atualizadoEm": 1792428188528,
+ "updated": "2026-10-19T16:43:08.528Z",
  "obras": [
   {
    "id": 1,
@@ -12785,7 +12785,7 @@
   },
   {
    "id": 604,
-   "nome": "BD Disney — As Férias de Donald",
+   "nome": "As Férias de Donald",
    "tipo": "avulso",
    "origem": "nacional",
    "editora": "Panini",
