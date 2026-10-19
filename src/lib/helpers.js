@@ -241,3 +241,158 @@ export function moneyFormat(n){ return n?fmtBRL(n):''; }
 // --- casamento por nome / slug de arquivo (capas em massa) ---
 export function canon(s){ return (s||'').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim(); }
 export function slugify(s){ return (s||'obra').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60)||'obra'; }
+
+/* ------------------------------------------------------------------
+   A FILA DE LEITURA.
+
+   Uma lista ORDENADA do que se pretende ler. Não é filtro nem marcador: a
+   coleção já diz o que você tem e o que já leu; a fila diz o que vem a
+   seguir, e essa ordem é escolhida a dedo, arrastando.
+
+   Cada entrada é `{ id, vol }`:
+     id  — a obra
+     vol — o ÍNDICE do volume dentro dela, ou `null` para obra avulsa.
+
+   Índice, e não o nome do volume: nome se repete ("Vol. 1" em duas séries),
+   se edita, e às vezes nem existe. O índice é o que `volsOf` já usa em todo o
+   resto do app — `unitsOf`, `missingVols`, a grade do detalhe —, e inventar
+   uma segunda forma de apontar para um volume criaria duas verdades.
+
+   O PREÇO, que é real: apagar um volume do meio de uma série pelo Editor
+   empurra os índices seguintes, e uma entrada que apontava para o volume 3
+   passa a apontar para o que era o 4. Não há como o store perceber: o Editor
+   devolve o array de volumes inteiro, sem dizer o que saiu. Fica anotado aqui
+   porque é o tipo de coisa que, na hora em que acontecer, ninguém vai ligar à
+   causa.
+
+   Entrada que não resolve (obra apagada, volume que sumiu) é DESCARTADA na
+   leitura, não corrigida: a fila é uma intenção, e intenção sobre coisa que
+   não existe mais não é nada.
+   ------------------------------------------------------------------ */
+
+/* Chave de texto para comparar e para servir de `key` no React.
+   Precisa ser texto: `{id:3,vol:null}` e `{id:3,vol:null}` são objetos
+   diferentes, e comparar por referência nunca acharia a entrada de volta. */
+export function chaveFila(id, vol){ return String(id) + ':' + (vol == null ? '-' : vol); }
+
+export function naFila(fila, id, vol){
+  const k = chaveFila(id, vol);
+  return (fila || []).some(e => chaveFila(e.id, e.vol) === k);
+}
+
+/* Resolve uma entrada contra a coleção de hoje.
+   Devolve `null` quando a obra ou o volume não existem mais — quem chama
+   trata isso como "esta entrada morreu". */
+export function itemDaFila(obras, entrada){
+  if(!entrada) return null;
+  const obra = (obras || []).find(o => o.id === entrada.id);
+  if(!obra) return null;
+  if(entrada.vol == null){
+    if(tipoOf(obra) !== 'avulso') return null;   // virou série: a entrada era de outra coisa
+    return { obra, unidade: obra, vol: null, titulo: obra.nome || 'Sem título', parte: '' };
+  }
+  const v = volsOf(obra)[entrada.vol];
+  if(!v) return null;
+  return {
+    obra, unidade: v, vol: entrada.vol,
+    titulo: obra.nome || 'Sem título',
+    parte: v.nome || ('Vol. ' + (entrada.vol + 1)),
+  };
+}
+
+/* A fila resolvida, já sem as entradas mortas e na ordem guardada. */
+export function filaResolvida(obras, fila){
+  return (fila || []).map(e => itemDaFila(obras, e)).filter(Boolean);
+}
+
+/* Já foi lido? É o que tira da fila sozinho.
+   `lido` só vale com o item na estante — é a mesma trava do Editor, e sem ela
+   um volume "quero" com `lido` pendurado de uma edição antiga sairia da fila
+   sem nunca ter sido lido. */
+export function unidadeLida(u){ return !!(u && u.status === 'biblioteca' && u.lido); }
+
+/* Está na estante? É a trava da fila.
+ *
+ * SÓ ENTRA NA FILA O QUE VOCÊ TEM. A fila responde "o que leio a seguir", e
+ * não se lê o que ainda não chegou — um volume de desejo ali seria um plano,
+ * não uma leitura. Quem guarda plano de compra é a lista de desejo (o status
+ * "quero") e as listas.
+ *
+ * A trava também fecha um buraco do modelo: `lido` e `nota` só existem para
+ * o que está na estante (o Editor apaga os dois ao salvar um item de desejo).
+ * Deixar um "quero" entrar na fila levaria, no fim, a marcar lido uma coisa
+ * que o próprio Editor desmarcaria depois. */
+export function naEstante(u){ return !!(u && u.status === 'biblioteca'); }
+
+/* Pode entrar (ou continuar) na fila: tem, e ainda não leu.
+   As duas regras juntas num lugar só — o botão do detalhe, a poda do store e
+   o filtro da tela chamam esta mesma função, senão cada um teria a sua ideia
+   de quem pertence à fila. */
+export function podeEnfileirar(u){ return naEstante(u) && !u.lido; }
+
+/* A capa que representa a entrada: a do volume, caindo para a da obra.
+   Volume sem capa própria é comum (o box nem oferece o campo), e na fila uma
+   capa errada seria pior — por isso cai para a da OBRA, que é a mesma coisa
+   num grau acima, nunca para a de outro volume. */
+export function capaDaFila(item){
+  if(!item) return null;
+  if(item.vol != null) return item.unidade.imagem || item.obra.imagem || null;
+  return item.obra.imagem || null;
+}
+
+/* Autor da entrada: o do volume, caindo para o da obra.
+   Numa série de autor único os volumes vêm vazios e quem tem o nome é a obra;
+   numa antologia é o contrário. */
+export function autorDaFila(item){
+  if(!item) return '';
+  const nomes = [];
+  const push = s => splitLista(s).forEach(x => { if(!nomes.includes(x)) nomes.push(x); });
+  if(item.vol != null){ push(item.unidade.roteirista); push(item.unidade.desenhista); }
+  if(!nomes.length){ push(item.obra.roteirista); push(item.obra.desenhista); }
+  return nomes.join(', ');
+}
+
+/* ------------------------------------------------------------------
+   AS LISTAS.
+
+   Pastas para organizar à mão: "Para reler", "Emprestados", "Comprar na
+   bienal". Uma obra pode estar em várias, e estar numa lista não muda nada
+   sobre ela — não é status, não é filtro, não é fila. É arrumação.
+
+   Cada lista é `{ id, nome, obras: [idDaObra] }`.
+
+   Guarda só o ID, nunca a obra: a obra pode ser editada depois, e uma cópia
+   dentro da lista envelheceria em silêncio — a capa trocada no cadastro não
+   apareceria aqui.
+
+   OBRA INTEIRA, não volume. Diferente da fila, que é por volume porque
+   responde "o que leio hoje". Uma lista responde "onde isto está guardado",
+   e essa pergunta é sobre a obra.
+
+   Id que não resolve mais é DESCARTADO na leitura. O store também limpa ao
+   apagar a obra (ver `podarListas`), mas a leitura defensiva protege do que
+   chega pronto de fora — nuvem, backup antigo, arquivo editado à mão.
+   ------------------------------------------------------------------ */
+
+/* As obras de uma lista, na ORDEM em que foram postas, sem as que sumiram. */
+export function obrasDaLista(obras, lista){
+  if(!lista || !Array.isArray(lista.obras)) return [];
+  return lista.obras.map(id => (obras||[]).find(o => o.id === id)).filter(Boolean);
+}
+
+/* Em que listas esta obra está. O Editor usa para marcar as caixas, e o
+   detalhe para dizer onde a obra mora. */
+export function listasDaObra(listas, obraId){
+  return (listas||[]).filter(l => Array.isArray(l.obras) && l.obras.includes(obraId));
+}
+
+/* Quantas obras a lista tem DE VERDADE — contando só as que ainda existem.
+   Contar `lista.obras.length` mostraria 8 numa lista que exibe 6.
+
+   Hoje a tela não usa: a linha do índice já resolve as obras para desenhar a
+   tira de capas, e conta o array que tem na mão. Fica porque a pergunta
+   "quantas tem" é legítima e reimplementá-la com `.length` cru é justamente
+   o erro que este comentário existe para evitar. */
+export function tamanhoDaLista(obras, lista){
+  return obrasDaLista(obras, lista).length;
+}

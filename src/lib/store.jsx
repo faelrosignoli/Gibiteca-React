@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useMemo, useEffect, useCallback, useRef } from 'react'
-import { passes, sortList, fragmentosDe } from './helpers.js'
+import { passes, sortList, fragmentosDe, chaveFila, itemDaFila, podeEnfileirar, volsOf } from './helpers.js'
 import { EDITORAS } from '../data.js'
 import { ghCheckRepo, ghGet, ghPut, lerColecao, b64enc, b64dec, guessRepo } from './cloud.js'
 import { compararColecoes, mensagemDeCommit } from './diario.js'
@@ -37,10 +37,10 @@ export function carimboDe(d) {
 function loadInitial() {
   let bruto = null
   try { bruto = localStorage.getItem('gibiteca_v1') } catch (e) { /* navegador sem storage */ }
-  if (!bruto) return { obras: [], editoras: EDITORAS, carimbo: 0, ilegivel: false }
+  if (!bruto) return { obras: [], editoras: EDITORAS, fila: [], listas: [], carimbo: 0, ilegivel: false }
   try {
     const d = JSON.parse(bruto)
-    if (Array.isArray(d.obras)) return { obras: d.obras, editoras: d.editoras || EDITORAS, carimbo: carimboDe(d), ilegivel: false }
+    if (Array.isArray(d.obras)) return { obras: d.obras, editoras: d.editoras || EDITORAS, fila: Array.isArray(d.fila) ? d.fila : [], listas: Array.isArray(d.listas) ? d.listas : [], carimbo: carimboDe(d), ilegivel: false }
   } catch (e) { /* cai no aviso abaixo */ }
   /* HAVIA dado guardado e não deu para ler.
    *
@@ -49,7 +49,7 @@ function loadInitial() {
    * estivesse tudo bem. Agora a coleção continua vazia (não há o que mostrar),
    * mas o app DIZ que o dado existe e está ilegível — e o carimbo fica em
    * zero, então esse vazio nunca sobe para a nuvem por cima do que está lá. */
-  return { obras: [], editoras: EDITORAS, carimbo: 0, ilegivel: true }
+  return { obras: [], editoras: EDITORAS, fila: [], listas: [], carimbo: 0, ilegivel: true }
 }
 function loadCloud() {
   try { const r = localStorage.getItem(CLOUD_KEY); if (r) return { ...CLOUD_DEFAULT, ...JSON.parse(r) } } catch (e) { /* */ }
@@ -66,21 +66,34 @@ export function StoreProvider({ children }) {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSizeState] = useState(() => Number(localStorage.getItem('gibiteca_pagesize')) || 40)
 
-  /* Tema de cor: 'moss' (padrão) ou 'nockout'.
-     O padrão NÃO escreve atributo nenhum — ele é o :root. O atributo só existe
-     quando há desvio, então um dia que o Nockout deixe de existir nada fica
-     pendurado no html. */
+  /* O TEMA é o nome de um bloco `[data-tema=...]` do index.css.
+   *
+   * A lista mora aqui porque é ela que diz o que é válido guardar: um
+   * `gibiteca_tema` com lixo dentro — arquivo editado à mão, versão antiga,
+   * sincronia de outro aparelho — cai no padrão em vez de pendurar um
+   * atributo que nenhum CSS atende.
+   *
+   * O PADRÃO não escreve atributo nenhum: ele É o `:root`. O atributo só
+   * existe quando há desvio, então o dia em que o Moss deixar de ser o
+   * padrão nada fica pendurado no html.
+   */
+  const TEMA_PADRAO = 'moss'
+  const TEMAS_VALIDOS = ['moss', 'nockout', 'candy', 'midnight']
   const [tema, setTemaState] = useState(() => {
-    try { return localStorage.getItem('gibiteca_tema') === 'nockout' ? 'nockout' : 'moss' } catch (e) { return 'moss' }
+    try {
+      const t = localStorage.getItem('gibiteca_tema')
+      return TEMAS_VALIDOS.includes(t) ? t : TEMA_PADRAO
+    } catch (e) { return TEMA_PADRAO }
   })
   useEffect(() => {
     const html = document.documentElement
-    if (tema === 'nockout') html.dataset.tema = 'nockout'
-    else delete html.dataset.tema
+    if (tema === TEMA_PADRAO) delete html.dataset.tema
+    else html.dataset.tema = tema
   }, [tema])
   const setTema = useCallback((t) => {
-    setTemaState(t === 'nockout' ? 'nockout' : 'moss')
-    try { localStorage.setItem('gibiteca_tema', t) } catch (e) { /* navegador sem storage */ }
+    const valido = TEMAS_VALIDOS.includes(t) ? t : TEMA_PADRAO
+    setTemaState(valido)
+    try { localStorage.setItem('gibiteca_tema', valido) } catch (e) { /* navegador sem storage */ }
   }, [])
 
   // ---- obra fixada ----
@@ -103,6 +116,182 @@ export function StoreProvider({ children }) {
     setPage(1)
   }, [])
 
+  /* ---- fila de leitura ----
+   *
+   * Mora DENTRO de `gibiteca_v1`, junto das obras, e não numa chave própria
+   * como `gibiteca_fixada`. A diferença é o que se perde ao perder: a fixada
+   * é um enfeite da grade, se refaz num clique. A fila é trabalho — uma ordem
+   * escolhida a dedo — e trabalho tem de ir junto no backup e na nuvem.
+   *
+   * O custo é que toda gravação carrega a fila, e um backup antigo não a tem.
+   * Por isso a leitura é sempre defensiva: sem `fila` no arquivo, fila vazia.
+   */
+  const [fila, setFila] = useState(init.fila)
+
+  /* Põe ou tira. Um botão só, nos dois lados — no detalhe da obra e na
+     própria fila —, porque a pergunta é a mesma: está na fila ou não? */
+  const alternarFila = useCallback((id, vol = null) => {
+    marcarAlterado()
+    setFila(lista => {
+      const k = chaveFila(id, vol)
+      const i = lista.findIndex(e => chaveFila(e.id, e.vol) === k)
+      if (i >= 0) return lista.filter((_, n) => n !== i)
+      /* Entra NO FIM. A fila é uma ordem de leitura, e o que se acabou de
+         lembrar não passa na frente do que já estava esperando — quem decide
+         isso é o arrasto. */
+      return [...lista, { id, vol }]
+    })
+  }, [])
+
+  const removerDaFila = useCallback((id, vol = null) => {
+    marcarAlterado()
+    const k = chaveFila(id, vol)
+    setFila(lista => lista.filter(e => chaveFila(e.id, e.vol) !== k))
+  }, [])
+
+  /* A nova ordem chega pronta do arrasto (Reorder do framer-motion), com as
+     MESMAS entradas em ordem diferente. Não se valida nada aqui: validar
+     significaria comparar listas a cada quadro de arrasto. */
+  const reordenarFila = useCallback((nova) => {
+    marcarAlterado()
+    setFila(nova)
+  }, [])
+
+  /* Marcar lido pela fila.
+   *
+   * Grava `lido` e a nota na unidade certa — a obra, se avulsa; o volume, se
+   * for volume — e TIRA da fila. Sair da fila não é efeito colateral: é o fim
+   * do ciclo. O que foi lido não é mais o que vem a seguir.
+   *
+   * Põe na estante (`status: 'biblioteca'`) o que ainda estivesse em
+   * "quero". Hoje isso é cinto de segurança, não caminho normal: desde que
+   * só o que está na estante entra na fila, não deveria haver "quero" aqui.
+   * Mas uma fila guardada ANTES dessa trava — ou vinda da nuvem de um
+   * aparelho mais antigo — pode ter, e marcar lido um item de desejo
+   * duraria até a próxima edição e sumiria sozinho. */
+  const marcarLido = useCallback((id, vol = null, nota = 0) => {
+    marcarAlterado()
+    setObras(lista => lista.map(o => {
+      if (o.id !== id) return o
+      const campos = { status: 'biblioteca', urgencia: false, lido: true, nota: Number(nota) || 0 }
+      if (vol == null) return { ...o, ...campos }
+      const vols = volsOf(o).slice()
+      if (!vols[vol]) return o
+      vols[vol] = { ...vols[vol], ...campos }
+      return { ...o, volumes: vols }
+    }))
+    removerDaFila(id, vol)
+  }, [removerDaFila])
+
+
+  /* ---- listas ----
+   *
+   * Pastas feitas à mão. Moram junto das obras em `gibiteca_v1`, pelo mesmo
+   * motivo da fila: é trabalho, e trabalho vai no backup e na nuvem.
+   *
+   * O id da lista sai do maior em uso + 1, igual ao das obras. Não se
+   * reaproveita id de lista apagada: o Editor guarda, enquanto está aberto,
+   * a quais listas a obra vai entrar, e um id reciclado faria esse rascunho
+   * apontar para a lista errada.
+   */
+  const [listas, setListas] = useState(init.listas)
+
+  const criarLista = useCallback((nome, ids = []) => {
+    const limpo = String(nome || '').trim()
+    if (!limpo) return null
+    let nova = null
+    marcarAlterado()
+    setListas(lista => {
+      const id = lista.reduce((m, l) => Math.max(m, l.id || 0), 0) + 1
+      /* `[...new Set(ids)]`: a tela de escolha não deixa marcar duas vezes,
+         mas quem chama pode vir de outro lugar — e id repetido apareceria
+         duas vezes na galeria, com a mesma capa. */
+      nova = { id, nome: limpo, obras: [...new Set(ids)] }
+      return [...lista, nova]
+    })
+    return nova
+  }, [])
+
+  const renomearLista = useCallback((id, nome) => {
+    const limpo = String(nome || '').trim()
+    if (!limpo) return                       // lista sem nome não se acha depois
+    marcarAlterado()
+    setListas(lista => lista.map(l => (l.id === id ? { ...l, nome: limpo } : l)))
+  }, [])
+
+  /* Apagar a lista NÃO toca nas obras. É pasta, não caixa: desfazer a pasta
+     não joga fora o que estava dentro. */
+  const apagarLista = useCallback((id) => {
+    marcarAlterado()
+    setListas(lista => lista.filter(l => l.id !== id))
+  }, [])
+
+  /* Põe ou tira uma obra de UMA lista. Entra no fim: a ordem da galeria é a
+     ordem em que as coisas foram postas, e quem chega depois não passa na
+     frente. */
+  const alternarNaLista = useCallback((listaId, obraId) => {
+    marcarAlterado()
+    setListas(lista => lista.map(l => {
+      if (l.id !== listaId) return l
+      const dentro = l.obras.includes(obraId)
+      return { ...l, obras: dentro ? l.obras.filter(x => x !== obraId) : [...l.obras, obraId] }
+    }))
+  }, [])
+
+  /* Diz de uma vez EM QUAIS listas a obra está — é como o Editor salva.
+   *
+   * Tem de ser uma operação só, e não um `alternarNaLista` por lista: o
+   * Editor entrega o conjunto final, e aplicar em várias passadas faria cada
+   * uma gravar e disparar envio para a nuvem.
+   *
+   * Remover de onde saiu é tão importante quanto pôr onde entrou: sem isso,
+   * desmarcar uma lista no Editor não desmarcaria nada. */
+  const definirListasDaObra = useCallback((obraId, ids) => {
+    const alvo = new Set(ids || [])
+    marcarAlterado()
+    setListas(lista => lista.map(l => {
+      const dentro = l.obras.includes(obraId)
+      const deveEstar = alvo.has(l.id)
+      if (dentro === deveEstar) return l
+      return { ...l, obras: deveEstar ? [...l.obras, obraId] : l.obras.filter(x => x !== obraId) }
+    }))
+  }, [])
+
+  /* Obra apagada sai de todas as listas.
+   *
+   * A leitura já descarta id morto, então isto é faxina, não correção — mas
+   * faxina que importa: sem ela o arquivo guardado acumularia ids de obras
+   * que não existem mais, e cada backup carregaria esse lixo para a frente. */
+  const podarListas = useCallback((obrasNovas) => {
+    const vivos = new Set((obrasNovas || []).map(o => o.id))
+    setListas(lista => {
+      let mudou = false
+      const nova = lista.map(l => {
+        const obras = l.obras.filter(id => vivos.has(id))
+        if (obras.length === l.obras.length) return l
+        mudou = true
+        return { ...l, obras }
+      })
+      return mudou ? nova : lista
+    })
+  }, [])
+
+  /* Desmembrar: a série sai das listas e os VOLUMES entram no lugar dela.
+   *
+   * Podar e pronto seria perda silenciosa — a obra estava em "Para reler" e
+   * sumiria de lá sem ninguém mexer na lista. Os volumes agora são obras de
+   * verdade, e são eles que herdam o lugar, na posição onde a série estava.
+   *
+   * Sim, uma entrada vira N. Mas isso se VÊ na galeria, e ver é melhor que
+   * descobrir a falta meses depois. */
+  const trocarNasListas = useCallback((idVelho, idsNovos) => {
+    setListas(lista => lista.map(l => {
+      const i = l.obras.indexOf(idVelho)
+      if (i < 0) return l
+      return { ...l, obras: [...l.obras.slice(0, i), ...idsNovos, ...l.obras.slice(i + 1)] }
+    }))
+  }, [])
+
   // ---- nuvem ----
   const cloudRef = useRef(loadCloud())
   const [cloud, setCloudState] = useState(cloudRef.current)
@@ -112,8 +301,8 @@ export function StoreProvider({ children }) {
   // permissão ou caminho — nem para quem escreveu o código.
   const [syncErro, setSyncErro] = useState('')
   const falhou = useCallback((e) => { setSyncErro(String(e && e.message || e || 'Erro desconhecido')); setSync('err') }, [])
-  const dataRef = useRef({ obras: init.obras, editoras: init.editoras })
-  useEffect(() => { dataRef.current = { obras, editoras } }, [obras, editoras])
+  const dataRef = useRef({ obras: init.obras, editoras: init.editoras, fila: init.fila, listas: init.listas })
+  useEffect(() => { dataRef.current = { obras, editoras, fila, listas } }, [obras, editoras, fila, listas])
   const writeCloud = useCallback((next) => {
     cloudRef.current = next; setCloudState(next)
     // se a configuração da nuvem não puder ser gravada, a pessoa vai
@@ -154,10 +343,10 @@ export function StoreProvider({ children }) {
         }
       }
 
-      const { obras, editoras } = dataRef.current
+      const { obras, editoras, fila, listas } = dataRef.current
       const agora = Date.now()
       const json = JSON.stringify(
-        { version: 1, atualizadoEm: agora, updated: new Date(agora).toISOString(), obras, editoras }, null, 1)
+        { version: 1, atualizadoEm: agora, updated: new Date(agora).toISOString(), obras, editoras, fila, listas }, null, 1)
       const b64 = b64enc(json)
       // Sem arquivo na nuvem, NÃO se manda sha: ele só existe para atualizar
       // algo que já está lá. Mandar um sha guardado de antes faz o GitHub
@@ -202,14 +391,14 @@ export function StoreProvider({ children }) {
     if (!dirty.current) return
     let gravou = true
     try {
-      localStorage.setItem('gibiteca_v1', JSON.stringify({ version: 1, atualizadoEm: carimbo.current, obras, editoras }))
+      localStorage.setItem('gibiteca_v1', JSON.stringify({ version: 1, atualizadoEm: carimbo.current, obras, editoras, fila, listas }))
     } catch (e) { gravou = false }
     setSemEspaco(!gravou)
     if (!gravou) setFalhasAoGuardar(n => n + 1)
     if (skipPush.current) { skipPush.current = false; return }
     if (!gravou) { clearTimeout(pushTimer.current); pushToCloud(); return }
     scheduleCloudPush()
-  }, [obras, editoras, scheduleCloudPush, pushToCloud])
+  }, [obras, editoras, fila, listas, scheduleCloudPush, pushToCloud])
 
   const applyData = useCallback((data, { fromCloud = false } = {}) => {
     if (!Array.isArray(data?.obras)) return
@@ -220,6 +409,12 @@ export function StoreProvider({ children }) {
     if (fromCloud) skipPush.current = true
     setObras(data.obras)
     if (Array.isArray(data.editoras) && data.editoras.length) setEditoras(data.editoras)
+    /* Arquivo sem `fila` (backup anterior a este recurso) zera a fila em vez
+       de manter a de agora: o arquivo restaurado É a coleção, e deixar uma
+       fila velha apontando para ids de outra coleção daria entradas mortas,
+       ou pior, entradas vivas apontando para a obra errada. */
+    setFila(Array.isArray(data.fila) ? data.fila : [])
+    setListas(Array.isArray(data.listas) ? data.listas : [])
     setPage(1)
   }, [])
 
@@ -333,10 +528,45 @@ export function StoreProvider({ children }) {
 
   const nextId = useCallback(() => obras.reduce((m, o) => Math.max(m, o.id || 0), 0) + 1, [obras])
   const registerEditora = useCallback((nome) => { if (nome) setEditoras(list => (list.includes(nome) ? list : [...list, nome])) }, [])
+  /* ---- a fila se conversa com o resto ----
+   *
+   * Quatro coisas tiram da fila sem ninguém pedir, e as quatro são a mesma
+   * regra: uma entrada só vale enquanto aponta para algo que existe, que
+   * está na estante e que ainda não foi lido.
+   * lido.
+   *
+   *   1. marcar lido PELO EDITOR (não só pela fila)
+   *   1b. tirar da estante pelo Editor ("tenho" -> "quero")
+   *   2. apagar a obra
+   *   3. desmembrar a série — os volumes viram outras obras, com outros ids
+   *
+   * A poda roda sobre a lista de obras que ACABOU de ser montada, e não sobre
+   * o `obras` do render: dentro de um `setObras` o estado antigo ainda é o que
+   * está em `obras`, e podar contra ele decidiria pela coleção de antes.
+   */
+  const podarFila = useCallback((obrasNovas) => {
+    setFila(lista => {
+      const sobrou = lista.filter(e => {
+        const item = itemDaFila(obrasNovas, e)
+        return item && podeEnfileirar(item.unidade)
+      })
+      // mesma lista? devolve a MESMA referência, para não disparar gravação
+      return sobrou.length === lista.length ? lista : sobrou
+    })
+  }, [])
+
+  /* Salvar pelo Editor pode ter marcado um volume como lido — e o que foi
+     lido sai da fila. A poda roda de DENTRO do `setObras`, sobre a lista já
+     atualizada: fora dela o `obras` do render ainda é a coleção de antes. */
   const upsertObra = useCallback((rec) => {
     marcarAlterado(); registerEditora(rec.editora)
-    setObras(list => { const i = list.findIndex(o => o.id === rec.id); if (i === -1) return [...list, rec]; const c = list.slice(); c[i] = rec; return c })
-  }, [registerEditora])
+    setObras(list => {
+      const i = list.findIndex(o => o.id === rec.id)
+      const nova = i === -1 ? [...list, rec] : list.map((o, n) => (n === i ? rec : o))
+      podarFila(nova)
+      return nova
+    })
+  }, [registerEditora, podarFila])
   /* Cópia inteira da obra, com id novo e "(cópia)" no nome. Nasce como obra
      de verdade — quem duplica quer editar a cópia em seguida, e um rascunho
      que só existe no modal se perderia num toque em Cancelar.
@@ -356,7 +586,10 @@ export function StoreProvider({ children }) {
   const deleteObra = useCallback((id) => {
     // se a apagada era a fixada, o destaque some junto
     setFixada(f => { if (f === id) { try { localStorage.removeItem('gibiteca_fixada') } catch (e) { /* */ } return null } return f })
-    marcarAlterado(); setObras(list => list.filter(o => o.id !== id)) }, [])
+    marcarAlterado()
+    // a obra apagada leva as entradas dela na fila junto
+    setObras(list => { const nova = list.filter(o => o.id !== id); podarFila(nova); podarListas(nova); return nova })
+  }, [podarFila, podarListas])
 
   /* Desmembra uma série ou box: cada volume vira uma obra avulsa, e o
    * registro que os agrupava deixa de existir.
@@ -388,9 +621,14 @@ export function StoreProvider({ children }) {
     if (!novas.length) return null          // obra sem volumes: nada a desmembrar
     setFixada(f => { if (f === id) { try { localStorage.removeItem('gibiteca_fixada') } catch (e) { /* */ } return null } return f })
     marcarAlterado()
-    setObras(list => [...list.filter(o => o.id !== id), ...novas])
+    /* Os volumes viram obras com ids NOVOS: nenhuma entrada da fila aponta
+       mais para eles, e a poda limpa as órfãs. Não há como transportá-las —
+       a entrada dizia "volume 3 da série 7", e a série 7 deixou de existir. */
+    setObras(list => { const nova = [...list.filter(o => o.id !== id), ...novas]; podarFila(nova); return nova })
+    trocarNasListas(id, novas.map(o => o.id))
     return novas
-  }, [obras])
+  }, [obras, podarFila, trocarNasListas])
+
 
   const setCovers = useCallback((updates) => {
     if (!updates || !updates.length) return
@@ -420,6 +658,10 @@ export function StoreProvider({ children }) {
     setSort, setView, setPage, setPageSize, setFilter, resetFilters, loadBackup, aplicarObras,
     tema, setTema,
     nextId, upsertObra, duplicarObra, desmembrarObra, deleteObra, setCovers,
+    // fila de leitura
+    fila, alternarFila, removerDaFila, reordenarFila, marcarLido,
+    // listas
+    listas, criarLista, renomearLista, apagarLista, alternarNaLista, definirListasDaObra,
     filtered, total, totalPages, start, pageItems, all,
     fixada, fixarObra,
     // nuvem

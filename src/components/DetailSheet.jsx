@@ -5,7 +5,7 @@ import {
 } from '../lib/motion.js'
 import { useStore } from '../lib/store.jsx'
 import { linkDoGuia } from '../lib/catalogo.js'
-import { coverOf, tipoOf, edOf, edicaoDe, isImp, authorsOf, paisesOf, unitsForStatus, avgNota, unitsOf, ownedCount, sumValor, fmtBRL, statusMatch, initials, classeTinta, volumesSemCapa } from '../lib/helpers.js'
+import { coverOf, tipoOf, edOf, edicaoDe, isImp, authorsOf, paisesOf, unitsForStatus, avgNota, unitsOf, ownedCount, sumValor, fmtBRL, statusMatch, initials, classeTinta, volumesSemCapa, naFila, podeEnfileirar } from '../lib/helpers.js'
 
 function Numero({ rotulo, valor, sub, capitalizar }) {
   return (
@@ -19,8 +19,59 @@ function Numero({ rotulo, valor, sub, capitalizar }) {
   )
 }
 
+/* "Salvar na fila", um só botão para os dois lugares: a obra avulsa e cada
+ * volume. É o MESMO gesto — "quero ler isto a seguir" — e dois desenhos
+ * diferentes fariam parecer duas coisas.
+ *
+ * O rótulo diz a AÇÃO quando está fora ("Salvar na fila") e o ESTADO quando
+ * está dentro ("Na fila"). É a mesma palavra do texto que a fila vazia usa
+ * para ensinar onde clicar — e esse par tem de andar junto: a tela que
+ * manda procurar um botão precisa citá-lo pelo nome que ele tem.
+ *
+ * Alterna: já está na fila, tira. Sem menu, sem confirmação. Pôr e tirar da
+ * fila não destrói nada; o que custa caro é perder a ORDEM, e a ordem está
+ * na fila, não aqui.
+ *
+ * NÃO aparece no que já foi lido. A fila é o que vem a seguir, e o que já se
+ * leu não vem a seguir — é a mesma regra que tira da fila sozinho quando o
+ * Editor marca lido (`podarFila`, no store). Oferecer o botão ali criaria
+ * uma entrada que a próxima edição apagaria sem explicação.
+ *
+ * `compacto` é a versão de volume: ícone só, do tamanho do selo ao lado.
+ */
+function BotaoFila({ naLista, cabe, compacto, rotulo, onClick }) {
+  if (!cabe) return null
+  const titulo = naLista ? 'Tirar da fila de leitura' : 'Salvar na fila de leitura'
+  const marcador = (
+    <svg className={compacto ? 'w-[13px] h-[13px]' : 'w-[15px] h-[15px]'} viewBox="0 0 24 24"
+         fill={naLista ? 'currentColor' : 'none'} stroke="currentColor"
+         strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 3h12a1 1 0 0 1 1 1v17l-7-5-7 5V4a1 1 0 0 1 1-1z" />
+    </svg>
+  )
+  if (compacto) {
+    return (
+      <button type="button" onClick={onClick}
+        aria-pressed={naLista}
+        title={titulo + ' — ' + rotulo}
+        aria-label={titulo + ' — ' + rotulo}
+        className={'shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full border transition-colors ' +
+          (naLista ? 'bg-moss text-sobre-acento border-moss' : 'border-contorno text-ink-faint hover:text-ink hover:border-ink-mute')}>
+        {marcador}
+      </button>
+    )
+  }
+  return (
+    <button type="button" onClick={onClick} aria-pressed={naLista}
+      title={titulo} className={'neo-btn w-full justify-center mt-3 ' + (naLista ? '!bg-moss !text-sobre-acento !border-moss' : '')}>
+      {marcador}
+      {naLista ? 'Na fila' : 'Salvar na fila'}
+    </button>
+  )
+}
+
 export default function DetailSheet({ obra, onClose, onEdit, onDuplicar, onDesmembrar }) {
-  const { fixada, fixarObra, filters } = useStore()
+  const { fixada, fixarObra, filters, fila, alternarFila } = useStore()
   const estaFixada = obra != null && fixada === obra.id
   const multi = obra != null && (tipoOf(obra) === 'serie' || tipoOf(obra) === 'box')
   const todosOsVolumes = obra != null ? unitsOf(obra) : []
@@ -160,7 +211,7 @@ export default function DetailSheet({ obra, onClose, onEdit, onDuplicar, onDesme
                 <div className="w-24 sm:w-28 shrink-0 self-start aspect-square relative flex items-center justify-center">
                   {coverOf(obra, filters.status)
                     ? <img src={coverOf(obra, filters.status)} alt="" className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_18px_30px_-18px_rgba(35,39,28,.55)]" />
-                    : <div className={`w-full h-full flex items-center justify-center text-white ${classeTinta(edOf(obra) || obra.nome)}`}>
+                    : <div className={`w-full h-full flex items-center justify-center text-sobre-tinta ${classeTinta(edOf(obra) || obra.nome)}`}>
                         <span className="font-display font-semibold text-titulo leading-none">{initials(obra.nome)}</span>
                       </div>}
                 </div>
@@ -199,6 +250,16 @@ export default function DetailSheet({ obra, onClose, onEdit, onDuplicar, onDesme
                    className="neo-btn w-full justify-center mt-3">
                   Ver no Guia dos Quadrinhos ↗
                 </a>
+                {/* Só para avulsa. Numa série a fila é por VOLUME: pôr "a
+                    série" na fila não diria o que ler hoje, que é a única
+                    pergunta que a fila responde. */}
+                {!multi && (
+                  <BotaoFila
+                    naLista={naFila(fila, obra.id, null)}
+                    cabe={podeEnfileirar(obra)}
+                    onClick={() => alternarFila(obra.id, null)}
+                  />
+                )}
               </div>
 
               {obra.resenha && (
@@ -249,6 +310,12 @@ export default function DetailSheet({ obra, onClose, onEdit, onDuplicar, onDesme
                       continuam alinhados na mesma linha de base. */}
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                     {volumes.map((v, i) => {
+                      /* O índice que vai para a fila é o da obra, não o
+                         desta lista: com o filtro em "Tenho", `volumes` é um
+                         recorte, e o 2º da tela pode ser o 5º da série. Os
+                         objetos são os mesmos (unitsForStatus filtra o array
+                         de volsOf sem copiar), então `indexOf` acha o certo. */
+                      const iReal = todosOsVolumes.indexOf(v)
                       const owns = v.status === 'biblioteca'
                       const label = v.nome || `Vol. ${i + 1}`
                       return (
@@ -258,12 +325,21 @@ export default function DetailSheet({ obra, onClose, onEdit, onDuplicar, onDesme
                             {v.imagem
                               ? <img src={v.imagem} alt="" loading="lazy" className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_10px_20px_-10px_rgba(35,39,28,.55)]" />
                               : <div className={`w-full h-full rounded-pequeno flex items-center justify-center shadow-[0_10px_20px_-10px_rgba(35,39,28,.55)] ${classeTinta(label)}`}>
-                                  <span className="font-display font-semibold text-secao leading-none text-white">{initials(label)}</span>
+                                  <span className="font-display font-semibold text-secao leading-none text-sobre-tinta">{initials(label)}</span>
                                 </div>}
                           </div>
                           {/* nome INTEIRO: quebra livre, sem line-clamp */}
                           <div className="text-apoio leading-snug text-ink break-words text-center">{label}</div>
-                          <span className={`pill self-center mt-auto ${owns ? 'pill-tenho' : 'pill-quero'}`}>{owns ? 'Tenho' : 'Quero'}</span>
+                          <div className="flex items-center justify-center gap-1.5 mt-auto">
+                            <span className={`pill ${owns ? 'pill-tenho' : 'pill-quero'}`}>{owns ? 'Tenho' : 'Quero'}</span>
+                            <BotaoFila
+                              compacto
+                              rotulo={label}
+                              naLista={naFila(fila, obra.id, iReal)}
+                              cabe={podeEnfileirar(v)}
+                              onClick={() => alternarFila(obra.id, iReal)}
+                            />
+                          </div>
                         </div>
                       )
                     })}

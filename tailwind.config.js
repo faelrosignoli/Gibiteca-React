@@ -40,6 +40,10 @@ export default {
         /* A tinta que vai EM CIMA do acento. No Moss é o creme; no Nockout o
            creme cai para 3,3:1 e quem lê bem é a tinta escura. */
         'sobre-acento': 'rgb(var(--sobre-acento) / <alpha-value>)',
+        /* A tinta que vai EM CIMA da tinta de capa ausente. Era `text-white`
+           cravado em nove lugares, e isso prendia toda família de tintas a
+           ser escura. O Candy quis pastel: lá as iniciais são escuras. */
+        'sobre-tinta': 'rgb(var(--sobre-tinta) / <alpha-value>)',
         gold:    '#B0862B',
         rust:    '#9C4A2E',
         blue:    '#2f5aa8',   // selo "Importado"

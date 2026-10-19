@@ -56,7 +56,9 @@ src/
     BulkCovers.jsx         # envio de capas em massa (casa por nome, sobe p/ covers/)
     Welcome.jsx            # a capa: uma imagem por visita (lista CAPAS), celular/desktop por <picture>
     Backup.jsx             # pop-up de exportar/importar a coleção
-    Tema.jsx               # pop-up da escolha de tema (Moss / Nockout) — mesmo molde do Backup
+    Tema.jsx               # pop-up do tema: uma faixa colorida por tema, empilhadas
+    Fila.jsx               # fila de leitura: gaveta com arrasto para reordenar + pop-up da nota
+    Listas.jsx             # listas/pastas: índice + galeria de capas, e a grade de escolher obras
 ```
 
 ## Regras inegociáveis
@@ -1100,31 +1102,386 @@ ponta: cadastrando Brasil e Argentina, o `localStorage` gravou
 `"Brasil / Argentina"`.
 
 
+
+### A fila de leitura
+Uma lista **ordenada** do que se pretende ler. Não é filtro nem marcador: a
+coleção já diz o que você tem e o que já leu; a fila diz **o que vem a
+seguir**, e essa ordem é escolhida a dedo, arrastando.
+
+Abre pelo ☰ (primeira linha, antes de Estatísticas: é o que se consulta no
+dia, não o que se olha de vez em quando). Gaveta à direita no desktop, tela
+cheia no celular — a mesma casca dos Filtros, `w-[min(440px,100%)]`: num
+telefone de 375px o `min` já entrega a largura toda, sem um segundo layout.
+Medido a 375px: gaveta de 375, sem rolagem lateral.
+
+**A linha mostra QUATRO coisas e nada mais:** capa, título, editora e autor.
+Sem selos, nota, valor ou progresso. A coleção é onde se consulta; aqui a
+pergunta é só "o que eu leio agora", e cada dado a mais é uma chance de parar
+para ler a linha em vez de ler o gibi.
+
+**ORDEM É O CONTEÚDO.** A fila não se ordena por nada — nem nome, nem data.
+Qualquer ordenação automática apagaria a única informação que ela guarda.
+
+#### A entrada: `{ id, vol }`
+`id` é a obra; `vol` é o **índice** do volume dentro dela, ou `null` para obra
+avulsa.
+
+Índice, e não o nome do volume: nome se repete ("Vol. 1" em duas séries), se
+edita, e às vezes nem existe. O índice é o que `volsOf` já usa em todo o resto
+do app — `unitsOf`, `missingVols`, a grade do detalhe —, e inventar uma segunda
+forma de apontar para um volume criaria duas verdades.
+
+**O preço, que é real:** apagar um volume do meio de uma série pelo Editor
+empurra os índices seguintes, e uma entrada que apontava para o volume 3 passa
+a apontar para o que era o 4. Não há como o store perceber — o Editor devolve
+o array de volumes inteiro, sem dizer o que saiu. Fica anotado porque é o tipo
+de coisa que, quando acontecer, ninguém vai ligar à causa.
+
+#### Onde se põe na fila
+`BotaoFila`, em `DetailSheet.jsx`, um só componente para os dois lugares:
+botão de largura inteira na obra **avulsa** (abaixo do link do Guia) e ícone de
+marcador ao lado do selo em **cada volume**. É o mesmo gesto, e dois desenhos
+fariam parecer duas coisas. Alterna: já está na fila, tira.
+
+**Série não entra inteira.** Numa série a fila é por VOLUME — pôr "a série" na
+fila não diria o que ler hoje, que é a única pergunta que a fila responde.
+
+**O botão não aparece no que já foi lido NEM no que você não tem.** Ver
+"Só entra na fila o que você TEM", abaixo.
+
+**O índice que vai para a fila é o da OBRA, não o da lista da tela.** Com o
+filtro em "Tenho", `volumes` no DetailSheet é um recorte de `unitsForStatus`, e
+o 2º da tela pode ser o 5º da série. Como `unitsForStatus` filtra o array de
+`volsOf` sem copiar os objetos, `todosOsVolumes.indexOf(v)` devolve o índice
+verdadeiro. Sem isso a fila apontaria para o volume errado sempre que houvesse
+filtro ligado — e o erro só apareceria depois, com o filtro desligado.
+
+
+#### Só entra na fila o que você TEM
+A fila responde "o que leio a seguir", e não se lê o que ainda não chegou — um
+volume de desejo ali seria um plano, não uma leitura. Quem guarda plano de
+compra é o status "quero" e as listas.
+
+A trava também fecha um buraco do modelo: `lido` e `nota` só existem para o
+que está na estante (o Editor apaga os dois ao salvar um item de desejo).
+Deixar um "quero" entrar levaria, no fim, a marcar lido uma coisa que o
+próprio Editor desmarcaria depois.
+
+`podeEnfileirar(u)` = está na estante **e** ainda não foi lido. Uma função só,
+chamada por três lugares — o botão do detalhe, a poda do store e o filtro da
+tela da fila. Separadas, cada uma teria a sua ideia de quem pertence à fila, e
+a divergência só apareceria num aparelho.
+
+**O botão some, não fica apagado.** É o mesmo tratamento do que já foi lido, e
+o projeto esconde em vez de desabilitar. O custo é que a ausência não se
+explica sozinha — por isso a tela vazia da fila **diz a regra** em voz alta.
+Se um dia a dúvida aparecer, o caminho é um botão desabilitado com o motivo no
+`title`, não um aviso solto.
+
+`marcarLido` ainda promove para a estante o que estiver em "quero". Virou
+cinto de segurança, não caminho normal: só o que está na estante entra na
+fila, então não deveria haver "quero" lá. Mas uma fila guardada ANTES desta
+trava — ou vinda da nuvem de um aparelho mais antigo — pode ter.
+
+#### Marcar lido
+Clicar em **Lido** abre o pop-up da nota (mesmo molde do Backup e do Tema) e
+**tira da fila**. Sair da fila não é efeito colateral: é o fim do ciclo.
+
+Fechar o pop-up pelo × marca lido do mesmo jeito, sem nota — o clique em
+"Lido" já foi a decisão, e o pop-up só oferece a nota. Marcar no fechar, e não
+no clique, mantém **uma** gravação em vez de duas seguidas.
+
+O pop-up mora FORA da gaveta (`z-70` contra `z-50`) e guarda o próprio texto,
+título e parte, em vez de apontar para a entrada: a linha sai no mesmo
+instante, e um pop-up dentro dela sairia junto antes de alguém dar a nota.
+
+**Marcar lido PROMOVE para a estante** (`status: 'biblioteca'`) o que estava em
+"quero", e zera a urgência. Não é liberdade: neste app `lido` e `nota` só
+existem para o que está na estante — o Editor apaga os dois ao salvar um item
+de desejo (ver `save` em `Editor.jsx`). Sem isso, marcar lido aqui duraria até
+a próxima edição daquela obra e sumiria sozinho, que é o pior dos dois mundos.
+
+#### Tudo se conversa
+Três coisas tiram da fila sem ninguém pedir, e as três são a mesma regra: uma
+entrada só vale enquanto aponta para algo que **existe** e **ainda não foi
+lido**.
+
+| o que acontece | quem limpa |
+|---|---|
+| marcar lido pelo Editor | `podarFila` dentro de `upsertObra` |
+| tirar da estante pelo Editor ("tenho" → "quero") | `podarFila`, pela mesma regra |
+| apagar a obra | `podarFila` dentro de `deleteObra` |
+| desmembrar a série (volumes viram obras com ids novos) | `podarFila` dentro de `desmembrarObra` |
+| coleção que chegou da nuvem ou de arquivo com entrada já lida | o filtro de leitura, na tela |
+
+`podarFila` roda **de dentro do `setObras`**, sobre a lista já atualizada: fora
+dela o `obras` do render ainda é a coleção de antes, e a poda decidiria pelo
+estado errado. Quando nada muda, ela devolve a **mesma referência** de lista,
+para não disparar uma gravação à toa.
+
+`podarFila` tem de ser declarada **acima** de quem a usa. Ela entra em array de
+dependência de `useCallback`, que é avaliado no render: definida depois, cai na
+zona morta do `const` e o app quebra ao montar — e o **build passa**, porque é
+erro de execução, não de sintaxe. Aconteceu nesta implementação.
+
+#### A tela filtra, o arquivo guarda
+A lista mostrada descarta entrada morta e entrada já lida; a guardada só é
+reescrita quando alguma ação a reescreve. Por isso **o Reorder recebe a lista
+VIVA, não a guardada**: com uma entrada morta, `fila` teria 3 itens e a tela 2,
+e o arrasto reordenaria uma lista que ninguém vê, devolvendo a ordem errada.
+Passando as vivas, o primeiro arrasto também grava a limpeza.
+
+#### Arrasto
+`Reorder.Group` / `Reorder.Item` do framer-motion. O arrasto começa pelo
+**punho**, não pela linha (`dragListener={false}` + `dragControls`): a linha
+tem dois botões, e arrastar de qualquer ponto faria todo toque hesitante virar
+um arraste de dois pixels que come o clique.
+
+O arrasto da **gaveta** sai só do cabeçalho, pelo mesmo motivo invertido: as
+duas coisas competindo pelo mesmo gesto fariam um reordenar fechar a gaveta.
+
+`select-none` na linha: arrastar selecionava o texto dela, e o que acompanhava
+o dedo era um bloco azul de seleção em vez da linha. Apareceu no primeiro
+arrasto de teste.
+
+#### Persistência
+A fila mora **dentro de `gibiteca_v1`**, junto das obras — e não numa chave
+própria como `gibiteca_fixada`. A diferença é o que se perde ao perder: a
+fixada é um enfeite da grade, se refaz num clique; a fila é trabalho, e
+trabalho vai junto no backup e na nuvem.
+
+Vai também no **arquivo exportado** (`baixarBackup(obras, editoras, fila)`).
+Sem isso o backup não ficaria "sem fila": restaurado, ficaria com fila VAZIA,
+porque `applyData` zera a fila de um arquivo que não a traz — e a ordem
+escolhida a dedo sumiria sem aviso.
+
+Leitura sempre defensiva: arquivo sem `fila` (backup anterior a este recurso)
+vira fila vazia, nunca `undefined`.
+
+
+### As listas
+Pastas feitas à mão: "Para reler", "Emprestados", "Comprar na bienal". Uma obra
+pode estar em **várias**, e estar numa lista **não muda nada sobre ela** — não
+é status, não é filtro, não é fila. É arrumação.
+
+Abre pelo ☰ → **Listas**, logo depois da Fila: as duas são organização
+pessoal, e ficam juntas antes das Estatísticas, que é consulta.
+
+#### A forma: `{ id, nome, obras: [idDaObra] }`
+Guarda só o **id**, nunca a obra: a obra pode ser editada depois, e uma cópia
+dentro da lista envelheceria em silêncio — a capa trocada no cadastro não
+apareceria aqui.
+
+**Obra inteira, não volume.** Diferente da fila, que é por volume porque
+responde "o que leio hoje". Uma lista responde "onde isto está guardado", e
+essa pergunta é sobre a obra.
+
+A ORDEM do array é a ordem de entrada: quem chega depois vai para o fim. Ao
+contrário da fila, essa ordem não é o conteúdo — é só previsibilidade.
+
+#### Uma gaveta, dois níveis
+Índice das listas e, ao abrir uma, a **galeria** dela. Não são duas gavetas
+empilhadas: a gaveta é a mesma, o conteúdo troca, e o cabeçalho ganha uma seta
+de voltar — que só existe no segundo nível, porque no índice seria um botão
+morto. Duas gavetas sobrepostas dariam dois véus, dois arrastos e duas formas
+de fechar.
+
+Mesma casca da Fila e dos Filtros (`w-[min(440px,100%)]`). Medido a 375px:
+gaveta de 375, sem rolagem lateral.
+
+**A galeria é capa + título, e nada mais** — foi o pedido, e é o que basta: na
+estante a pessoa reconhece a obra pela capa muito antes do nome. O × de tirar
+da lista fica NA capa, no canto: numa galeria sem linhas não há outra âncora, e
+um botão embaixo do título empurraria as células para alturas diferentes.
+
+
+#### A prévia: tira de capas no índice
+Abaixo do nome e da contagem, cada lista mostra as **capas das obras em
+linha**. Quando não cabem, a tira vira carrossel que se arrasta.
+
+**Seis capas por vez**, e as outras rolando. O TAMANHO sai de uma conta, não
+de um número escolhido: cada capa vale um sexto do que sobra depois dos cinco
+vãos entre elas (`flex: 0 0 calc((100% - 2.5rem) / 6)`, em `.tira-capas > *`).
+Assim as seis enchem a tira exatamente, na gaveta de 440px do desktop e na
+tela cheia do celular, sem um segundo valor para manter em sincronia.
+
+O `2.5rem` é 5 × o `gap` da tira. **Mexeu no gap, mexe aqui** — é o único par
+de números desse bloco que precisa andar junto, e por isso os dois estão a
+seis linhas de distância.
+
+A caixa da capa **não tem tamanho em classe**. Fixar em Tailwind faria dois
+lugares decidirem o mesmo, e o da tira ganharia só às vezes.
+
+Antes a tira enchia com quantas coubessem: oito capas de 44px numa gaveta de
+440. Cabiam mais, e cada uma dizia menos. Medido depois da troca: 59,8px por
+capa no desktop e 49px a 375 — **exatamente 6 nos dois**, com as 12 rolando.
+
+CONSEQUÊNCIA A LEMBRAR: com seis enchendo a tira certinha, sumiu a capa
+cortada na borda, que era o aviso de "tem mais à direita". Hoje quem avisa é
+a contagem logo acima ("12 obras") e o cursor de mão. Se um dia faltar, o
+caminho é um esmaecido na borda direita — não tirar a sexta capa.
+
+**A barra de rolagem fica escondida** (`.tira-capas`, no index.css). A barra
+do projeto tem 10px com anel de 2px: embaixo de uma tira de 44px ela comeria
+um quarto da altura e roubaria a atenção das capas, que são o conteúdo. Quem
+avisa que há mais à direita é a capa cortada na borda — o sinal que carrossel
+sempre deu.
+
+**O dedo rola nativo; o mouse arrasta por JS.** Numa tela de computador
+`overflow-x` só rola com roda horizontal ou barra, e a barra está escondida.
+Daí o arrasto por ponteiro em `TiraDeCapas`. No toque o handler sai do caminho
+(`pointerType === 'touch'`), porque o nativo faz melhor — com inércia.
+
+`setPointerCapture` não é detalhe: sem ele, soltar o mouse fora da tira — o
+que acontece sempre que se arrasta com força — deixaria o arrasto ligado, e a
+tira seguiria o cursor depois do gesto.
+
+**Arrastou não é clique.** A tira abre a lista ao ser clicada, mas só quando o
+ponteiro andou menos de 5px. Sem essa trava todo arrasto terminaria abrindo a
+lista, e 4px de tremor de mão bastariam. Medido: arrasto de 200px rolou a tira
+até o fim e **não** abriu; clique parado abriu.
+
+**A linha do índice deixou de ser um botão só.** A tira tem de ficar FORA do
+botão do título: dentro, o arrasto dela e o clique do botão disputariam o
+mesmo gesto. E a tira é `aria-hidden`: as capas repetiriam, uma a uma, nomes
+que a linha de cima já disse — quem abre a lista para o teclado e o leitor de
+tela é o botão do título.
+
+`overscroll-behavior-x: contain`: sem isto, chegar ao fim da tira passa a
+rolagem para a gaveta atrás, e arrastar capas fecharia a lista no celular,
+onde o gesto horizontal é o de voltar.
+
+
+#### Os dois botões de acrescentar
+**"Nova lista" é um + flutuante**, no canto de baixo à direita da gaveta. Só o
+sinal, sem palavra: no índice não há outra coisa para criar, e a cruz num canto
+de baixo é o gesto que todo app usa para "mais um". O nome vive no `aria-label`
+e no `title`, que é onde ele serve — para quem ouve e para quem para o cursor.
+
+Sair do fluxo não foi só mudar de lugar: **dentro da área que rola, o botão
+descia junto com as listas** e sumia justamente quando havia listas demais
+para chegar ao fim. Por isso o conteúdo do índice ganhou `pb-24` — sem a folga
+a última lista ficaria para sempre debaixo do botão.
+
+`absolute`, não `fixed`: a âncora é a GAVETA, não a janela. Em `fixed` ele
+ficaria na tela com a gaveta fechada e cairia por cima do "Nova obra" da
+coleção. Medido: 20px da direita e 20px de baixo da gaveta, nos dois tamanhos.
+
+**Só no índice.** No segundo nível quem acrescenta é **"+ Adicionar obras"**,
+no fluxo, com o mesmo desenho de + num tamanho menor. Dois botões de + na mesma
+tela — um flutuando, outro no fluxo — significariam coisas diferentes com o
+mesmo símbolo, e por isso nunca aparecem juntos.
+
+`IconMais` é um componente só para os dois, porque é um só verbo. O que muda é
+o tamanho (`w-6` no flutuante, `w-[15px]` no de fluxo).
+
+#### Escolher obras: grade, não caixinhas
+`EscolherObras` serve dois lugares — o pop-up de criar e o "Pôr obras nesta
+lista" — com busca por nome e editora (`gNorm`, então acento não conta).
+
+É **grade de capas**, não lista de checkboxes: a obra se reconhece pela capa
+antes do título, e numa coleção de centenas é isso que faz achar sem procurar.
+O marcado é o próprio cartão que se acende, com o visto DENTRO da moldura —
+fora dela, numa grade apertada, ele encostaria no cartão vizinho e a pessoa
+leria o visto do outro.
+
+Diferença entre os dois lugares, e é de propósito: no pop-up de **criar** a
+escolha é um rascunho que só vale no "Criar lista"; em **pôr obras numa lista
+que já existe**, cada toque já grava. Guardar um rascunho ali criaria um estado
+que some se a gaveta fechar.
+
+#### O botão no Editor
+Campo **Listas** no fim da seção Cadastro, como pastilhas que se marcam.
+Pastilhas e não a grade de capas: ali se escolhe entre centenas de obras e a
+capa é o que identifica; aqui se escolhe entre as poucas listas que existem, e
+o que identifica é o nome.
+
+**A escolha grava no SALVAR**, como todo o resto do formulário. É o que permite
+o mesmo controle servir à obra NOVA: ela ainda não tem id, e só depois de
+`upsertObra` existe um `rec.id` para pôr nas listas — por isso
+`definirListasDaObra(rec.id, d.listas)` vem **depois** do upsert.
+
+**O rascunho é montado em dois passos.** A obra não guarda em que listas está
+— quem guarda são as listas —, então `draftFromObra` não enxerga isso. O efeito
+que abre o Editor completa o rascunho com `listasDaObra(listas, id)`.
+
+`listas` fica **fora das dependências** desse efeito de propósito: mexer numa
+lista com o Editor aberto não pode reconstruir o rascunho e apagar o que foi
+digitado.
+
+`definirListasDaObra` aplica o conjunto FINAL de uma vez, em vez de um
+`alternarNaLista` por lista. Duas razões: várias passadas gravariam várias
+vezes e dispariam vários envios para a nuvem; e remover de onde saiu é tão
+importante quanto pôr onde entrou — sem isso, desmarcar no Editor não
+desmarcaria nada.
+
+#### Tudo se conversa
+| o que acontece | o que as listas fazem |
+|---|---|
+| apagar a obra | sai de todas as listas (`podarListas`) |
+| **desmembrar a série** | os volumes **herdam o lugar dela**, na mesma posição (`trocarNasListas`) |
+| apagar a lista | as obras **ficam** na coleção |
+| id que não resolve | descartado na leitura (`obrasDaLista`) |
+
+**O desmembrar herda em vez de podar**, e essa foi a decisão mais pesada aqui.
+Podar seria perda silenciosa: a série estava em "Para reler" e sumiria de lá
+sem ninguém mexer na lista. Os volumes agora são obras de verdade, e são eles
+que tomam o lugar. Sim, uma entrada vira N — mas isso se **vê** na galeria, e
+ver é melhor que descobrir a falta meses depois. Medido: lista `[2,5,1]` com a
+série no fim virou `[2,5,6,7]` depois de desmembrar.
+
+**Apagar a lista não toca nas obras**, e o `confirm` diz isso em voz alta: sem
+essa frase, apagar uma lista de 40 itens parece apagar 40 obras.
+
+`podarListas` e `trocarNasListas` têm de ser declaradas **acima** de
+`deleteObra` e `desmembrarObra`: entram em array de dependência de
+`useCallback`, que roda no render, e definidas depois caem na zona morta do
+`const` — o app quebra ao montar e **o build passa**, porque é erro de
+execução. Mesma armadilha do `podarFila`.
+
+#### Persistência
+Dentro de `gibiteca_v1`, ao lado de `obras` e `fila`, e no arquivo exportado
+(`baixarBackup(obras, editoras, fila, listas)`). Mesmo motivo da fila: é
+trabalho, e `applyData` zera o que o arquivo não traz — um backup sem `listas`
+não ficaria "sem listas", apagaria as que existem ao ser restaurado.
+
+Id de lista **não se recicla**: o Editor guarda, enquanto está aberto, a quais
+listas a obra vai entrar, e um id reaproveitado faria esse rascunho apontar
+para a lista errada.
+
 ### O pop-up de Tema
 Mesmo molde do Backup — mesma moldura, mesma entrada, mesmo título em Lexend
 caixa alta, tela cheia no celular e cartão de 460px no desktop. Dois pop-ups
 abertos do mesmo menu que chegassem de jeitos diferentes fariam o menu parecer
 duas coisas.
 
-**As opções ficam LADO A LADO, e no Backup em coluna.** Não é capricho: no
-Backup são duas ações de pesos diferentes — uma delas substitui a coleção
-inteira —, e a coluna serve para afastá-las. Aqui são dois pares, uma escolha
-entre iguais, e lado a lado é como se lê escolha entre iguais.
+**Cada tema é uma FAIXA**, pintada com as cores dele e empilhada sobre as
+outras. Um tema de três cores vira degradê a 135°; um de uma cor vira cor
+cheia. Na horizontal as três faixas do Candy leem como três botões colados;
+na diagonal leem como uma superfície só.
 
-**A palavra É a amostra** (`.tema-palavra`, no index.css): sem contorno e sem
-bolinha. Duas camadas do mesmo texto, a de baixo em 30% e a de cima cheia,
-recortada por `clip-path`; no hover o recorte abre da esquerda para a direita
-e a palavra se **entinta como pincelada**. Na escolhida a transição é zerada —
-a troca de tema já é instantânea na página inteira, e a palavra chegando
-depois pareceria atraso.
+Antes eram duas palavras lado a lado, e a palavra ERA a amostra (duas camadas
+de texto, a de cima recortada por `clip-path`, entintando como pincelada no
+hover). Era bonito e dava para dois temas — quebrou no terceiro. A faixa
+mostra a cor no tamanho em que ela vai ser vista (um fundo), e empilhar deixa
+a lista crescer sem ninguém mexer no layout. O `.tema-palavra` saiu do
+index.css junto.
 
-O hex de cada tema é **cravado no `style`**, não token: a palavra mostra a cor
-daquele tema, então não pode seguir o tema atual.
+Empilhado, e no Backup em coluna pelo mesmo motivo oposto: no Backup são duas
+ações de pesos diferentes e a coluna as afasta; aqui são pares, e a pilha é
+como se lê uma lista de opções.
 
-`role="radiogroup"` com `aria-checked`: são duas faces da MESMA escolha. Sem
-isso o leitor de tela anuncia "Moss, botão" sem dizer de que pergunta aquilo é
-resposta — e, como o que marca o escolhido é tinta e opacidade, sem o
-`aria-checked` não sobraria nada para quem não enxerga a diferença.
+Os hex das faixas ficam **cravados no componente**, não em token: a faixa do
+Candy tem de ser rosa mesmo com o site no Midnight, senão a lista inteira vira
+a mesma cor e a escolha deixa de ser escolha. A tinta do nome sobre cada faixa
+também é escolhida por contraste — ink sobre o rosa dá 5,81:1, papel sobre o
+midnight dá 16,29:1.
+
+**O escolhido leva anel E visto.** O anel usa a tinta do app, não a do tema:
+ele é a voz da interface dizendo "é este", e teria de mudar de cor a cada
+faixa para ser visto. O visto repete o que o anel já diz, de propósito — anel
+é forma, visto é símbolo, e quem não distingue um anel fino ainda reconhece um
+visto. Quem ouve recebe o `aria-checked`, que não depende de nenhum dos dois.
 
 **O pop-up NÃO fecha ao escolher.** A troca repinta a página inteira atrás do
 véu, e fechar junto tiraria da vista justamente o que mudou — além de impedir
@@ -1475,16 +1832,91 @@ sem classe vira `.marca-sombra`, `.cls-1` vira `.marca-letra`, e `.cls-2`
 O `layoutId="marca"` da abertura saiu da imagem e foi para um `motion.span` em
 volta do SVG — a viagem da marca continua igual.
 
-### Dois temas de cor
-O app tem **dois temas**: **Moss** (verde, padrão) e **Nockout**
-(laranja `#FF5000`). Mudam o **acento** e o **papel**; tinta, gold, rust e blue
-são os mesmos nos dois.
+### Quatro temas de cor
+O app tem **quatro temas**: **Moss** (verde, padrão), **Nockout** (laranja),
+**Candy** (pastel) e **Midnight** (roxo-tinta). Mudam o **acento**, o **papel**
+e a família de **tintas de capa ausente**; tinta, gold, rust e blue são os
+mesmos em todos.
 
-| Papel | Moss | Nockout |
-|---|---|---|
-| `--paper` | `#F4F0E6` creme | `#F0F0F0` prateado |
-| `--paper-2` | `#EBE5D4` | `#E4E4E4` |
-| `--paper-3` | `#E1DAC4` | `#D6D6D6` |
+| | acento | papel | acento-texto | sobre-acento |
+|---|---|---|---|---|
+| Moss | `#4B5D3A` | `#F4F0E6` creme | o próprio (6,31:1) | papel (6,31:1) |
+| Nockout | `#FF5000` | `#F0F0F0` prateado | `#C23A00` (4,73:1) | ink (4,64:1) |
+| Candy | `#DF8888` | `#F7F2F0` rosado | `#A8434A` (5,30:1) | ink (5,81:1) |
+| Midnight | `#280137` | `#F3F1F6` lavanda | o próprio (16,29:1) | papel (16,29:1) |
+
+Os números foram **medidos**, não estimados: `node tools/contraste.cjs` roda a
+conta do WCAG sobre cada par e `node tools/tintas.cjs` sobre as oito tintas de
+cada tema. Os dois saem com código 1 se algo cair abaixo de 4,5:1 — rode-os ao
+acrescentar um tema. Nenhuma cor entrou sem passar.
+entrou sem passar em 4,5:1.
+
+**Acrescentar um tema é escrever um bloco `[data-tema=...]`** com o mesmo
+conjunto de variáveis, e mais nada: nenhum componente sabe que ele existe.
+Duas listas precisam saber o NOME: `TEMAS_VALIDOS` no store (que filtra lixo
+guardado) e o array repetido no script inline do `index.html` (que evita o
+piscar antes do bundle; roda antes de qualquer módulo, então não há de onde
+importar).
+
+#### Candy: três cores, e as três têm de aparecer
+Vieram três de uma vez — `#DF8888` rosa, `#EBB273` damasco, `#B5CDC5` menta.
+
+**A primeira versão errou o alvo.** Usava só o rosa em tudo que é acento e
+guardava as outras duas no hover e num fio: na prática, um tema rosa com dois
+detalhes. Cada cor precisa de um lugar que se VÊ.
+
+| cor | onde aparece |
+|---|---|
+| rosa | preenchimento (botões, selos, FAB) e `--acento-texto` |
+| damasco | o degrau do hover (`--moss-2`) |
+| menta | o tom claro, o fio, e a **lavagem** (`--tinta-moss`): etiquetas de autor, contador de seleção, cartões de estatística |
+| as três | a família de **capa ausente**, em pastel |
+
+A ordem na rampa saiu da **luminância**, não do gosto: rosa (0,35) é a mais
+escura e enche, damasco (0,51) clareia no hover, menta (0,58) é o claro. É a
+mesma semântica do Moss e do Nockout — as três já vinham na ordem certa.
+
+O rosa cheio dá **2,30:1** como texto sobre o papel, ilegível em corpo
+pequeno. Por isso `--acento-texto` é o mesmo rosa aprofundado (`#A8434A`,
+5,30:1) — a mesma separação que o Nockout já exigia.
+
+##### A família de capa ausente do Candy é PASTEL
+E essa é a mudança que de fato espalhou as cores pela tela, porque a parede
+de capas é a maior superfície do app.
+
+A primeira tentativa escureceu as três cores até o branco passar por cima — e
+as três **convergiram para marrom**. A estante ficava marrom num tema de rosa,
+damasco e menta.
+
+O erro era de premissa: a família não precisava ser escura, as INICIAIS é que
+precisavam mudar de cor. O rosa dado já tem luminância 0,35 e com tinta por
+cima dá 5,81:1. Daí nasceu **`--sobre-tinta`** — a tinta que vai em cima da
+tinta de capa ausente, branco por padrão, ink no Candy.
+
+Era `text-white` cravado em **nove lugares** (Card, Collection, DetailSheet,
+Editor, Fila, Listas), e esse hardcode prendia toda família futura a ser
+escura. Hoje é `text-sobre-tinta`. Os `text-white` que sobraram são selos de
+cor fixa (`bg-rust`, `bg-box`) e não são tinta — não mexer.
+
+As oito se dividem em três famílias (três rosas, três damascos, duas mentas)
+para o sorteio por editora espalhar as cores em vez de insistir numa.
+`node tools/tintas.cjs` mede cada família contra a tinta certa: pior caso
+**5,81:1** no Candy.
+
+#### Midnight NÃO é modo escuro
+`#280137` é tão escuro (luminância 0,008) que serve de preenchimento **e** de
+texto sem precisar de uma segunda versão, como no Moss.
+
+Mas o eixo de tema deste app é o **acento**: papel e tinta continuam claros.
+Midnight é uma noite de tinta sobre papel claro, não uma tela apagada. Inverter
+os dois mexeria em sombra dura, selos, tintas de capa (todas escuras, com
+iniciais brancas — sobre papel escuro sumiriam) e na marca. É outro assunto, e
+bem maior.
+
+O papel puxa levemente para a lavanda: sobre creme, o roxo esverdeia.
+
+
+#### Os papéis não derivam um do outro
 
 O prateado é **neutro**: R = G = B, e os degraus caem parelhos para a rampa não
 ganhar cor ao escurecer. O creme do Moss, ao contrário, esquenta conforme
@@ -1555,13 +1987,25 @@ Obra sem capa ganha um dos **oito** tons sorteados pelo nome da editora
 isso não acompanhavam o tema.
 
 Agora o **JS só sorteia** (`tintIndex` devolve 0–7) e a **cor sai de variável
-de CSS** (`.tinta-N`, com a família do Nockout em `[data-tema='nockout']`).
+de CSS**: `.tinta-N { --t: var(--tinta-N) }`, e cada tema declara os oito
+`--tinta-0..7` no próprio bloco.
 Essa separação não é preciosismo: um hex vindo do JS ficaria **congelado até o
 React redesenhar o cartão**, então trocar de tema deixaria capas da cor antiga
 espalhadas pela estante. Em CSS a cascata repinta na hora.
 
 O hash é o mesmo de antes, então cada editora continua caindo na mesma tinta e
 nenhuma obra troca de cor dentro do tema Moss.
+
+**A classe só LÊ a variável — e isso custou um defeito para aprender.** A
+fiação era por tema (`[data-tema=x] .tinta-N { --t: var(--tinta-N) }`, oito
+linhas por tema). O Candy entrou declarando as oito cores e esquecendo esse
+bloco: as capas ausentes saíram **verde-oliva num tema de rosa**, sem erro
+nenhum no console. Hoje a fiação é uma só, sem seletor de tema, e um tema
+novo não tem como esquecê-la.
+
+A família do **Midnight** é escura como as outras; a do **Candy** é pastel, e
+lá as iniciais vão em tinta — ver "A família de capa ausente do Candy".
+`node tools/tintas.cjs` mede cada uma contra a tinta que de fato vai por cima.
 
 A família do Nockout **não é o `#FF5000` puro** — com branco por cima ele daria
 3,3:1. São terracotas e barros: o laranja levado para o mesmo registro terroso
@@ -1996,14 +2440,26 @@ No Card é `whileTap`; nos botões é `:active` no CSS, que já dispara ao apert
   Estatísticas e contagens operam sobre unidades. `ownedCount`, `unitsOf`,
   `avgNota`, `sumValor` já encapsulam isso — reúse-os, não recalcule.
 - `coverOf(o)` = `o.imagem || o.volumes?.[0]?.imagem`.
+- **Fila de leitura:** `fila: [{ id, vol }]`, ao lado de `obras` no mesmo
+  arquivo. `vol` é o índice do volume, ou `null` para avulsa. A ORDEM do
+  array é o conteúdo — ver "A fila de leitura".
+- **Listas:** `listas: [{ id, nome, obras: [idDaObra] }]`, no mesmo arquivo.
+  Obra inteira, nunca volume. A obra NÃO sabe em que listas está — quem sabe
+  são as listas; use `listasDaObra(listas, id)`. Ver "As listas".
 
 ## Store e persistência (lib/store.jsx)
-- Chaves no localStorage: `gibiteca_v1` (`{version, obras, editoras}`),
+- Chaves no localStorage: `gibiteca_v1` (`{version, obras, editoras, fila, listas}`),
   `gibiteca_pagesize`, `gibiteca_cloud` (config da nuvem, inclui o token).
 - Um `ref` `dirty` evita persistir/enviar antes da 1ª alteração real.
 - Mutações: `upsertObra`, `duplicarObra`, `desmembrarObra`, `deleteObra`,
   `setCovers`, `loadBackup`. Toda alteração persiste local e, se a nuvem
   estiver conectada, **agenda push** (debounce 1,5s).
+- Fila de leitura: `alternarFila`, `removerDaFila`, `reordenarFila`,
+  `marcarLido` — e `podarFila`, que as três mutações de obra chamam para
+  tirar da fila o que foi lido ou deixou de existir.
+- Listas: `criarLista`, `renomearLista`, `apagarLista`, `alternarNaLista`,
+  `definirListasDaObra` (usada pelo Editor) — e `podarListas` /
+  `trocarNasListas`, chamadas por `deleteObra` e `desmembrarObra`.
 - `skipPush` evita reenviar dados recém-puxados da nuvem (senão vira loop).
 
 ## Nuvem (GitHub Contents API — lib/cloud.js + store)

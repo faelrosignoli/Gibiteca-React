@@ -15,11 +15,11 @@ import { baixarBackup } from '../lib/backup.js'
  * clique rápido, e restaurar não é ação para clique rápido.
  */
 export default function Backup({ open, onClose, onNotice }) {
-  const { obras, editoras, loadBackup } = useStore()
+  const { obras, editoras, fila, listas, loadBackup } = useStore()
   const fileRef = useRef(null)
 
   const exportar = () => {
-    baixarBackup(obras, editoras)
+    baixarBackup(obras, editoras, fila, listas)
     onNotice?.('Backup salvo.')
   }
 

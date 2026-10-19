@@ -57,7 +57,6 @@ import Marca from './Marca.jsx'
 export const CAPAS = [
   'moore.alan.jpg',
   'hurlant.metal.jpg',
-  'ale.jodo.jpg',   
 ]
 
 /* O nome da versão de celular: `-m` ANTES da extensão.

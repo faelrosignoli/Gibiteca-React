@@ -69,7 +69,7 @@ function useRolado() {
  * com o menu aberto — é isso que `comAcento` resolve. A mecânica está em
  * `.barra-topo`, no index.css; aqui só se liga o `data-acento`.
  */
-export default function Header({ onCloud, onBulk, onAtividades, onBackup, onTema, onFilters, onStats, onSearch, filterCount, aberturaNoAr = false }) {
+export default function Header({ onCloud, onBulk, onAtividades, onBackup, onTema, onFila, onListas, onFilters, onStats, onSearch, filterCount, aberturaNoAr = false }) {
   const { obras, editoras, loadBackup, sync, view, setView, filters } = useStore()
   const aoInicio = useVoltarAoInicio()
   const rolado = useRolado()
@@ -204,6 +204,8 @@ export default function Header({ onCloud, onBulk, onAtividades, onBackup, onTema
     <ConteudoMenu
       grande={!ehDesktop}
       sync={sync} acoes={acoesDados}
+      onFila={() => { fechar(); onFila?.() }}
+      onListas={() => { fechar(); onListas?.() }}
       onTema={() => { fechar(); onTema?.() }}
       onStats={() => { fechar(); onStats?.() }}
     />
@@ -388,7 +390,7 @@ export default function Header({ onCloud, onBulk, onAtividades, onBackup, onTema
    `grande` muda só o tamanho dos alvos: no painel de tela cheia as linhas
    precisam de altura de dedo, na folha do desktop não.
    --------------------------------------------------------------- */
-function ConteudoMenu({ grande, acoes, onTema, onStats }) {
+function ConteudoMenu({ grande, acoes, onTema, onFila, onListas, onStats }) {
   const [dadosAberto, setDadosAberto] = useState(false)
   /* No painel de tela cheia as linhas são GRANDES e SEM ícone: são três
      assuntos, não uma lista de comandos, e a essa altura o ícone vira enfeite
@@ -410,6 +412,18 @@ function ConteudoMenu({ grande, acoes, onTema, onStats }) {
       <button role="menuitem" onClick={onTema} className={`${linha} ${risco}`}>
         {!grande && <span className="text-ink-soft shrink-0 inline-flex"><IconTema /></span>}
         Tema
+      </button>
+
+      {/* ---- fila de leitura ---- */}
+      <button role="menuitem" onClick={onFila} className={`${linha} ${risco}`}>
+        {!grande && <span className="text-ink-soft shrink-0 inline-flex"><IconFila /></span>}
+        Fila de leitura
+      </button>
+
+      {/* ---- listas ---- */}
+      <button role="menuitem" onClick={onListas} className={`${linha} ${risco}`}>
+        {!grande && <span className="text-ink-soft shrink-0 inline-flex"><IconListas /></span>}
+        Listas
       </button>
 
       {/* ---- estatísticas ---- */}
@@ -560,6 +574,21 @@ const IconFiltros = () => (
 /* Círculo meio cheio: o símbolo de sempre para troca de tinta. Um balde ou
    um pincel falaria de pintar; aqui não se pinta nada, escolhe-se entre duas
    faces da mesma casa. */
+/* Um marcador de página saindo de uma pilha: é o gesto que a fila guarda —
+   separar o que vem a seguir sem tirar da estante. */
+/* Pastas empilhadas, que é o que as listas são: gavetas feitas à mão onde
+   a obra fica guardada sem deixar de estar na coleção. */
+const IconListas = () => (
+  <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 7.5l2-2.5h4l1.5 2H19a1 1 0 0 1 1 1V18a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" />
+  </svg>
+)
+const IconFila = () => (
+  <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 5h9M4 10h9M4 15h5" />
+    <path d="M16 3h5v12l-2.5-2L16 15z" />
+  </svg>
+)
 const IconTema = () => (
   <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <circle cx="12" cy="12" r="9" />

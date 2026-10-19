@@ -103,9 +103,12 @@ body {
 :root { --ease-prem: cubic-bezier(0.32, 0.72, 0, 1); }
 
 /* ------------------------------------------------------------------
-   OS DOIS TEMAS.
+   OS TEMAS.
 
-   Só o acento muda — papel, tinta, gold, rust e blue são os mesmos nos dois.
+   Quatro: Moss, Nockout, Candy e Midnight. O que muda é o ACENTO e o PAPEL;
+   tinta, gold, rust e blue são os mesmos em todos. Acrescentar um tema é
+   escrever um bloco `[data-tema=...]` com este mesmo conjunto de variáveis —
+   nenhum componente precisa saber que ele existe.
    Os valores são canais RGB separados por espaço porque o Tailwind monta
    `rgb(var(--x) / <alpha-value>)` em cima deles; trocar por hex quebraria
    todo `bg-moss/40` do app.
@@ -132,6 +135,20 @@ body {
   --tinta-moss:    242 245 234;   /* #f2f5ea */
   --acento-texto:  75 93 58;      /* o próprio moss: já passa de sobra */
   --sobre-acento:  var(--paper);  /* 8,3:1 sobre o moss */
+
+  /* capa ausente: oito tintas sorteadas pelo nome da editora, todas escuras
+     o bastante para as iniciais em branco por cima */
+  --tinta-0:  75  93  58;       /* moss        */
+  --tinta-1:  94 113  70;       /* moss-2      */
+  --tinta-2: 107 106  58;       /* oliva       */
+  --tinta-3: 122 106  72;       /* caqui       */
+  --tinta-4:  85 107  90;       /* verde-cinza */
+  --tinta-5:  74  90  99;       /* ardósia     */
+  --tinta-6: 125  90  68;       /* terra       */
+  --tinta-7:  99  88  63;       /* bronze      */
+  /* a tinta das iniciais sobre a capa ausente. Branco onde a família é
+     escura; o Candy inverte, porque lá a família é pastel. */
+  --sobre-tinta: 255 255 255;
 }
 
 /* ---- Nockout ---- */
@@ -364,14 +381,20 @@ body::after {
    ------------------------------------------------------------------ */
 .tinta { background: linear-gradient(155deg, rgb(var(--t)), rgb(var(--t) / .8)); }
 
-.tinta-0 { --t:  75  93  58 }   /* moss          */
-.tinta-1 { --t:  94 113  70 }   /* moss-2        */
-.tinta-2 { --t: 107 106  58 }   /* oliva         */
-.tinta-3 { --t: 122 106  72 }   /* caqui         */
-.tinta-4 { --t:  85 107  90 }   /* verde-cinza   */
-.tinta-5 { --t:  74  90  99 }   /* ardósia       */
-.tinta-6 { --t: 125  90  68 }   /* terra         */
-.tinta-7 { --t:  99  88  63 }   /* bronze        */
+/* A classe só LÊ a variável; quem a define é o tema. Antes cada tema
+   precisava repetir as oito linhas `[data-tema=x] .tinta-N { --t: var(...) }`
+   para a família dele valer — e um tema novo que esquecesse esse bloco saía
+   com as cores do Moss sem avisar. Foi o que aconteceu com o Candy: a capa
+   ausente ficava verde-oliva num tema de rosa. Agora acrescentar um tema é
+   só declarar `--tinta-0..7` no bloco dele. */
+.tinta-0 { --t: var(--tinta-0) }
+.tinta-1 { --t: var(--tinta-1) }
+.tinta-2 { --t: var(--tinta-2) }
+.tinta-3 { --t: var(--tinta-3) }
+.tinta-4 { --t: var(--tinta-4) }
+.tinta-5 { --t: var(--tinta-5) }
+.tinta-6 { --t: var(--tinta-6) }
+.tinta-7 { --t: var(--tinta-7) }
 
 [data-tema='nockout'] {
   --tinta-0: 163  51   0;       /* laranja queimado */
@@ -383,14 +406,106 @@ body::after {
   --tinta-6: 156  86  51;       /* ocre             */
   --tinta-7: 125  90  68;       /* terra            */
 }
-[data-tema='nockout'] .tinta-0 { --t: var(--tinta-0) }
-[data-tema='nockout'] .tinta-1 { --t: var(--tinta-1) }
-[data-tema='nockout'] .tinta-2 { --t: var(--tinta-2) }
-[data-tema='nockout'] .tinta-3 { --t: var(--tinta-3) }
-[data-tema='nockout'] .tinta-4 { --t: var(--tinta-4) }
-[data-tema='nockout'] .tinta-5 { --t: var(--tinta-5) }
-[data-tema='nockout'] .tinta-6 { --t: var(--tinta-6) }
-[data-tema='nockout'] .tinta-7 { --t: var(--tinta-7) }
+
+/* ---- Candy ----
+   Três cores dadas de uma vez — #DF8888 rosa, #EBB273 damasco, #B5CDC5
+   menta — e as três PRECISAM aparecer. A primeira versão deste tema usava
+   só o rosa em tudo que é acento e guardava as outras duas no hover e num
+   fio: na prática era um tema rosa com dois detalhes.
+
+   Agora cada cor tem um lugar que se vê:
+
+     rosa     preenchimento (botões, selos, o FAB) e o acento-texto
+     damasco  o degrau do hover
+     menta    o tom claro, o fio e a lavagem das etiquetas e cartões
+     as três  a família de capa ausente, em pastel — ver abaixo
+
+   A ordem na rampa saiu da LUMINÂNCIA, não do gosto: rosa (0,35) é a mais
+   escura e enche; damasco (0,51) clareia no hover; menta (0,58) é o claro.
+   É a mesma semântica do Moss e do Nockout, e as três já vinham na ordem.
+
+   Papel quase branco com um fio de calor: os pastéis são claros, e sobre
+   creme forte eles encardiam. */
+[data-tema='candy'] {
+  --paper:         247 242 240;   /* #F7F2F0 */
+  --paper-2:       240 232 229;   /* #F0E8E5 */
+  --paper-3:       230 219 215;   /* #E6DBD7 */
+
+  --moss:          223 136 136;   /* #DF8888 — rosa */
+  --moss-2:        235 178 115;   /* #EBB273 — damasco, o degrau do hover */
+  --moss-3:        181 205 197;   /* #B5CDC5 — menta */
+  --moss-line:     219 231 227;   /* menta diluída: o fio é a terceira cor */
+  /* a lavagem clara é MENTA, não um rosa mais fraco: ela pinta as etiquetas
+     de autor, o contador de seleção e os cartões de estatística. Em rosa,
+     seria mais uma superfície rosa; em menta, a terceira cor ganha onde
+     morar. */
+  --tinta-moss:    239 246 244;
+  /* o rosa cheio dá 2,3:1 como texto sobre o papel — ilegível em corpo
+     pequeno. Este é o mesmo rosa levado ao ponto em que se lê: 5,3:1 */
+  --acento-texto:  168  67  74;   /* #A8434A */
+  --sobre-acento:   35  39  28;   /* ink — 5,8:1 sobre o rosa */
+}
+/* A FAMÍLIA DO CANDY É PASTEL, e as iniciais vão em TINTA.
+
+   A primeira versão escurecia as três cores até o branco passar por cima —
+   e as três convergiam para marrom. A estante ficava marrom num tema de
+   rosa, damasco e menta: o mix sumia justamente na superfície que mais se
+   vê, que é a parede de capas.
+
+   Aqui as três aparecem como são. O rosa dado já tem luminância 0,35, e com
+   tinta por cima dá 5,8:1 — não precisava escurecer nada, precisava trocar
+   a cor das iniciais. Quem faz isso é `--sobre-tinta`.
+
+   As oito se dividem em três famílias, para o sorteio por editora espalhar
+   as cores pela estante em vez de insistir numa: três rosas, três damascos
+   e duas mentas. Medidas com tinta por cima: 5,81:1 no pior caso. */
+[data-tema='candy'] {
+  --sobre-tinta:  35  39  28;   /* ink: a família é clara */
+
+  --tinta-0: 223 136 136;       /* rosa — a cor dada     */
+  --tinta-1: 235 178 115;       /* damasco — a cor dada  */
+  --tinta-2: 181 205 197;       /* menta — a cor dada    */
+  --tinta-3: 233 165 165;       /* rosa claro            */
+  --tinta-4: 240 199 154;       /* damasco claro         */
+  --tinta-5: 201 220 213;       /* menta clara           */
+  --tinta-6: 217 163 174;       /* rosa-malva            */
+  --tinta-7: 227 185 160;       /* pêssego               */
+}
+
+/* ---- Midnight ----
+   UMA cor, #280137, e ela é tão escura (luminância 0,008) que serve de
+   preenchimento E de texto sem precisar de uma segunda versão — como
+   acontece no Moss, e ao contrário do Nockout. Sobre o papel dá 16,3:1.
+
+   NÃO é modo escuro. O eixo de tema deste app é o ACENTO; papel e tinta
+   continuam claros, e inverter os dois mexeria em sombra dura, selos,
+   tintas de capa e na marca — outro assunto, bem maior. Aqui o midnight é
+   uma noite de tinta sobre papel claro, não uma tela apagada.
+
+   Papel levemente frio, puxando para a lavanda: sobre creme o roxo esverdeia. */
+[data-tema='midnight'] {
+  --paper:         243 241 246;   /* #F3F1F6 */
+  --paper-2:       234 231 240;   /* #EAE7F0 */
+  --paper-3:       221 216 230;   /* #DDD8E6 */
+
+  --moss:           40   1  55;   /* #280137 */
+  --moss-2:         69  16  92;   /* clareia no hover, como as outras rampas */
+  --moss-3:        122  79 146;
+  --moss-line:     216 207 224;
+  --tinta-moss:    245 240 248;
+  --acento-texto:   40   1  55;   /* o próprio midnight: 16,3:1, passa de sobra */
+  --sobre-acento:  var(--paper);  /* 16,3:1 sobre o preenchimento */
+}
+[data-tema='midnight'] {
+  --tinta-0:  40   1  55;       /* meia-noite */
+  --tinta-1:  61  16  82;       /* ameixa     */
+  --tinta-2:  42  31  92;       /* tinta      */
+  --tinta-3:  69  33  94;       /* violeta    */
+  --tinta-4:  31  36  64;       /* madrugada  */
+  --tinta-5:  81  42  99;       /* orquídea   */
+  --tinta-6:  50  32  74;       /* uva        */
+  --tinta-7:  36  22  51;       /* breu       */
+}
 
 /* ------------------------------------------------------------------
    A segunda marca, no hover do logo.
@@ -471,6 +586,55 @@ body::after {
 .marca-sombra { fill: var(--marca-sombra, #23271C); transition: fill .45s var(--ease-prem); }
 .marca-letra  { fill: var(--marca-letra,  rgb(var(--paper))); transition: fill .45s var(--ease-prem); }
 
+
+/* ------------------------------------------------------------------
+   A tira de capas da prévia de cada lista.
+
+   Rola na horizontal e NÃO mostra barra. A barra do projeto tem 10px de
+   altura com anel de 2px — embaixo de uma tira baixa como esta ela comeria
+   um terço da altura e roubaria a atenção das capas, que são o conteúdo. Quem
+   diz que há mais à direita é a capa cortada na borda, que é o sinal que
+   carrossel sempre deu.
+
+   `overscroll-behavior-x: contain`: sem isto, chegar ao fim da tira passa a
+   rolagem para a gaveta atrás — e arrastar capas fecharia a lista no celular,
+   onde o gesto horizontal é o de voltar.
+   ------------------------------------------------------------------ */
+.tira-capas {
+  display: flex;
+  gap: .5rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;                 /* Firefox */
+  -ms-overflow-style: none;
+  /* o dedo rola nativo; o mouse arrasta por JS (ver Listas.jsx) */
+  touch-action: pan-x;
+  cursor: grab;
+}
+
+/* SEIS CAPAS POR VEZ, e as outras rolando.
+
+   O tamanho sai de uma CONTA, não de um número escolhido: cada capa vale um
+   sexto do que sobra depois dos cinco vãos entre elas. Assim as seis enchem
+   a tira exatamente, na gaveta de 440px do desktop e na tela cheia do
+   celular, sem um segundo valor para manter em sincronia.
+
+   O `2.5rem` é 5 × o `gap` acima. Mexeu no gap, mexe aqui — é o único par
+   de números deste arquivo que precisa andar junto, e está a seis linhas de
+   distância de propósito.
+
+   Antes a tira enchia com quantas coubessem: oito capas de 44px numa gaveta
+   de 440. Cabiam mais, e cada uma dizia menos. */
+.tira-capas > * {
+  flex: 0 0 calc((100% - 2.5rem) / 6);
+  aspect-ratio: 1;
+}
+
+.tira-capas::-webkit-scrollbar { display: none; }
+.tira-capas[data-arrastando='1'] { cursor: grabbing; }
+/* as capas não podem ser alvo de arrasto nativo do navegador: segurar uma
+   imagem inicia o "arrastar figura" e a tira para de rolar no meio do gesto */
+.tira-capas img { -webkit-user-drag: none; user-drag: none; }
 /* ------------------------------------------------------------------
    Divisória ilustrada entre a paginação e o rodapé.
 
@@ -588,23 +752,6 @@ button:hover .ico-lupa__reticula { opacity: .55 }
   transition: transform .26s var(--ease-prem);
 }
 button:hover .ico-lixo__tampa { transform: rotate(-18deg) translateY(-1px) }
-
-/* ---- MOSS / NOCKOUT: a palavra se entinta ------------------------
-   Duas camadas do mesmo texto. A de cima é a cor cheia, recortada por
-   `clip-path`; no hover o recorte abre da esquerda para a direita e a
-   palavra é pintada como pincelada. A escolhida já nasce pintada. */
-.tema-palavra__camadas { position: relative; display: inline-block; white-space: nowrap }
-.tema-palavra__base    { opacity: .3 }
-.tema-palavra__tinta {
-  position: absolute; left: 0; top: 0;
-  clip-path: inset(0 100% 0 0);
-  transition: clip-path .34s var(--ease-prem);
-}
-.tema-palavra:hover .tema-palavra__tinta,
-.tema-palavra[data-escolhido='1'] .tema-palavra__tinta { clip-path: inset(0 0 0 0) }
-/* sem transição na escolhida: a troca de tema já é instantânea por toda a
-   página, e a palavra chegando depois pareceria atraso */
-.tema-palavra[data-escolhido='1'] .tema-palavra__tinta { transition-duration: 0s }
 
 /* ---- Voltar ao topo: a seta sobe e outra toma o lugar ------------ */
 .seta-topo { display: inline-block; overflow: hidden; height: 1em; line-height: 1 }

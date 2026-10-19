@@ -48,7 +48,7 @@ function Ficha({ obra, index, onOpen }) {
         {capa
           ? <img src={capa} alt="" loading="lazy" className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_10px_20px_-10px_rgba(35,39,28,.55)]" />
           : <div className={`w-full h-full rounded-pequeno flex items-center justify-center shadow-[0_10px_20px_-10px_rgba(35,39,28,.55)] ${classeTinta(edOf(obra) || obra.nome)}`}>
-              <span className="font-display font-semibold text-corpo sm:text-obra leading-none text-white">{initials(obra.nome)}</span>
+              <span className="font-display font-semibold text-corpo sm:text-obra leading-none text-sobre-tinta">{initials(obra.nome)}</span>
             </div>}
       </div>
 

@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { MOLA_GAVETA, FADE } from '../lib/motion.js'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../lib/store.jsx'
-import { authorsOf, paisesOf, edOf, moneyToNumber, moneyFormat, classeTinta, initials } from '../lib/helpers.js'
+import { authorsOf, paisesOf, edOf, moneyToNumber, moneyFormat, classeTinta, initials, listasDaObra } from '../lib/helpers.js'
 import { TIPOS_EDICAO } from '../data.js'
 import Combo from './Combo.jsx'
 import Pessoas from './Pessoas.jsx'
@@ -16,7 +16,7 @@ function draftFromObra(o) {
     // 'genres' não tem mais campo na tela. Continua no rascunho só para
     // atravessar uma edição sem apagar o que já estava gravado em obra.tags.
     return { id: null, tipo: 'avulso', nome: '', origem: 'nacional', editora: '', pais: '', genres: [], img: '', resenha: '', tipoEdicao: '',
-      roteirista: '', desenhista: '', status: 'wishlist', urgencia: false, valorPago: 0, lido: false, nota: 0, vols: [] }
+      roteirista: '', desenhista: '', status: 'wishlist', urgencia: false, valorPago: 0, lido: false, nota: 0, vols: [], listas: [] }
   }
   const tipo = o.tipo === 'avulsa' ? 'avulso' : (o.tipo || (o.volumes ? 'serie' : 'avulso'))
   return {
@@ -27,6 +27,9 @@ function draftFromObra(o) {
     status: o.status || 'wishlist', urgencia: !!o.urgencia, valorPago: Number(o.valorPago) || 0,
     lido: !!o.lido, nota: Number(o.nota) || 0,
     vols: Array.isArray(o.volumes) ? o.volumes.map(v => ({ ...emptyVol(), ...v, _open: false })) : [],
+    /* Preenchido por quem chama: `draftFromObra` não enxerga as listas, que
+       moram fora da obra. Ver o efeito que monta o rascunho. */
+    listas: [],
   }
 }
 
@@ -154,7 +157,7 @@ function VolPanel({ v, i, withCover, autores, onChange, onCopyAll, onCover, onRe
               <div className="flex items-center gap-3">
                 {v.imagem
                   ? <img src={v.imagem} alt="" className="h-[80px] w-auto max-w-[86px] rounded-pequeno shadow-[0_7px_18px_-8px_rgba(35,39,28,.5)] shrink-0" />
-                  : <div className={`w-14 h-[74px] rounded-pequeno flex items-center justify-center font-display text-obra text-white shrink-0 ${classeTinta(v.nome || 'v')}`}>{initials(v.nome || (i + 1) + '')}</div>}
+                  : <div className={`w-14 h-[74px] rounded-pequeno flex items-center justify-center font-display text-obra text-sobre-tinta shrink-0 ${classeTinta(v.nome || 'v')}`}>{initials(v.nome || (i + 1) + '')}</div>}
                 <input ref={fileRef} type="file" accept="image/*" hidden onChange={e => onCover(i, e)} />
                 <button type="button" className="neo-btn !text-apoio !py-2" onClick={() => fileRef.current?.click()}>
                   <IconEnviar />Enviar…
@@ -240,12 +243,22 @@ function VolPanel({ v, i, withCover, autores, onChange, onCopyAll, onCover, onRe
 }
 
 export default function Editor({ target, onClose, onSaved }) {
-  const { obras, editoras, nextId, upsertObra, deleteObra } = useStore()
+  const { obras, editoras, nextId, upsertObra, deleteObra, listas, definirListasDaObra } = useStore()
   const open = target != null
   const [d, setD] = useState(draftFromObra(null))
   const coverRef = useRef(null)
 
-  useEffect(() => { if (open) setD(draftFromObra(target && target.id ? target : null)) }, [open, target])
+  /* A obra não guarda em que listas está — quem guarda são as listas. Por
+     isso o rascunho é montado em dois passos: os campos saem da obra, e a
+     marcação das listas sai de `listas`. */
+  useEffect(() => {
+    if (!open) return
+    const alvo = target && target.id ? target : null
+    setD({ ...draftFromObra(alvo), listas: alvo ? listasDaObra(listas, alvo.id).map(l => l.id) : [] })
+    // `listas` fora das dependências de propósito: mexer numa lista com o
+    // Editor aberto não pode reconstruir o rascunho e apagar o que foi digitado.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, target])
 
   const paises = useMemo(() => Array.from(new Set(obras.flatMap(paisesOf))).sort((a, b) => a.localeCompare(b, 'pt')), [obras])
   const autores = useMemo(() => Array.from(new Set(obras.flatMap(authorsOf))).sort((a, b) => a.localeCompare(b, 'pt')), [obras])
@@ -309,6 +322,9 @@ export default function Editor({ target, onClose, onSaved }) {
         status: d.status, urgencia: !owned && d.urgencia, valorPago: owned ? d.valorPago : 0, lido: owned && d.lido, nota: owned ? d.nota : 0 }
     }
     upsertObra(rec)
+    /* Depois do upsert: numa obra NOVA o id só existe a partir daqui —
+       `rec.id` veio de `nextId()` e é com ele que as listas são marcadas. */
+    definirListasDaObra(rec.id, d.listas)
     onSaved?.(d.id == null ? 'Obra adicionada ✓' : 'Alterações salvas ✓')
     onClose()
   }
@@ -361,6 +377,48 @@ export default function Editor({ target, onClose, onSaved }) {
                       title="Abrir no Guia dos Quadrinhos, em aba nova">
                       Ver no Guia dos Quadrinhos ↗
                     </a>
+                  </div>
+
+                  {/* ---- listas ----
+                      Escolha aqui, grava no SALVAR — como todo o resto deste
+                      formulário. É o que permite o mesmo controle servir à
+                      obra nova: ela ainda não tem id, e só depois de `save`
+                      existe um id para pôr nas listas.
+
+                      Caixas, e não a grade de capas da tela de Listas: ali se
+                      escolhe entre centenas de obras e a capa é o que
+                      identifica; aqui se escolhe entre as poucas listas que
+                      existem, e o que identifica é o nome. */}
+                  <div className={`${box} col-span-2`}>
+                    <label className={lbl}>Listas</label>
+                    {listas.length === 0 ? (
+                      <p className="text-apoio text-ink-faint leading-relaxed">
+                        Nenhuma lista ainda. Crie uma pelo menu <b>☰ · Listas</b> e ela aparece aqui.
+                      </p>
+                    ) : (
+                      <div className="flex flex-wrap gap-1.5">
+                        {listas.map(l => {
+                          const dentro = d.listas.includes(l.id)
+                          return (
+                            <button
+                              key={l.id} type="button" aria-pressed={dentro}
+                              onClick={() => patch({
+                                listas: dentro ? d.listas.filter(x => x !== l.id) : [...d.listas, l.id],
+                              })}
+                              className={'pill transition-colors ' + (dentro ? 'pill-tenho' : 'pill-quero')}
+                            >
+                              {dentro && (
+                                <svg className="w-3 h-3 mr-1 inline-block align-[-1px]" viewBox="0 0 24 24" fill="none"
+                                     stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M4 12.5l5 5L20 6.5" />
+                                </svg>
+                              )}
+                              {l.nome}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )}
                   </div>
                 </Secao>
 

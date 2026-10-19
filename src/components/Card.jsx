@@ -124,7 +124,7 @@ export default function Card({ obra, index = 0, onOpen, feature = false, animarE
  className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_18px_30px_-18px_rgba(35,39,28,.55)]"
             />
           ) : (
-            <div className={`w-full h-full rounded-medio p-3 sm:p-3.5 flex flex-col text-white shadow-[0_18px_30px_-18px_rgba(35,39,28,.55)] ${classeTinta(edOf(obra) || obra.nome)} ${feature ? 'lg:min-h-[260px]' : ''}`}>
+            <div className={`w-full h-full rounded-medio p-3 sm:p-3.5 flex flex-col text-sobre-tinta shadow-[0_18px_30px_-18px_rgba(35,39,28,.55)] ${classeTinta(edOf(obra) || obra.nome)} ${feature ? 'lg:min-h-[260px]' : ''}`}>
               {(edOf(obra) || (isImp(obra) ? 'Importado' : '')) &&
                 <div className="font-rotulo text-rotulo uppercase opacity-85 truncate">{edOf(obra) || 'Importado'}</div>}
               <div className={`font-display font-semibold leading-none my-auto text-center  ${feature ? 'text-[clamp(22px,5vw,48px)] lg:text-[clamp(44px,6vw,86px)]' : 'text-[clamp(22px,5vw,48px)]'}`}>

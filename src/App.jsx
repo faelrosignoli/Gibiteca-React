@@ -10,6 +10,8 @@ import Divisoria from './components/Divisoria.jsx'
 import Welcome from './components/Welcome.jsx'
 import Backup from './components/Backup.jsx'
 import Tema from './components/Tema.jsx'
+import Fila from './components/Fila.jsx'
+import Listas from './components/Listas.jsx'
 import FiltersDrawer from './components/FiltersDrawer.jsx'
 import DetailSheet from './components/DetailSheet.jsx'
 import SearchOverlay from './components/SearchOverlay.jsx'
@@ -22,7 +24,7 @@ import Atividades from './components/Atividades.jsx'
 import { baixarBackup } from './lib/backup.js'
 
 export default function App() {
-  const { filters, cloud: cloudCfg, obras, editoras, duplicarObra, desmembrarObra } = useStore()
+  const { filters, cloud: cloudCfg, obras, editoras, duplicarObra, desmembrarObra, fila, listas } = useStore()
   // Abertura: a marca aparece no meio e viaja até o cabeçalho encolhendo.
   // Quem pediu menos movimento não vê tela nenhuma — entra direto na estante.
   const semMovimento = usaMovimentoReduzido()
@@ -50,6 +52,8 @@ export default function App() {
   const [atividades, setAtividades] = useState(false)
   const [backup, setBackup] = useState(false)
   const [temaAberto, setTemaAberto] = useState(false)
+  const [filaAberta, setFilaAberta] = useState(false)
+  const [listasAbertas, setListasAbertas] = useState(false)
   const [toast, setToast] = useState('')
 
   const say = (m) => { setToast(m); setTimeout(() => setToast(''), 2400) }
@@ -104,7 +108,7 @@ export default function App() {
           galeria/lista — ver Header.jsx. */}
       {/* Se o navegador recusou guardar, isto precisa aparecer antes de
           qualquer outra coisa: as alterações só existem nesta aba. */}
-      <AvisoSemEspaco onNuvem={() => setCloud(true)} onBackup={() => baixarBackup(obras, editoras)} />
+      <AvisoSemEspaco onNuvem={() => setCloud(true)} onBackup={() => baixarBackup(obras, editoras, fila, listas)} />
 
       {/* Na capa NÃO há cabeçalho — só o logo, grande e solto. Ele e o logo da
           barra são o MESMO elemento para o framer-motion (`layoutId="marca"`),
@@ -125,6 +129,8 @@ export default function App() {
           onAtividades={() => setAtividades(true)}
           onBackup={() => setBackup(true)}
           onTema={() => setTemaAberto(true)}
+          onFila={() => setFilaAberta(true)}
+          onListas={() => setListasAbertas(true)}
           onFilters={() => setShowFilters(true)}
           onStats={() => setStats(true)}
           onSearch={() => setSearch(true)}
@@ -150,6 +156,8 @@ export default function App() {
 
       <Backup open={backup} onClose={() => setBackup(false)} onNotice={say} />
       <Tema open={temaAberto} onClose={() => setTemaAberto(false)} />
+      <Fila open={filaAberta} onClose={() => setFilaAberta(false)} onNotice={say} />
+      <Listas open={listasAbertas} onClose={() => setListasAbertas(false)} onNotice={say} />
       <FiltersDrawer open={showFilters} onClose={() => setShowFilters(false)} />
       <DetailSheet obra={detail} onClose={() => setDetail(null)} onEdit={openEditor} onDuplicar={duplicar} onDesmembrar={desmembrar} />
       <SearchOverlay open={search} onClose={() => setSearch(false)} />
