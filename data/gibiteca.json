@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1792428146698,
- "updated": "2026-10-19T16:42:26.698Z",
+ "atualizadoEm": 1792428153364,
+ "updated": "2026-10-19T16:42:33.364Z",
  "obras": [
   {
    "id": 1,
@@ -12766,7 +12766,7 @@
   },
   {
    "id": 603,
-   "nome": "BD Disney — Mickey e O Oceano Perdido",
+   "nome": "Mickey e O Oceano Perdido",
    "tipo": "avulso",
    "origem": "nacional",
    "editora": "Panini",
