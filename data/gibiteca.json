@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1792428178248,
- "updated": "2026-10-19T16:42:58.248Z",
+ "atualizadoEm": 1792428184434,
+ "updated": "2026-10-19T16:43:04.434Z",
  "obras": [
   {
    "id": 1,
@@ -12804,7 +12804,7 @@
   },
   {
    "id": 605,
-   "nome": "BD Disney — As Mais Alegres Aventuras de Donald",
+   "nome": "As Mais Alegres Aventuras de Donald",
    "tipo": "avulso",
    "origem": "nacional",
    "editora": "Panini",
