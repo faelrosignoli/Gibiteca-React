@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1792089346486,
- "updated": "2026-10-15T18:35:46.486Z",
+ "atualizadoEm": 1792428080515,
+ "updated": "2026-10-19T16:41:20.515Z",
  "obras": [
   {
    "id": 1,
@@ -13106,5 +13106,15 @@
   "SESI",
   "Hyperion Comics",
   "Moby Dick"
+ ],
+ "fila": [],
+ "listas": [
+  {
+   "id": 1,
+   "nome": "BD Disney",
+   "obras": [
+    591
+   ]
+  }
  ]
 }
