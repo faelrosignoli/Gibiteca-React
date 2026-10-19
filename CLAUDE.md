@@ -117,7 +117,7 @@ corrido e positiva só no rótulo. **Não escrever `tracking-*` à mão** — a 
   o custo de usá-la em frase, não em palavra.
 
 - **`#212121` existe só na capa** (`.welcome`), no botão e na sombra do logo.
-  É um preto diferente do `ink` (`#23271C`) do resto do app, e fica preso
+  É um preto diferente do `ink` (`#212121`) do resto do app, e fica preso
   àquele escopo de propósito — solto, viraria uma segunda tinta preta
   competindo com a do projeto. No rodapé, por exemplo, o logo segue em `ink`.
 - Véus de tinta, nomeados pela função (antes eram 12 opacidades avulsas):
@@ -1183,6 +1183,21 @@ cinto de segurança, não caminho normal: só o que está na estante entra na
 fila, então não deveria haver "quero" lá. Mas uma fila guardada ANTES desta
 trava — ou vinda da nuvem de um aparelho mais antigo — pode ter.
 
+#### A linha da fila: capa retrato e o que ajuda a escolher
+A capa é **retrato** (52×70), não quadrada. Capa de gibi é mais alta que larga,
+e na caixa quadrada de antes o desenho ficava pequeno no meio de duas faixas
+vazias.
+
+Além de título, editora e autor, a linha mostra **o formato da edição** e
+**Importado** — o que ajuda a escolher o próximo. Não há nota nem valor: nota o
+item ainda não tem (é justamente o que falta ler) e valor é assunto da coleção.
+
+**O × de tirar da fila é vermelho, com anel próprio.** É a única ação da linha
+que desfaz alguma coisa, e o `rust` (#9C4A2E) é a cor que o projeto já usa
+para isso — urgente no cartão, excluir volume no Editor. O anel vale **sempre**,
+não só no hover: num toque não existe hover, e o aviso tem de estar lá antes do
+dedo. O × da galeria de listas seguiu o mesmo tratamento.
+
 #### Marcar lido
 Clicar em **Lido** abre o pop-up da nota (mesmo molde do Backup e do Tema) e
 **tira da fila**. Sair da fila não é efeito colateral: é o fim do ciclo.
@@ -1352,6 +1367,73 @@ rolagem para a gaveta atrás, e arrastar capas fecharia a lista no celular,
 onde o gesto horizontal é o de voltar.
 
 
+#### Ordem: alfabética ou numerada
+Duas ordens, escolhidas **no pop-up de editar a lista**, junto do nome. Não na
+galeria: é um ajuste que se toma uma vez, e exposto sobre as capas virava um
+botão permanente para uma decisão que não se repete.
+
+| | o que faz |
+|---|---|
+| **ABC · Alfabética** | as obras aparecem em ordem de nome, calculada na hora |
+| **123 · Numerada** | a ordem guardada, numerada, e **arrastável** |
+
+São **duas opções lado a lado**, não um interruptor de liga/desliga:
+alfabética não é "numerada desligada", é outra ordem. Um interruptor diria que
+uma delas é a ausência da outra.
+
+As siglas vão em `font-mono` porque ali os três sinais têm largura igual: em
+fonte proporcional o "1" é estreito, o bloco "123" fica menor que o "ABC" e os
+dois lados do seletor desalinham.
+
+**A alfabética não é gravada.** Ela se calcula na tela, com o colator do
+projeto (`sortList`, então "é" vale "e"). Gravar apagaria a ordem montada à
+mão, e voltar para numerada devolveria uma lista remexida. Medido: ordem
+`[1,3,4,5,2,6]` sobrevive à ida e volta por alfabética, idêntica.
+
+##### O arrasto na grade NÃO usa `Reorder`
+O `Reorder` do framer-motion ordena por **um eixo só**. Numa grade de três
+colunas isso quebra no caso mais óbvio: arrastar da coluna 1 para a 2 na mesma
+linha não muda o Y, e nada acontece.
+
+Aqui o arrasto é o `drag` comum, e quem decide o destino é a **geometria**: ao
+soltar, mede-se a caixa de cada célula e procura-se qual contém o ponto do
+ponteiro. Funciona em qualquer número de colunas, no mouse e no dedo. Medido:
+troca na mesma linha (1↔2) e entre linhas (2→5), as duas gravadas.
+
+`dragSnapToOrigin`: a célula volta sozinha ao lugar e quem a move é a
+reordenação do estado, não a posição onde o arrasto parou. Soltar fora de
+qualquer célula não faz nada — desistir de um arrasto não pode bagunçar nada.
+
+**PULAR A PRÓPRIA CÉLULA não é detalhe, é o defeito que isto custou.** Ao
+soltar, a célula arrastada ainda está sobre o ponto da soltura (o snap só a
+devolve depois), então ela encontrava **a si mesma**, `alvo === de`, e o
+arrasto não fazia nada. Os dois primeiros testes falharam calados por causa
+disso — só uma sonda em `onDragStart`/`onDragEnd` mostrou que o gesto
+disparava e a conta é que desistia.
+
+Nota de medição: **eventos de ponteiro sintéticos não acionam o `drag` do
+framer-motion**. O teste tem de ser arrasto de verdade. E o painel do navegador
+escala a captura (frame de 800 para uma viewport de 1024), então converta as
+coordenadas antes de arrastar — ou vai se arrastar no lugar errado.
+
+
+#### Duplo clique abre o editor
+Vale na **galeria de uma lista** e na **fila de leitura**. Das duas, o alvo é a
+obra — capa e texto —, nunca os botões: duplo clique em "Lido" não pode marcar
+lido e abrir o editor na mesma batida.
+
+**Clique simples continua sem fazer nada** nesses alvos, e isso é o que torna o
+duplo clique seguro. Dar duas funções ao mesmo alvo faria quem quer tirar da
+lista cair no editor.
+
+Duplo clique não tem aparência: o `title` de cada alvo diz o atalho, senão
+ninguém descobre.
+
+**As gavetas NÃO fecham.** O Editor é `z-60` e as gavetas `z-50`, então ele
+vem por cima com o próprio véu; ao salvar ou cancelar, a pessoa volta para a
+lista onde estava em vez de cair na estante. Por isso o App liga
+`onEditar={setEditor}` direto, e não o `openEditor`, que fecha o Detalhe.
+
 #### Os dois botões de acrescentar
 **"Nova lista" é um + flutuante**, no canto de baixo à direita da gaveta. Só o
 sinal, sem palavra: no índice não há outra coisa para criar, e a cruz num canto
@@ -1391,15 +1473,35 @@ que já existe**, cada toque já grava. Guardar um rascunho ali criaria um estad
 que some se a gaveta fechar.
 
 #### O botão no Editor
-Campo **Listas** no fim da seção Cadastro, como pastilhas que se marcam.
-Pastilhas e não a grade de capas: ali se escolhe entre centenas de obras e a
-capa é o que identifica; aqui se escolhe entre as poucas listas que existem, e
-o que identifica é o nome.
+Campo **Listas** no fim da seção Cadastro: um **ícone só** — a pasta do menu
+☰ com um `+` — e, ao lado, quantas listas a obra já tem ("em 2 listas").
+Clicar abre um pop-up com as listas para marcar.
 
-**A escolha grava no SALVAR**, como todo o resto do formulário. É o que permite
-o mesmo controle servir à obra NOVA: ela ainda não tem id, e só depois de
-`upsertObra` existe um `rec.id` para pôr nas listas — por isso
-`definirListasDaObra(rec.id, d.listas)` vem **depois** do upsert.
+Antes o campo era a lista INTEIRA, em pastilhas. Com três listas cabia; com
+quinze, o cadastro virava uma parede de nomes antes do primeiro campo de
+verdade. O formulário mostra a porta, e a escolha acontece atrás dela.
+
+O número **fica fora do ícone**, não dentro: um ícone sozinho não diz se a obra
+já está em alguma lista, e abrir o pop-up só para descobrir isso seria uma
+porta a mais para uma informação de uma palavra.
+
+No pop-up as listas são **linhas de largura inteira**, não pastilhas: nome de
+lista é texto livre e pode ser longo. Em pastilha ele quebraria a grade; em
+linha, quebra dentro da própria linha. Medido a 375px com um nome de 44
+caracteres: quebra em duas linhas, sem rolagem lateral.
+
+O pop-up é `z-80` porque o Editor é `z-60` — e vive FORA da `AnimatePresence`
+do Editor, senão herdaria a moldura dele.
+
+**A escolha grava no SALVAR**, como todo o resto do formulário; o botão do
+pop-up diz "Pronto", não "Salvar", justamente porque ali nada foi gravado
+ainda. É o que permite o mesmo controle servir à obra NOVA: ela ainda não tem
+id, e só depois de `upsertObra` existe um `rec.id` para pôr nas listas — por
+isso `definirListasDaObra(rec.id, d.listas)` vem **depois** do upsert.
+
+Medido: marcar e desmarcar no pop-up + Salvar reescreve as listas certas;
+**Cancelar não aplica nada**; e uma obra nova criada já marcada entra na lista
+depois de ganhar o id.
 
 **O rascunho é montado em dois passos.** A obra não guarda em que listas está
 — quem guarda são as listas —, então `draftFromObra` não enxerga isso. O efeito
@@ -1448,6 +1550,75 @@ não ficaria "sem listas", apagaria as que existem ao ser restaurado.
 Id de lista **não se recicla**: o Editor guarda, enquanto está aberto, a quais
 listas a obra vai entrar, e um id reaproveitado faria esse rascunho apontar
 para a lista errada.
+
+#### Uma arte por tema, todas no DOM
+`MarcaAlt.jsx` carrega as **quatro** artes; quem mostra a do tema em uso e
+esconde as outras é o CSS.
+
+**Escondidas por padrão e reveladas por regra**, não o contrário. A lista
+antiga mostrava a do Moss e escondia a do Nockout — isso só fecha com dois
+temas. Com quatro, cada tema novo exigiria lembrar de escondê-lo em todos os
+outros, e esquecer um faria **duas marcas empilhadas no mesmo lugar**, sem erro
+nenhum no console. Medido nos quatro: exatamente uma visível em cada.
+
+O Moss entra pelo `:root:not([data-tema])` porque ele é o padrão e o store NÃO
+escreve atributo para o padrão. O seletor com o nome fica junto mesmo assim,
+para a regra não quebrar se o padrão mudar.
+
+##### O viewBox é o CONTORNO, não a prancha
+A marca preenche a caixa do logo, então vão guardado no viewBox vira vão na
+tela — a arte apareceria pequena, cercada de nada.
+
+As artes do Candy e do Midnight chegaram com a prancha inteira do editor
+(`0 0 4000 1080`). O contorno real saiu de `getBBox()` no navegador e foi
+gravado no arquivo:
+
+| arte | prancha | contorno |
+|---|---|---|
+| candy | `0 0 4000 1080` | `738.06 255.35 2538.95 661.66` |
+| midnight | `0 0 4000 1080` | `769.8 228.22 2467.2 609.83` |
+
+O gerador **avisa** quando o viewBox parece a prancha (começa em `0 0` e é
+grande nos dois eixos), mas não corrige: corrigir pediria um interpretador de
+`path`, e o número certo sai em um comando no navegador. A receita está no
+cabeçalho de `tools/gerar-marca-alt.cjs`.
+
+As proporções diferem bastante entre as artes (moss 4,2 · nockout 10,9 ·
+candy 3,8 · midnight 4,1). Não é problema: o SVG preenche a caixa com
+`meet`, então cada uma ocupa o que couber, centrada. Já era assim entre Moss e
+Nockout.
+
+##### Sobre a cortina: papel, MENOS no Candy
+A regra base é `paper` — a mesma tinta clara do miolo da marca principal, e a
+casa não usa `#fff` em superfície nenhuma.
+
+O Candy é a exceção, porque a cortina dele é **menta** e portanto clara:
+papel ali dá **1,51:1** e a arte some. Nele a marca toma a cor dos ícones ao
+lado — `rgb(var(--sobre-acento) / .84)`, o mesmo valor do `.isl-icon` —, que
+no Candy resolve para `rgb(33 33 33 / 84%)` e dá **9,07:1**.
+
+| tema | cortina | marca alternativa |
+|---|---|---|
+| Moss | verde escuro | papel |
+| Nockout | laranja | papel |
+| **Candy** | **menta clara** | **tinta a 84%** |
+| Midnight | roxo escuro | papel |
+
+**SÓ o Candy.** Houve uma versão que aplicou isso em todos os temas, pelo
+princípio "a arte segue os ícones" — e ela mudava o Nockout, cuja marca em
+katakana virava escura sobre o laranja. Saiu a pedido. O papel no Nockout dá
+3,3:1, abaixo do ideal para texto, mas é o visual escolhido e a arte é
+enfeite de hover, não informação.
+
+A lição que fica: **a regra vale onde o problema existe.** Generalizar um
+conserto porque o princípio soa geral é como mudar o que ninguém pediu.
+
+A marca PRINCIPAL continua fora disso em todos os temas: ela é a assinatura e
+não troca de cor com a barra.
+
+Nota de medição: `fill` e `color` têm transição de **0,45s** aqui. Medir logo
+depois de trocar o tema devolve um valor do MEIO da transição — um marrom que
+não existe em lugar nenhum do projeto. Espere mais de um segundo.
 
 ### O pop-up de Tema
 Mesmo molde do Backup — mesma moldura, mesma entrada, mesmo título em Lexend
@@ -1581,7 +1752,7 @@ tela estreita produz. Mantenha a caixa ao trocar a arte: mudá-la muda a altura
 da faixa em todas as larguras de uma vez.
 
 **AS CORES DA ARTE NÃO SE TOCAM.** Houve uma versão do gerador com tabela de
-cores por tema: ela trocava o preto dos caminhos sem classe por ink (`#23271C`)
+cores por tema: ela trocava o preto dos caminhos sem classe por ink (`#212121`)
 e reescrevia o acento. Estava errado. A arte é de quem desenhou, e um gerador
 que decide a cor faz o arquivo de saída mentir sobre o de entrada. Hoje `fill` e
 `opacity` saem do próprio SVG como vieram, e caminho sem classe continua **sem
@@ -1709,7 +1880,7 @@ prateado dá 2,8:1 e a arte quase some. O `--acento-texto` é o mesmo laranja
 levado ao ponto em que ainda se lê (`#C23A00`, 4,6:1). No Moss os dois são a
 mesma cor, e por isso a diferença só aparece num dos temas.
 
-Antes disto a arte era ink fixo (`#23271C`) no topo. Ficava legível, mas
+Antes disto a arte era ink fixo (`#212121`) no topo. Ficava legível, mas
 igualzinha nos dois temas — e o hover do logo era justamente o lugar barato de
 mostrar em que tema a pessoa está.
 
@@ -1816,7 +1987,7 @@ legibilidade. A caixa foi apertada para o quadrado `80 80 920 920` — quadrado
 porque o ícone é exibido num espaço quadrado, e centrado porque a tinta já
 estava no centro (539,95 × 540,05).
 
-A cor vem de um `<style>` DENTRO do SVG, com `prefers-color-scheme`: `#23271C`
+A cor vem de um `<style>` DENTRO do SVG, com `prefers-color-scheme`: `#212121`
 no claro, `#F4F0E6` no escuro. É o esquema do **navegador**, não o tema do site
 — o favicon vive na aba, não na página, e não tem como saber se quem abriu está
 em Moss ou Nockout. Firefox e Chrome respeitam a consulta; **o Safari não**, e
@@ -1902,6 +2073,33 @@ As oito se dividem em três famílias (três rosas, três damascos, duas mentas)
 para o sorteio por editora espalhar as cores em vez de insistir numa.
 `node tools/tintas.cjs` mede cada família contra a tinta certa: pior caso
 **5,81:1** no Candy.
+
+##### A barra do Candy é MENTA, não o acento
+A cortina do topo é a única superfície GRANDE que o tema pinta. No Candy ela
+sai na terceira cor: o rosa já enche todos os botões, selos e o FAB, e
+repetido numa faixa da largura da tela ele deixava de ser destaque e virava
+fundo.
+
+A cortina lê `--barra`, com `var(--moss)` de reserva — só o Candy desvia, e os
+outros três temas continuam seguindo o próprio acento (medido: Moss, Nockout e
+Midnight com cortina idêntica ao `--moss` de cada um).
+
+Pílulas e ícones não precisaram de nada: já usam `--sobre-acento`, que no Candy
+é tinta, e **tinta sobre menta dá 9,07:1**.
+
+**A MARCA NÃO MUDA.** Houve uma versão em que ela invertia sobre a menta
+(miolo em tinta, sombra em rosa), porque `paper` sobre menta dá só **1,51:1**;
+saiu a pedido de quem desenha o app. A regra do projeto vale inteira: a marca é
+a assinatura e não troca de cor com a barra, em tema nenhum.
+
+Na prática funciona porque quem desenha as letras sobre a menta é a **sombra**,
+que é tinta e dá 9,07:1 — o miolo claro lê como recorte, não como texto. Se um
+dia incomodar, o caminho é **escurecer a menta da barra**, não repintar a
+marca.
+
+Nota de medição: a leitura logo após o `scrollTo` sai **errada** — o
+`data-acento` ainda não trocou. Captura uma tela (que força repaint) antes de
+medir, ou mede de novo no comando seguinte.
 
 #### Midnight NÃO é modo escuro
 `#280137` é tão escuro (luminância 0,008) que serve de preenchimento **e** de
@@ -2073,7 +2271,7 @@ desenhista continuam em `text-apoio`.
 
 ## Design system (tokens — de tailwind.config.js e index.css)
 - Papel/fundo: `paper #F4F0E6`, `paper-2 #EBE5D4`, `paper-3 #E1DAC4`.
-- Tinta: uma só, `#23271C`, em quatro degraus de opacidade — `ink` 100%,
+- Tinta: uma só, `#212121`, em quatro degraus de opacidade — `ink` 100%,
   `ink-soft` 78%, `ink-faint` 56%, `ink-mute` 38%. Por serem a mesma tinta,
   funcionam sobre qualquer superfície, inclusive sobre capa colorida.
 - Acento (temável, ver **Dois temas de cor**): `moss`, `moss-2`, `moss-3`,
@@ -2443,7 +2641,9 @@ No Card é `whileTap`; nos botões é `:active` no CSS, que já dispara ao apert
 - **Fila de leitura:** `fila: [{ id, vol }]`, ao lado de `obras` no mesmo
   arquivo. `vol` é o índice do volume, ou `null` para avulsa. A ORDEM do
   array é o conteúdo — ver "A fila de leitura".
-- **Listas:** `listas: [{ id, nome, obras: [idDaObra] }]`, no mesmo arquivo.
+- **Listas:** `listas: [{ id, nome, obras: [idDaObra], numerada }]`, no mesmo
+  arquivo. `numerada` é opcional (ausente = alfabética); quando ligada, a
+  ORDEM do array `obras` é o que se vê, e é o que o arrasto reescreve.
   Obra inteira, nunca volume. A obra NÃO sabe em que listas está — quem sabe
   são as listas; use `listasDaObra(listas, id)`. Ver "As listas".
 
@@ -2458,8 +2658,9 @@ No Card é `whileTap`; nos botões é `:active` no CSS, que já dispara ao apert
   `marcarLido` — e `podarFila`, que as três mutações de obra chamam para
   tirar da fila o que foi lido ou deixou de existir.
 - Listas: `criarLista`, `renomearLista`, `apagarLista`, `alternarNaLista`,
-  `definirListasDaObra` (usada pelo Editor) — e `podarListas` /
-  `trocarNasListas`, chamadas por `deleteObra` e `desmembrarObra`.
+  `definirListasDaObra` (usada pelo Editor), `alternarNumeracao`,
+  `reordenarLista` — e `podarListas` / `trocarNasListas`, chamadas por
+  `deleteObra` e `desmembrarObra`.
 - `skipPush` evita reenviar dados recém-puxados da nuvem (senão vira loop).
 
 ## Nuvem (GitHub Contents API — lib/cloud.js + store)
@@ -2495,7 +2696,7 @@ cada modal, e (com mock) conectar nuvem / push automático / capas em massa.
 Os artefatos de teste ficam numa pasta `_test/` descartável (não versionar).
 
 ## Histórico de decisões (contexto que economiza retrabalho)
-- ink mudou de `#20241A` para `#23271C` para bater com o `index.html`.
+- ink mudou de `#20241A` para `#212121` para bater com o `index.html`.
 - Card: removido o brilho de cursor; mantido só o 3D + sombra dura.
 - Lista deixou de ser "toda branca": cabeçalho `bg-ink text-paper`, hover, pills.
 - Filtros: o vão vertical exagerado era o grid esticando (align-content). Corrigido com `content-start`.

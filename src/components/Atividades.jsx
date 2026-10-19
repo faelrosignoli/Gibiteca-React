@@ -154,7 +154,7 @@ export default function Atividades({ open, onClose }) {
           onClick={(e) => { if (e.target === e.currentTarget) onClose?.() }}
         >
           <motion.div
-            className="w-full sm:max-w-[560px] h-full sm:h-auto sm:max-h-[88vh] flex flex-col bg-surface sm:rounded-grande sm:border sm:border-separador overflow-hidden sm:shadow-[0_40px_90px_-30px_rgba(35,39,28,.5)]"
+            className="w-full sm:max-w-[560px] h-full sm:h-auto sm:max-h-[88vh] flex flex-col bg-surface sm:rounded-grande sm:border sm:border-separador overflow-hidden sm:shadow-[0_40px_90px_-30px_rgba(33,33,33,.5)]"
             initial={{ y: 24, opacity: 0.4 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 24, opacity: 0 }}
             transition={MOLA_GAVETA}
           >

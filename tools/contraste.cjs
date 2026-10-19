@@ -17,15 +17,15 @@ if (require.main === module) {
   let tudoOk = true
   const T = {
     moss:     { paper:'#F4F0E6', fill:'#4B5D3A', texto:'#4B5D3A', sobre:'#F4F0E6' },
-    nockout:  { paper:'#F0F0F0', fill:'#FF5000', texto:'#C23A00', sobre:'#23271C' },
-    candy:    { paper:'#F7F2F0', fill:'#DF8888', texto:'#A8434A', sobre:'#23271C' },
+    nockout:  { paper:'#F0F0F0', fill:'#FF5000', texto:'#C23A00', sobre:'#212121' },
+    candy:    { paper:'#F7F2F0', fill:'#DF8888', texto:'#A8434A', sobre:'#212121' },
     midnight: { paper:'#F3F1F6', fill:'#280137', texto:'#280137', sobre:'#F3F1F6' },
   }
   for (const [nome, t] of Object.entries(T)) {
     console.log('--- ' + nome + ' ---')
     tudoOk &= diz('acento-texto sobre o papel', t.texto, t.paper, 4.5)
     tudoOk &= diz('sobre-acento no preenchimento', t.sobre, t.fill, 4.5)
-    tudoOk &= diz('ink (#23271C) sobre o papel', '#23271C', t.paper, 4.5)
+    tudoOk &= diz('ink (#212121) sobre o papel', '#212121', t.paper, 4.5)
   }
   process.exit(tudoOk ? 0 : 1)
 }

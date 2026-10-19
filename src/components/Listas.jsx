@@ -1,11 +1,11 @@
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { AnimatePresence, motion, useDragControls } from 'framer-motion'
 import {
   MOLA_GAVETA, FADE, VOLTA_DO_ARRASTO, ELASTICO_DIREITA,
-  deveDispensar, usaMovimentoReduzido,
+  deveDispensar, usaMovimentoReduzido, MOLA_TOQUE,
 } from '../lib/motion.js'
 import { useStore } from '../lib/store.jsx'
-import { obrasDaLista, coverOf, edOf, gNorm, initials, classeTinta } from '../lib/helpers.js'
+import { obrasDaLista, sortList, coverOf, edOf, gNorm, initials, classeTinta } from '../lib/helpers.js'
 
 /* AS LISTAS.
  *
@@ -100,6 +100,18 @@ function IconMais({ tamanho = 'w-[15px] h-[15px]' }) {
     </svg>
   )
 }
+/* Uma lista numerada: três linhas e os algarismos à esquerda. Não é um "1"
+   solto nem um hash — o que se liga aqui é a NUMERACAO da lista inteira. */
+function IconNumerada() {
+  return (
+    <svg className="w-[13px] h-[13px]" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10 6h11M10 12h11M10 18h11" />
+      <path d="M4 5.5 5.5 5V9M3.5 15.5a1.5 1.5 0 1 1 2.6 1L3.5 19H6.5" />
+    </svg>
+  )
+}
+
 /* A tira de capas da prévia: as obras da lista em linha, rolando na
  * horizontal quando não cabem.
  *
@@ -170,7 +182,7 @@ function TiraDeCapas({ obras, onAbrir }) {
              decidirem o mesmo, e o da tira ganharia só às vezes. */
           <div key={o.id} className="relative flex items-center justify-center">
             {capa
-              ? <img src={capa} alt="" loading="lazy" className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_6px_12px_-7px_rgba(35,39,28,.55)]" />
+              ? <img src={capa} alt="" loading="lazy" className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_6px_12px_-7px_rgba(33,33,33,.55)]" />
               : <div className={'w-full h-full rounded-pequeno flex items-center justify-center ' + classeTinta(edOf(o) || o.nome)}>
                   <span className="font-display font-semibold text-apoio leading-none text-sobre-tinta">{initials(o.nome)}</span>
                 </div>}
@@ -180,6 +192,143 @@ function TiraDeCapas({ obras, onAbrir }) {
     </div>
   )
 }
+/* Os dois modos de ordem, em letras de verdade e não em desenho.
+ *
+ * "ABC" e "123" dizem o que fazem sem precisar de legenda, e nenhum ícone
+ * desenhado chega perto disso. Vão em `font-mono` porque ali os três sinais
+ * têm a mesma largura: em fonte proporcional o "1" é estreito e o bloco
+ * "123" fica menor que o "ABC", desalinhando os dois lados do seletor. */
+const ORDENS = [
+  ['alfabetica', 'ABC', 'Alfabética'],
+  ['numerada', '123', 'Numerada'],
+]
+
+/* O seletor de ordem, no pop-up de editar a lista.
+ *
+ * Aqui e não na galeria: é um ajuste da lista, e ajuste mora junto do nome,
+ * atrás da mesma porta. Exposto sobre a galeria, virava um botão permanente
+ * para uma decisão que se toma uma vez.
+ *
+ * Duas opções lado a lado e não um interruptor de liga/desliga: alfabética
+ * não é "numerada desligada", é outra ordem. Um interruptor diria que uma
+ * delas é a ausência da outra.
+ */
+function SeletorOrdem({ valor, onChange }) {
+  return (
+    <div role="radiogroup" aria-label="Ordem das obras na lista"
+         className="flex w-full rounded-full border border-contorno bg-paper-2 p-1 gap-1">
+      {ORDENS.map(([v, sigla, rotulo]) => {
+        const marcado = valor === v
+        return (
+          <button
+            key={v} type="button" role="radio" aria-checked={marcado}
+            onClick={() => onChange(v)}
+            className={'flex-1 inline-flex items-center justify-center gap-2 rounded-full py-2 px-2 text-corpo font-semibold transition ' +
+              (marcado
+                ? 'bg-surface-pure text-acento-texto shadow-amb ring-1 ring-moss-2'
+                : 'text-ink-soft hover:bg-toque')}
+          >
+            <span className="font-mono text-rotulo font-bold tracking-tight" aria-hidden="true">{sigla}</span>
+            {rotulo}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+/* Uma célula da galeria da lista.
+ *
+ * Na ordem NUMERADA ela se arrasta para trocar de posição. O arrasto é do
+ * framer-motion (`drag`), mas quem decide o destino é a GEOMETRIA da grade,
+ * não o `Reorder`: o `Reorder` reordena por um eixo só, e numa grade de três
+ * colunas isso quebra — arrastar da coluna 1 para a 2 na mesma linha não
+ * muda o Y, então nada acontece.
+ *
+ * Aqui o destino sai de uma conta simples: ao soltar, o pai procura qual
+ * célula contém o ponto do ponteiro. Funciona em qualquer arranjo de colunas,
+ * no mouse e no dedo.
+ *
+ * `dragSnapToOrigin`: a célula volta sozinha ao lugar, e quem move o item é a
+ * reordenação do estado — não a posição que o arrasto deixou. Sem isso, uma
+ * soltura fora da grade deixaria a capa jogada num canto.
+ *
+ * `data-indice` é como o pai acha as células para medir. É atributo e não
+ * ref porque o pai precisa das OITO de uma vez, no momento da soltura.
+ */
+function CelulaLista({ obra, indice, numerada, arrastavel, aoSoltar, aoEditar, aoTirar }) {
+  const capa = coverOf(obra)
+  const reduzido = usaMovimentoReduzido()
+  const podeArrastar = arrastavel && !reduzido
+
+  return (
+    <motion.div
+      data-indice={indice}
+      className="flex flex-col gap-1.5 min-w-0"
+      /* `layout` faz as OUTRAS células abrirem espaço quando a ordem muda.
+         Sem ele a grade salta de arranjo e some a noção do que foi para onde. */
+      layout
+      transition={MOLA_TOQUE}
+      drag={podeArrastar}
+      dragSnapToOrigin
+      dragMomentum={false}
+      dragElastic={0.18}
+      whileDrag={{ scale: 1.06, zIndex: 20 }}
+      onDragEnd={(e) => aoSoltar?.(indice, e)}
+    >
+      {/* Duplo clique abre o editor da obra. Clique simples não faz nada aqui
+          de propósito: o único toque simples da célula é o × do canto, e dar
+          DUAS funções ao mesmo alvo faria quem quer tirar da lista cair no
+          editor.
+
+          O `title` diz os dois atalhos — nem duplo clique nem arrasto têm
+          aparência, e sem o aviso ninguém descobre. */}
+      <div
+        className={'w-full aspect-square relative flex items-center justify-center select-none ' +
+          (podeArrastar ? 'cursor-grab active:cursor-grabbing touch-none' : 'cursor-pointer')}
+        onDoubleClick={() => aoEditar?.(obra)}
+        title={(podeArrastar ? 'Arraste para mudar a ordem · ' : '') + 'Clique duas vezes para editar ' + obra.nome}
+      >
+        {capa
+          ? <img src={capa} alt="" loading="lazy" draggable="false" className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_10px_20px_-10px_rgba(33,33,33,.55)]" />
+          : <div className={'w-full h-full rounded-pequeno flex items-center justify-center shadow-[0_10px_20px_-10px_rgba(33,33,33,.55)] ' + classeTinta(edOf(obra) || obra.nome)}>
+              <span className="font-display font-semibold text-secao leading-none text-sobre-tinta">{initials(obra.nome)}</span>
+            </div>}
+
+        {/* O número vai no canto de BAIXO à esquerda: o × já ocupa o de cima
+            à direita, e os dois no mesmo canto brigariam pelo mesmo toque. */}
+        {numerada && (
+          <span
+            aria-hidden="true"
+            className="absolute bottom-1 left-1 min-w-[22px] h-[22px] px-1.5 rounded-full bg-ink text-paper font-mono text-rotulo font-bold tabular-nums inline-flex items-center justify-center shadow-amb"
+          >
+            {indice + 1}
+          </span>
+        )}
+
+        <button type="button"
+          onClick={aoTirar}
+          title={'Tirar ' + obra.nome + ' da lista'}
+          aria-label={'Tirar ' + obra.nome + ' da lista'}
+          className="absolute top-1 right-1 w-6 h-6 rounded-full bg-surface/90 border border-rust text-rust inline-flex items-center justify-center hover:bg-tinta-rust">
+          <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+      </div>
+
+      {/* O número também entra no TEXTO quando a lista é numerada: a pastilha
+      {/* O número não se repete no texto visível — ele já está na pastilha
+          sobre a capa, e repetido aqui comia uma linha de nome. Para quem
+          ouve ele continua, em `sr-only`: a pastilha é `aria-hidden`, e sem
+          isto a ordem sumiria para o leitor de tela. */}
+      <div className="text-apoio leading-snug text-ink break-words text-center">
+        {numerada && <span className="sr-only">{indice + 1}. </span>}{obra.nome}
+      </div>
+    </motion.div>
+  )
+}
+
 /* Pop-up de criar ou renomear.
  *
  * Mesmo molde do Backup e do Tema. Ao CRIAR ele traz a escolha de obras
@@ -191,6 +340,7 @@ function PopupLista({ aberto, lista, obras, onFechar, onSalvar }) {
   const editando = !!lista
   const [nome, setNome] = useState('')
   const [escolhidas, setEscolhidas] = useState([])
+  const [ordem, setOrdem] = useState('alfabetica')
 
   /* Zera ao ABRIR, num efeito — não durante o render. Chamar setter no corpo
      do componente reagenda o render de dentro dele mesmo, e com mais de um
@@ -200,13 +350,14 @@ function PopupLista({ aberto, lista, obras, onFechar, onSalvar }) {
     if (!aberto) return
     setNome(lista ? lista.nome : '')
     setEscolhidas([])
+    setOrdem(lista && lista.numerada ? 'numerada' : 'alfabetica')
   }, [aberto, lista])
 
   const alternar = (id) => setEscolhidas(s => (s.includes(id) ? s.filter(x => x !== id) : [...s, id]))
 
   const salvar = () => {
     if (!nome.trim()) return
-    onSalvar(nome.trim(), escolhidas)
+    onSalvar(nome.trim(), escolhidas, ordem === 'numerada')
   }
 
   return (
@@ -218,13 +369,13 @@ function PopupLista({ aberto, lista, obras, onFechar, onSalvar }) {
           onClick={(e) => { if (e.target === e.currentTarget) onFechar() }}
         >
           <motion.div
-            className="w-full sm:max-w-[560px] h-full sm:h-auto sm:max-h-[88vh] flex flex-col bg-surface sm:rounded-grande sm:border sm:border-separador overflow-hidden sm:shadow-[0_40px_90px_-30px_rgba(35,39,28,.5)]"
+            className="w-full sm:max-w-[560px] h-full sm:h-auto sm:max-h-[88vh] flex flex-col bg-surface sm:rounded-grande sm:border sm:border-separador overflow-hidden sm:shadow-[0_40px_90px_-30px_rgba(33,33,33,.5)]"
             initial={{ y: 24, opacity: 0.4 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 24, opacity: 0 }}
             transition={MOLA_GAVETA}
           >
             <div className="flex items-center gap-3 px-5 sm:px-6 py-4 border-b border-linha">
               <h3 className="font-cartaz font-semibold uppercase text-secao text-acento-texto flex-1">
-                {editando ? 'Renomear lista' : 'Nova lista'}
+                {editando ? 'Editar lista' : 'Nova lista'}
               </h3>
               <button className="neo-icon !w-9 !h-9" onClick={onFechar} aria-label="Fechar">×</button>
             </div>
@@ -238,6 +389,16 @@ function PopupLista({ aberto, lista, obras, onFechar, onSalvar }) {
                 placeholder="Para reler, Emprestados, Comprar na bienal…"
                 autoFocus
               />
+
+              <div className="mt-5">
+                <label className="font-rotulo text-rotulo uppercase text-ink-soft pl-0.5">Ordem das obras</label>
+                <div className="mt-1.5"><SeletorOrdem valor={ordem} onChange={setOrdem} /></div>
+                <p className="mt-2 text-apoio text-ink-faint leading-relaxed">
+                  {ordem === 'numerada'
+                    ? 'As obras ficam na ordem que você montar, numeradas — e dá para arrastar na galeria.'
+                    : 'As obras aparecem em ordem alfabética.'}
+                </p>
+              </div>
 
               {!editando && (
                 <div className="mt-6">
@@ -259,7 +420,7 @@ function PopupLista({ aberto, lista, obras, onFechar, onSalvar }) {
                   antes de a pessoa tentar. */}
               <button type="button" className="cta w-full justify-center !pr-5 disabled:opacity-40"
                       disabled={!nome.trim()} onClick={salvar}>
-                {editando ? 'Salvar nome' : 'Criar lista'}
+                {editando ? 'Salvar' : 'Criar lista'}
               </button>
             </div>
           </motion.div>
@@ -269,8 +430,8 @@ function PopupLista({ aberto, lista, obras, onFechar, onSalvar }) {
   )
 }
 
-export default function Listas({ open, onClose, onNotice }) {
-  const { obras, listas, criarLista, renomearLista, apagarLista, alternarNaLista } = useStore()
+export default function Listas({ open, onClose, onNotice, onEditar }) {
+  const { obras, listas, criarLista, renomearLista, apagarLista, alternarNaLista, alternarNumeracao, reordenarLista } = useStore()
   const reduzido = usaMovimentoReduzido()
   const arrasto = useDragControls()
 
@@ -281,13 +442,61 @@ export default function Listas({ open, onClose, onNotice }) {
   const [escolhendo, setEscolhendo] = useState(false)
 
   const aberta = listas.find(l => l.id === abertaId) || null
-  const dentro = aberta ? obrasDaLista(obras, aberta) : []
+  /* AS OBRAS NA ORDEM DO MODO.
+   *
+   * Numerada: a ordem guardada, que é a que a pessoa arrastou.
+   * Alfabética: calculada na hora, com o colator do projeto — "é" vale "e",
+   * como no resto do app. Não se grava: gravar a ordem alfabética apagaria
+   * a ordem montada à mão, e voltar para numerada devolveria uma lista
+   * remexida.
+   */
+  const cru = aberta ? obrasDaLista(obras, aberta) : []
+  const dentro = useMemo(() => (aberta && !aberta.numerada ? sortList(cru, { by: 'nome', dir: 'asc' }) : cru),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [aberta && aberta.id, aberta && aberta.numerada, cru.map(o => o.id).join()])
+
+  /* ONDE A CÉLULA FOI SOLTA.
+   *
+   * O framer-motion diz de onde saiu; quem diz para onde foi é a geometria.
+   * Mede-se a caixa de cada célula NA HORA da soltura e procura-se qual
+   * contém o ponto do ponteiro. Funciona em qualquer número de colunas, no
+   * mouse e no dedo — e é o que o `Reorder` não dá, porque ele ordena por um
+   * eixo só e na mesma linha o Y não muda.
+   *
+   * Soltou fora de qualquer célula? Nada acontece, e o `dragSnapToOrigin`
+   * devolve a capa ao lugar. Desistir de um arrasto não pode bagunçar nada.
+   */
+  const grade = useRef(null)
+  const moverPara = useCallback((de, evento) => {
+    const caixa = grade.current
+    if (!caixa || !aberta) return
+    const x = evento.clientX, y = evento.clientY
+    if (x == null || y == null) return
+    const celulas = [...caixa.querySelectorAll('[data-indice]')]
+    /* PULA A PRÓPRIA. Ao soltar, a célula arrastada ainda está no ponto da
+       soltura — o `dragSnapToOrigin` só a devolve depois. Sem esta linha ela
+       encontra a si mesma, `alvo === de`, e o arrasto não fazia nada: foi
+       exatamente o defeito do primeiro teste. */
+    const alvo = celulas.findIndex((c, k) => {
+      if (k === de) return false
+      const r = c.getBoundingClientRect()
+      return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom
+    })
+    if (alvo < 0 || alvo === de) return
+    const ids = dentro.map(o => o.id)
+    const [movida] = ids.splice(de, 1)
+    ids.splice(alvo, 0, movida)
+    reordenarLista(aberta.id, ids)
+  }, [aberta, dentro, reordenarLista])
 
   const fechar = () => { setAbertaId(null); setEscolhendo(false); onClose() }
 
-  const salvarPopup = (nome, ids) => {
+  const salvarPopup = (nome, ids, numerada) => {
     if (popup === 'nova') {
       const nova = criarLista(nome, ids)
+      /* criar já com a ordem escolhida: alternar depois faria duas
+         gravações e dois envios para a nuvem por um ato só */
+      if (nova && numerada) alternarNumeracao(nova.id)
       setPopup(null)
       if (nova) {
         setAbertaId(nova.id)
@@ -295,8 +504,9 @@ export default function Listas({ open, onClose, onNotice }) {
       }
     } else {
       renomearLista(popup.id, nome)
+      if (!!popup.numerada !== !!numerada) alternarNumeracao(popup.id)
       setPopup(null)
-      onNotice?.('Nome trocado ✓')
+      onNotice?.('Lista atualizada ✓')
     }
   }
 
@@ -420,42 +630,33 @@ export default function Listas({ open, onClose, onNotice }) {
                 ) : (
                   /* ---------- nível 2: a galeria ---------- */
                   <>
+                    <div className="flex items-center gap-3 pb-3 mb-3 border-b border-linha">
+                      <span className="font-rotulo text-rotulo uppercase text-ink-faint flex-1 min-w-0">
+                        {dentro.length === 0 ? 'vazia' : dentro.length === 1 ? '1 obra' : dentro.length + ' obras'}
+                      </span>
+                    </div>
+
                     {dentro.length === 0 ? (
                       <div className="py-8 text-center">
                         <div className="text-corpo text-ink-soft">Lista vazia.</div>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-3 gap-3">
-                        {dentro.map(o => {
-                          const capa = coverOf(o)
-                          return (
-                            <div key={o.id} className="flex flex-col gap-1.5 min-w-0">
-                              <div className="w-full aspect-square relative flex items-center justify-center">
-                                {capa
-                                  ? <img src={capa} alt="" loading="lazy" className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_10px_20px_-10px_rgba(35,39,28,.55)]" />
-                                  : <div className={'w-full h-full rounded-pequeno flex items-center justify-center shadow-[0_10px_20px_-10px_rgba(35,39,28,.55)] ' + classeTinta(edOf(o) || o.nome)}>
-                                      <span className="font-display font-semibold text-secao leading-none text-sobre-tinta">{initials(o.nome)}</span>
-                                    </div>}
-                                {/* Tirar da lista fica NA capa, no canto. Numa
-                                    galeria sem linhas não há outra âncora: um
-                                    botão embaixo do título empurraria as
-                                    células para alturas diferentes. */}
-                                <button type="button"
-                                  onClick={() => { alternarNaLista(aberta.id, o.id); onNotice?.('Tirado da lista.') }}
-                                  title={'Tirar ' + o.nome + ' da lista'}
-                                  aria-label={'Tirar ' + o.nome + ' da lista'}
-                                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-surface/90 border border-contorno text-ink-soft inline-flex items-center justify-center hover:text-ink">
-                                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
-                                    <path d="M6 6l12 12M18 6L6 18" />
-                                  </svg>
-                                </button>
-                              </div>
-                              <div className="text-apoio leading-snug text-ink break-words text-center">{o.nome}</div>
-                            </div>
-                          )
-                        })}
+                      <div ref={grade} className="grid grid-cols-3 gap-3">
+                        {dentro.map((o, i) => (
+                          <CelulaLista
+                            key={o.id}
+                            obra={o}
+                            indice={i}
+                            numerada={!!aberta.numerada}
+                            arrastavel={!!aberta.numerada && dentro.length > 1}
+                            aoSoltar={moverPara}
+                            aoEditar={onEditar}
+                            aoTirar={() => { alternarNaLista(aberta.id, o.id); onNotice?.('Tirado da lista.') }}
+                          />
+                        ))}
                       </div>
                     )}
+
 
                     <button type="button" className="cta w-full justify-center !pr-5 mt-5 gap-2" onClick={() => setEscolhendo(true)}>
                       <IconMais />
@@ -487,7 +688,7 @@ export default function Listas({ open, onClose, onNotice }) {
                   aria-label="Nova lista"
                   className="fab-nova-lista absolute right-5 bottom-5 z-10 w-14 h-14 rounded-full
                     bg-ink text-paper inline-flex items-center justify-center
-                    shadow-[0_14px_28px_-12px_rgba(35,39,28,.7)]
+                    shadow-[0_14px_28px_-12px_rgba(33,33,33,.7)]
                     transition-transform duration-200 ease-[cubic-bezier(0.32,0.72,0,1)]
                     hover:-translate-y-px active:scale-[.96]
                     outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-surface focus-visible:ring-ink/30"

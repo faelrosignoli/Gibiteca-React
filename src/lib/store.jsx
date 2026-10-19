@@ -221,6 +221,31 @@ export function StoreProvider({ children }) {
 
   /* Apagar a lista NÃO toca nas obras. É pasta, não caixa: desfazer a pasta
      não joga fora o que estava dentro. */
+  /* Numerar ou não — escolha POR LISTA, não um ajuste global.
+   *
+   * "Para reler" não tem ordem; "Ler nesta ordem" tem. O mesmo app serve os
+   * dois casos, e quem sabe qual é o caso é quem fez a lista.
+   *
+   * Lista antiga não tem o campo, e `undefined` é falso: ela abre sem
+   * numeração, que é como estava. Nada a migrar.
+   */
+  /* A ordem das obras dentro de UMA lista.
+   *
+   * Só a lista numerada usa: na alfabética a ordem é calculada na tela e o
+   * array guardado não importa. Guardar mesmo assim é de propósito — quem
+   * volta de alfabética para numerada reencontra a ordem que tinha montado,
+   * em vez de uma lista remexida.
+   */
+  const reordenarLista = useCallback((id, ids) => {
+    marcarAlterado()
+    setListas(lista => lista.map(l => (l.id === id ? { ...l, obras: ids } : l)))
+  }, [])
+
+  const alternarNumeracao = useCallback((id) => {
+    marcarAlterado()
+    setListas(lista => lista.map(l => (l.id === id ? { ...l, numerada: !l.numerada } : l)))
+  }, [])
+
   const apagarLista = useCallback((id) => {
     marcarAlterado()
     setListas(lista => lista.filter(l => l.id !== id))
@@ -661,7 +686,7 @@ export function StoreProvider({ children }) {
     // fila de leitura
     fila, alternarFila, removerDaFila, reordenarFila, marcarLido,
     // listas
-    listas, criarLista, renomearLista, apagarLista, alternarNaLista, definirListasDaObra,
+    listas, criarLista, renomearLista, apagarLista, alternarNaLista, definirListasDaObra, alternarNumeracao, reordenarLista,
     filtered, total, totalPages, start, pageItems, all,
     fixada, fixarObra,
     // nuvem

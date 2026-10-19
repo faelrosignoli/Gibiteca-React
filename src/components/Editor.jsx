@@ -89,6 +89,18 @@ function BotaoIcone({ children, perigo, ...resto }) {
   )
 }
 
+/* Pasta com um +: a mesma pasta do item "Listas" no ☰, com o sinal de
+   acrescentar. Liga o botão ao recurso pelo desenho, em vez de pedir que a
+   pessoa decore que "salvar" aqui quer dizer "pôr numa lista". */
+const IconSalvarEmLista = () => (
+  <svg className="w-[17px] h-[17px]" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 7.5l2-2.5h4l1.5 2H19a1 1 0 0 1 1 1v3" />
+    <path d="M3 7.5V18a1 1 0 0 0 1 1h9" />
+    <path d="M18 14v6M15 17h6" />
+  </svg>
+)
+
 /* Cabeçalho de seção. O formulário tinha quinze campos em fila única, todos
    com o mesmo peso — dava para rolar a tela inteira sem saber onde um assunto
    terminava e o outro começava. O fio puxa o olho até a margem direita. */
@@ -156,7 +168,7 @@ function VolPanel({ v, i, withCover, autores, onChange, onCopyAll, onCover, onRe
               <label className={lbl}>Capa do volume</label>
               <div className="flex items-center gap-3">
                 {v.imagem
-                  ? <img src={v.imagem} alt="" className="h-[80px] w-auto max-w-[86px] rounded-pequeno shadow-[0_7px_18px_-8px_rgba(35,39,28,.5)] shrink-0" />
+                  ? <img src={v.imagem} alt="" className="h-[80px] w-auto max-w-[86px] rounded-pequeno shadow-[0_7px_18px_-8px_rgba(33,33,33,.5)] shrink-0" />
                   : <div className={`w-14 h-[74px] rounded-pequeno flex items-center justify-center font-display text-obra text-sobre-tinta shrink-0 ${classeTinta(v.nome || 'v')}`}>{initials(v.nome || (i + 1) + '')}</div>}
                 <input ref={fileRef} type="file" accept="image/*" hidden onChange={e => onCover(i, e)} />
                 <button type="button" className="neo-btn !text-apoio !py-2" onClick={() => fileRef.current?.click()}>
@@ -242,11 +254,97 @@ function VolPanel({ v, i, withCover, autores, onChange, onCopyAll, onCover, onRe
   )
 }
 
+/* Pop-up de escolher em que listas a obra entra.
+ *
+ * O campo no formulário era a lista INTEIRA, em pastilhas. Com três listas
+ * cabia; com quinze, o cadastro virava uma parede de nomes antes mesmo do
+ * primeiro campo de verdade. Agora o formulário mostra só a porta, e a
+ * escolha acontece atrás dela.
+ *
+ * Mesmo molde dos outros pop-ups da casa (Backup, Tema, Nova lista). Sobe
+ * para `z-80` porque o Editor já está em `z-60` e o pop-up tem de vir por
+ * cima dele — e não por cima e por baixo conforme a ordem do DOM.
+ *
+ * NÃO grava nada sozinho: devolve a escolha ao rascunho do Editor, e quem
+ * grava é o Salvar do formulário. É o que permite o mesmo controle servir à
+ * obra NOVA, que ainda não tem id.
+ */
+function PopupListas({ aberto, listas, escolhidas, onAlternar, onFechar }) {
+  return (
+    <AnimatePresence>
+      {aberto && (
+        <motion.div
+          className="fixed inset-0 z-[80] flex items-start sm:items-center justify-center px-0 sm:px-3 py-0 sm:py-6 bg-veu backdrop-blur-xl"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={FADE}
+          onClick={(e) => { if (e.target === e.currentTarget) onFechar() }}
+        >
+          <motion.div
+            className="w-full sm:max-w-[460px] h-full sm:h-auto sm:max-h-[82vh] flex flex-col bg-surface sm:rounded-grande sm:border sm:border-separador overflow-hidden sm:shadow-[0_40px_90px_-30px_rgba(33,33,33,.5)]"
+            initial={{ y: 24, opacity: 0.4 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 24, opacity: 0 }}
+            transition={MOLA_GAVETA}
+          >
+            <div className="flex items-center gap-3 px-5 sm:px-6 py-4 border-b border-linha">
+              <h3 className="font-cartaz font-semibold uppercase text-secao text-acento-texto flex-1">Listas</h3>
+              <button type="button" className="neo-icon !w-9 !h-9" onClick={onFechar} aria-label="Fechar">×</button>
+            </div>
+
+            <div className="flex-1 overflow-auto px-5 sm:px-6 py-4">
+              {listas.length === 0 ? (
+                <p className="text-apoio text-ink-faint leading-relaxed py-4">
+                  Nenhuma lista ainda. Crie uma pelo menu <b>☰ · Listas</b> e ela aparece aqui.
+                </p>
+              ) : (
+                /* Linhas de largura inteira, não pastilhas: nome de lista é
+                   texto livre e pode ser longo. Em pastilha ele quebraria a
+                   grade; em linha, quebra dentro da própria linha. */
+                <div className="flex flex-col">
+                  {listas.map(l => {
+                    const dentro = escolhidas.includes(l.id)
+                    return (
+                      <button
+                        key={l.id} type="button" role="checkbox" aria-checked={dentro}
+                        onClick={() => onAlternar(l.id)}
+                        className="w-full flex items-center gap-3 py-3 border-b border-linha text-left"
+                      >
+                        {/* O quadrado marcado é o sinal, e o `aria-checked` é o
+                            mesmo sinal para quem ouve: nada aqui depende só de
+                            cor. */}
+                        <span className={'shrink-0 w-5 h-5 rounded-pequeno border inline-flex items-center justify-center transition-colors ' +
+                          (dentro ? 'bg-moss border-moss text-sobre-acento' : 'border-contorno text-transparent')}>
+                          <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                               strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M4 12.5l5 5L20 6.5" />
+                          </svg>
+                        </span>
+                        <span className="text-corpo text-ink break-words min-w-0">{l.nome}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className="px-5 sm:px-6 py-4 border-t border-linha">
+              {/* "Pronto" e não "Salvar": aqui nada foi gravado ainda. Quem
+                  grava é o Salvar do Editor, e dois botões "Salvar" na mesma
+                  pilha diriam que um deles já resolveu. */}
+              <button type="button" className="cta w-full justify-center !pr-5" onClick={onFechar}>
+                Pronto
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
+
 export default function Editor({ target, onClose, onSaved }) {
   const { obras, editoras, nextId, upsertObra, deleteObra, listas, definirListasDaObra } = useStore()
   const open = target != null
   const [d, setD] = useState(draftFromObra(null))
   const coverRef = useRef(null)
+  const [listasAberto, setListasAberto] = useState(false)
 
   /* A obra não guarda em que listas está — quem guarda são as listas. Por
      isso o rascunho é montado em dois passos: os campos saem da obra, e a
@@ -348,7 +446,7 @@ export default function Editor({ target, onClose, onSaved }) {
                ou Salvar fecham. */
           >
             <motion.div
- className="w-full sm:max-w-[640px] h-full sm:h-auto sm:max-h-[92vh] flex flex-col bg-surface sm:rounded-grande sm:border sm:border-separador overflow-hidden sm:shadow-[0_40px_90px_-30px_rgba(35,39,28,.5)]"
+ className="w-full sm:max-w-[640px] h-full sm:h-auto sm:max-h-[92vh] flex flex-col bg-surface sm:rounded-grande sm:border sm:border-separador overflow-hidden sm:shadow-[0_40px_90px_-30px_rgba(33,33,33,.5)]"
               initial={{ y: 24, opacity: 0.4 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 24, opacity: 0 }}
               transition={MOLA_GAVETA}
             >
@@ -380,45 +478,39 @@ export default function Editor({ target, onClose, onSaved }) {
                   </div>
 
                   {/* ---- listas ----
-                      Escolha aqui, grava no SALVAR — como todo o resto deste
-                      formulário. É o que permite o mesmo controle servir à
-                      obra nova: ela ainda não tem id, e só depois de `save`
-                      existe um id para pôr nas listas.
+                      Só a PORTA, não a lista inteira. Em pastilhas, três
+                      listas cabiam e quinze viravam uma parede de nomes antes
+                      do primeiro campo de verdade.
 
-                      Caixas, e não a grade de capas da tela de Listas: ali se
-                      escolhe entre centenas de obras e a capa é o que
-                      identifica; aqui se escolhe entre as poucas listas que
-                      existem, e o que identifica é o nome. */}
+                      A escolha acontece no pop-up e volta para o rascunho;
+                      grava no SALVAR, como todo o resto deste formulário. É o
+                      que permite o mesmo controle servir à obra nova: ela
+                      ainda não tem id, e só depois de `save` existe um id
+                      para pôr nas listas. */}
                   <div className={`${box} col-span-2`}>
                     <label className={lbl}>Listas</label>
-                    {listas.length === 0 ? (
-                      <p className="text-apoio text-ink-faint leading-relaxed">
-                        Nenhuma lista ainda. Crie uma pelo menu <b>☰ · Listas</b> e ela aparece aqui.
-                      </p>
-                    ) : (
-                      <div className="flex flex-wrap gap-1.5">
-                        {listas.map(l => {
-                          const dentro = d.listas.includes(l.id)
-                          return (
-                            <button
-                              key={l.id} type="button" aria-pressed={dentro}
-                              onClick={() => patch({
-                                listas: dentro ? d.listas.filter(x => x !== l.id) : [...d.listas, l.id],
-                              })}
-                              className={'pill transition-colors ' + (dentro ? 'pill-tenho' : 'pill-quero')}
-                            >
-                              {dentro && (
-                                <svg className="w-3 h-3 mr-1 inline-block align-[-1px]" viewBox="0 0 24 24" fill="none"
-                                     stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="M4 12.5l5 5L20 6.5" />
-                                </svg>
-                              )}
-                              {l.nome}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2.5">
+                      <BotaoIcone
+                        onClick={() => setListasAberto(true)}
+                        title="Escolher em que listas esta obra entra"
+                        aria-label="Escolher em que listas esta obra entra"
+                      >
+                        <IconSalvarEmLista />
+                      </BotaoIcone>
+                      {/* O número ao lado do ícone, e não dentro dele: um
+                          ícone sozinho não diz se a obra já está em alguma
+                          lista, e abrir o pop-up só para descobrir isso é uma
+                          porta a mais para uma informação de uma palavra. */}
+                      <span className="text-apoio text-ink-faint">
+                        {listas.length === 0
+                          ? 'nenhuma lista criada ainda'
+                          : d.listas.length === 0
+                            ? 'em nenhuma lista'
+                            : d.listas.length === 1
+                              ? 'em 1 lista'
+                              : 'em ' + d.listas.length + ' listas'}
+                      </span>
+                    </div>
                   </div>
                 </Secao>
 
@@ -475,7 +567,7 @@ export default function Editor({ target, onClose, onSaved }) {
                   <Secao titulo="Capa">
                     <div className="col-span-2 flex items-center gap-3">
                       {d.img
-                        ? <img src={d.img} alt="" className="h-[92px] w-auto max-w-[100px] rounded-pequeno shadow-[0_7px_18px_-8px_rgba(35,39,28,.5)] shrink-0" />
+                        ? <img src={d.img} alt="" className="h-[92px] w-auto max-w-[100px] rounded-pequeno shadow-[0_7px_18px_-8px_rgba(33,33,33,.5)] shrink-0" />
                         : <div className="w-16 h-[84px] rounded-pequeno border border-dashed border-separador bg-surface-2 flex items-center justify-center text-ink-faint text-rotulo text-center px-1 shrink-0">sem capa</div>}
                       <div className="flex-1 min-w-0">
                         <input ref={coverRef} type="file" accept="image/*" hidden onChange={onCover} />
@@ -583,6 +675,16 @@ export default function Editor({ target, onClose, onSaved }) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Fora da AnimatePresence do Editor: o pop-up precisa viver por cima
+          dele (z-80 contra z-60) e sobreviver à própria moldura. */}
+      <PopupListas
+        aberto={listasAberto}
+        listas={listas}
+        escolhidas={d.listas}
+        onAlternar={(id) => patch({ listas: d.listas.includes(id) ? d.listas.filter(x => x !== id) : [...d.listas, id] })}
+        onFechar={() => setListasAberto(false)}
+      />
 
     </>
   )

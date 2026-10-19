@@ -58,6 +58,8 @@ export const CAPAS = [
   'moore.alan.jpg',
   'hurlant.metal.jpg',
   'ale.jodo.jpg',
+  'tezuka.osamu.jpg',
+  'sousa.mauricio.jpg',
 ]
 
 /* O nome da versão de celular: `-m` ANTES da extensão.

@@ -210,7 +210,7 @@ export default function DetailSheet({ obra, onClose, onEdit, onDuplicar, onDesme
                     sem recorte; o placeholder preenche o quadrado. */}
                 <div className="w-24 sm:w-28 shrink-0 self-start aspect-square relative flex items-center justify-center">
                   {coverOf(obra, filters.status)
-                    ? <img src={coverOf(obra, filters.status)} alt="" className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_18px_30px_-18px_rgba(35,39,28,.55)]" />
+                    ? <img src={coverOf(obra, filters.status)} alt="" className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_18px_30px_-18px_rgba(33,33,33,.55)]" />
                     : <div className={`w-full h-full flex items-center justify-center text-sobre-tinta ${classeTinta(edOf(obra) || obra.nome)}`}>
                         <span className="font-display font-semibold text-titulo leading-none">{initials(obra.nome)}</span>
                       </div>}
@@ -323,8 +323,8 @@ export default function DetailSheet({ obra, onClose, onEdit, onDuplicar, onDesme
                           {/* mesma caixa quadrada da galeria */}
                           <div className={`w-full aspect-square relative flex items-center justify-center ${owns ? '' : 'opacity-55'}`}>
                             {v.imagem
-                              ? <img src={v.imagem} alt="" loading="lazy" className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_10px_20px_-10px_rgba(35,39,28,.55)]" />
-                              : <div className={`w-full h-full rounded-pequeno flex items-center justify-center shadow-[0_10px_20px_-10px_rgba(35,39,28,.55)] ${classeTinta(label)}`}>
+                              ? <img src={v.imagem} alt="" loading="lazy" className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_10px_20px_-10px_rgba(33,33,33,.55)]" />
+                              : <div className={`w-full h-full rounded-pequeno flex items-center justify-center shadow-[0_10px_20px_-10px_rgba(33,33,33,.55)] ${classeTinta(label)}`}>
                                   <span className="font-display font-semibold text-secao leading-none text-sobre-tinta">{initials(label)}</span>
                                 </div>}
                           </div>

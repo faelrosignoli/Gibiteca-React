@@ -29,14 +29,14 @@ import { useStore } from '../lib/store.jsx'
  * cor e a escolha deixa de ser uma escolha.
  *
  * `sobre` é a tinta do nome em cima da faixa. É escolhida por contraste, não
- * por gosto: #23271C (ink) sobre o rosa do Candy dá 5,8:1, e o papel sobre o
+ * por gosto: #212121 (ink) sobre o rosa do Candy dá 5,8:1, e o papel sobre o
  * Midnight dá 16,3:1. Conferido com a mesma conta do WCAG que o resto do
  * projeto usa.
  */
 const TEMAS = [
   { v: 'moss',     rotulo: 'Moss',     cores: ['#4B5D3A'],                        sobre: '#F4F0E6' },
-  { v: 'nockout',  rotulo: 'Nockout',  cores: ['#FF5000'],                        sobre: '#23271C' },
-  { v: 'candy',    rotulo: 'Candy',    cores: ['#DF8888', '#EBB273', '#B5CDC5'],  sobre: '#23271C' },
+  { v: 'nockout',  rotulo: 'Nockout',  cores: ['#FF5000'],                        sobre: '#212121' },
+  { v: 'candy',    rotulo: 'Candy',    cores: ['#DF8888', '#EBB273', '#B5CDC5'],  sobre: '#212121' },
   { v: 'midnight', rotulo: 'Midnight', cores: ['#280137'],                        sobre: '#F3F1F6' },
 ]
 
@@ -58,7 +58,7 @@ export default function Tema({ open, onClose }) {
           onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
         >
           <motion.div
-            className="w-full sm:max-w-[460px] h-full sm:h-auto flex flex-col bg-surface sm:rounded-grande sm:border sm:border-separador overflow-hidden sm:shadow-[0_40px_90px_-30px_rgba(35,39,28,.5)]"
+            className="w-full sm:max-w-[460px] h-full sm:h-auto flex flex-col bg-surface sm:rounded-grande sm:border sm:border-separador overflow-hidden sm:shadow-[0_40px_90px_-30px_rgba(33,33,33,.5)]"
             initial={{ y: 24, opacity: 0.4 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 24, opacity: 0 }}
             transition={MOLA_GAVETA}
           >

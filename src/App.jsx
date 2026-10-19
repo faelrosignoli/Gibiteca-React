@@ -156,8 +156,8 @@ export default function App() {
 
       <Backup open={backup} onClose={() => setBackup(false)} onNotice={say} />
       <Tema open={temaAberto} onClose={() => setTemaAberto(false)} />
-      <Fila open={filaAberta} onClose={() => setFilaAberta(false)} onNotice={say} />
-      <Listas open={listasAbertas} onClose={() => setListasAbertas(false)} onNotice={say} />
+      <Fila open={filaAberta} onClose={() => setFilaAberta(false)} onNotice={say} onEditar={setEditor} />
+      <Listas open={listasAbertas} onClose={() => setListasAbertas(false)} onNotice={say} onEditar={setEditor} />
       <FiltersDrawer open={showFilters} onClose={() => setShowFilters(false)} />
       <DetailSheet obra={detail} onClose={() => setDetail(null)} onEdit={openEditor} onDuplicar={duplicar} onDesmembrar={desmembrar} />
       <SearchOverlay open={search} onClose={() => setSearch(false)} />

@@ -14,7 +14,7 @@ const FAM = {
     ['#7A4A33', 'barro'], ['#6E4A3C', 'umbra'], ['#63453A', 'tijolo'],
     ['#9C5633', 'ocre'], ['#7D5A44', 'terra'],
   ]},
-  candy: { sobre: '#23271C', cores: [
+  candy: { sobre: '#212121', cores: [
     ['#DF8888', 'rosa (dada)'], ['#EBB273', 'damasco (dada)'], ['#B5CDC5', 'menta (dada)'],
     ['#E9A5A5', 'rosa claro'], ['#F0C79A', 'damasco claro'], ['#C9DCD5', 'menta clara'],
     ['#D9A3AE', 'rosa-malva'], ['#E3B9A0', 'pêssego'],

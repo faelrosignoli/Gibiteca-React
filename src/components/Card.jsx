@@ -14,7 +14,7 @@ import {
 // selo de urgente — quadrado arredondado cor rust + triângulo branco
 function UrgBadge() {
   return (
-    <span className="absolute top-2.5 right-2.5 z-[4] w-[26px] h-[26px] rounded-pequeno bg-rust text-white flex items-center justify-center shadow-[0_2px_8px_rgba(35,39,28,.3)]" title="Urgente">
+    <span className="absolute top-2.5 right-2.5 z-[4] w-[26px] h-[26px] rounded-pequeno bg-rust text-white flex items-center justify-center shadow-[0_2px_8px_rgba(33,33,33,.3)]" title="Urgente">
       <svg className="w-[15px] h-[15px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
         <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><path d="M12 9v4" /><path d="M12 17h.01" />
       </svg>
@@ -121,10 +121,10 @@ export default function Card({ obra, index = 0, onOpen, feature = false, animarE
                a caixa e desalinha a linha inteira */
             <img
               src={cover} alt="" loading="lazy"
- className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_18px_30px_-18px_rgba(35,39,28,.55)]"
+ className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_18px_30px_-18px_rgba(33,33,33,.55)]"
             />
           ) : (
-            <div className={`w-full h-full rounded-medio p-3 sm:p-3.5 flex flex-col text-sobre-tinta shadow-[0_18px_30px_-18px_rgba(35,39,28,.55)] ${classeTinta(edOf(obra) || obra.nome)} ${feature ? 'lg:min-h-[260px]' : ''}`}>
+            <div className={`w-full h-full rounded-medio p-3 sm:p-3.5 flex flex-col text-sobre-tinta shadow-[0_18px_30px_-18px_rgba(33,33,33,.55)] ${classeTinta(edOf(obra) || obra.nome)} ${feature ? 'lg:min-h-[260px]' : ''}`}>
               {(edOf(obra) || (isImp(obra) ? 'Importado' : '')) &&
                 <div className="font-rotulo text-rotulo uppercase opacity-85 truncate">{edOf(obra) || 'Importado'}</div>}
               <div className={`font-display font-semibold leading-none my-auto text-center  ${feature ? 'text-[clamp(22px,5vw,48px)] lg:text-[clamp(44px,6vw,86px)]' : 'text-[clamp(22px,5vw,48px)]'}`}>

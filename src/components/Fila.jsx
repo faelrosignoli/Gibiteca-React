@@ -5,7 +5,7 @@ import {
   deveDispensar, usaMovimentoReduzido,
 } from '../lib/motion.js'
 import { useStore } from '../lib/store.jsx'
-import { chaveFila, filaResolvida, capaDaFila, autorDaFila, podeEnfileirar, edOf, initials, classeTinta } from '../lib/helpers.js'
+import { chaveFila, filaResolvida, capaDaFila, autorDaFila, podeEnfileirar, edOf, edicaoDe, isImp, initials, classeTinta } from '../lib/helpers.js'
 import { EstrelasInput } from './Estrelas.jsx'
 
 /* A FILA DE LEITURA.
@@ -42,7 +42,7 @@ function PopupNota({ alvo, onFechar, onConfirmar }) {
           onClick={(e) => { if (e.target === e.currentTarget) onFechar() }}
         >
           <motion.div
-            className="w-full sm:max-w-[460px] h-full sm:h-auto flex flex-col bg-surface sm:rounded-grande sm:border sm:border-separador overflow-hidden sm:shadow-[0_40px_90px_-30px_rgba(35,39,28,.5)]"
+            className="w-full sm:max-w-[460px] h-full sm:h-auto flex flex-col bg-surface sm:rounded-grande sm:border sm:border-separador overflow-hidden sm:shadow-[0_40px_90px_-30px_rgba(33,33,33,.5)]"
             initial={{ y: 24, opacity: 0.4 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 24, opacity: 0 }}
             transition={MOLA_GAVETA}
           >
@@ -87,12 +87,14 @@ function PopupNota({ alvo, onFechar, onConfirmar }) {
  * clique. Com o punho, quem quer mover sabe onde pegar e quem quer clicar
  * clica.
  */
-function Linha({ item, aoLer, aoTirar }) {
+function Linha({ item, aoLer, aoTirar, aoEditar }) {
   const arrasto = useDragControls()
   const reduzido = usaMovimentoReduzido()
   const capa = capaDaFila(item)
   const autor = autorDaFila(item)
   const editora = edOf(item.obra)
+  const edicao = edicaoDe(item.obra)
+  const importado = isImp(item.obra)
   const rotulo = item.parte ? item.titulo + ' — ' + item.parte : item.titulo
 
   return (
@@ -125,28 +127,50 @@ function Linha({ item, aoLer, aoTirar }) {
         </svg>
       </span>
 
-      {/* capa — caixa quadrada, como na galeria e no detalhe */}
-      <div className="w-12 h-12 shrink-0 relative flex items-center justify-center">
-        {capa
-          ? <img src={capa} alt="" loading="lazy" className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_8px_16px_-9px_rgba(35,39,28,.55)]" />
-          : <div className={'w-full h-full rounded-pequeno flex items-center justify-center ' + classeTinta(editora || item.titulo)}>
-              <span className="font-display font-semibold text-corpo leading-none text-sobre-tinta">{initials(item.titulo)}</span>
-            </div>}
-      </div>
+      {/* A CAPA E O TEXTO formam um alvo só para o duplo clique, que abre o
+          editor. Os botões ficam de fora: duplo clique em "Lido" não pode
+          marcar lido e abrir o editor na mesma batida.
 
-      {/* título, editora, autor — e nada mais */}
-      <div className="min-w-0 flex-1">
-        <div className="text-corpo text-ink leading-snug break-words">{item.titulo}</div>
-        {item.parte && <div className="text-apoio text-ink-soft leading-snug">{item.parte}</div>}
-        {(editora || autor) && (
-          <div className="text-apoio text-ink-faint leading-snug truncate">
-            {[editora, autor].filter(Boolean).join(' · ')}
-          </div>
-        )}
+          Clique simples continua sem fazer nada — a linha é informação, e o
+          que age são os dois botões à direita. */}
+      <div
+        className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer"
+        onDoubleClick={() => aoEditar?.(item)}
+        title={'Clique duas vezes para editar ' + item.titulo}
+      >
+        {/* Capa RETRATO, não quadrada: capa de gibi é mais alta que larga, e
+            na caixa quadrada de antes ela ficava pequena no meio de duas
+            faixas vazias. Aqui o desenho ocupa a caixa inteira. */}
+        <div className="w-[52px] h-[70px] shrink-0 relative flex items-center justify-center">
+          {capa
+            ? <img src={capa} alt="" loading="lazy" className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_8px_16px_-9px_rgba(33,33,33,.55)]" />
+            : <div className={'w-full h-full rounded-pequeno flex items-center justify-center ' + classeTinta(editora || item.titulo)}>
+                <span className="font-display font-semibold text-obra leading-none text-sobre-tinta">{initials(item.titulo)}</span>
+              </div>}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div className="text-corpo text-ink leading-snug break-words">{item.titulo}</div>
+          {item.parte && <div className="text-apoio text-ink-soft leading-snug">{item.parte}</div>}
+          {(editora || autor) && (
+            <div className="text-apoio text-ink-faint leading-snug truncate">
+              {[editora, autor].filter(Boolean).join(' · ')}
+            </div>
+          )}
+          {/* Os selos do que AJUDA a escolher o próximo: o formato da edição e
+              se é importado. Não há nota nem valor — nota o item ainda não tem
+              (é o que falta ler) e valor é assunto da coleção, não da fila. */}
+          {(edicao || importado) && (
+            <div className="flex flex-wrap items-center gap-1 mt-1">
+              {edicao && <span className="pill pill-quero">{edicao}</span>}
+              {importado && <span className="pill pill-quero">Importado</span>}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ---- ações ---- */}
-      <div className="shrink-0 flex items-center gap-1">
+      <div className="shrink-0 flex items-center gap-1.5">
         <button
           type="button"
           onClick={() => aoLer(item)}
@@ -159,15 +183,20 @@ function Linha({ item, aoLer, aoTirar }) {
           </svg>
           Lido
         </button>
+        {/* Vermelho e com anel próprio, ao lado de um botão neutro: tirar da
+            fila é a única ação da linha que desfaz alguma coisa, e o `rust` é
+            a cor que o projeto já usa para isso (urgente, excluir volume). O
+            anel vale SEMPRE, não só no hover — num toque não existe hover, e
+            o aviso tem de estar lá antes do dedo. */}
         <button
           type="button"
           onClick={() => aoTirar(item)}
-          className="neo-icon !w-8 !h-8"
+          className="shrink-0 w-8 h-8 rounded-full border border-rust text-rust inline-flex items-center justify-center transition-colors hover:bg-tinta-rust"
           title={'Tirar ' + rotulo + ' da fila'}
           aria-label={'Tirar ' + rotulo + ' da fila'}
         >
           <svg className="w-[14px] h-[14px]" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               strokeWidth="2" strokeLinecap="round">
+               strokeWidth="2.4" strokeLinecap="round">
             <path d="M6 6l12 12M18 6L6 18" />
           </svg>
         </button>
@@ -176,7 +205,7 @@ function Linha({ item, aoLer, aoTirar }) {
   )
 }
 
-export default function Fila({ open, onClose, onNotice }) {
+export default function Fila({ open, onClose, onNotice, onEditar }) {
   const { obras, fila, reordenarFila, removerDaFila, marcarLido } = useStore()
   const reduzido = usaMovimentoReduzido()
   const arrasto = useDragControls()
@@ -284,7 +313,7 @@ export default function Fila({ open, onClose, onNotice }) {
                   <Reorder.Group axis="y" values={vivas} onReorder={reordenarFila} className="flex flex-col">
                     <AnimatePresence initial={false}>
                       {itens.map(item => (
-                        <Linha key={chaveFila(item.obra.id, item.vol)} item={item} aoLer={aoLer} aoTirar={tirar} />
+                        <Linha key={chaveFila(item.obra.id, item.vol)} item={item} aoLer={aoLer} aoTirar={tirar} aoEditar={(it) => onEditar?.(it.obra)} />
                       ))}
                     </AnimatePresence>
                   </Reorder.Group>

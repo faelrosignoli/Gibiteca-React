@@ -46,8 +46,8 @@ function Ficha({ obra, index, onOpen }) {
       <div className="w-[52px] sm:w-16 aspect-square relative flex items-center justify-center self-start">
         {urgenteNaVitrine(obra, filters.status) && <UrgBadge />}
         {capa
-          ? <img src={capa} alt="" loading="lazy" className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_10px_20px_-10px_rgba(35,39,28,.55)]" />
-          : <div className={`w-full h-full rounded-pequeno flex items-center justify-center shadow-[0_10px_20px_-10px_rgba(35,39,28,.55)] ${classeTinta(edOf(obra) || obra.nome)}`}>
+          ? <img src={capa} alt="" loading="lazy" className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_10px_20px_-10px_rgba(33,33,33,.55)]" />
+          : <div className={`w-full h-full rounded-pequeno flex items-center justify-center shadow-[0_10px_20px_-10px_rgba(33,33,33,.55)] ${classeTinta(edOf(obra) || obra.nome)}`}>
               <span className="font-display font-semibold text-corpo sm:text-obra leading-none text-sobre-tinta">{initials(obra.nome)}</span>
             </div>}
       </div>
@@ -153,7 +153,7 @@ export default function Collection({ onOpen }) {
 /* mesmo selo da galeria: quadrado rust com o triângulo de alerta */
 function UrgBadge() {
   return (
-    <span className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 z-[4] w-4 h-4 sm:w-[20px] sm:h-[20px] rounded-pequeno bg-rust text-white flex items-center justify-center shadow-[0_2px_8px_rgba(35,39,28,.3)]" title="Urgente">
+    <span className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 z-[4] w-4 h-4 sm:w-[20px] sm:h-[20px] rounded-pequeno bg-rust text-white flex items-center justify-center shadow-[0_2px_8px_rgba(33,33,33,.3)]" title="Urgente">
       <svg className="w-[10px] h-[10px] sm:w-3 sm:h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
         <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><path d="M12 9v4" /><path d="M12 17h.01" />
       </svg>
