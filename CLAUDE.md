@@ -116,9 +116,11 @@ corrido e positiva só no rótulo. **Não escrever `tracking-*` à mão** — a 
   de 560 no desktop, e **quebra em duas linhas a 375px** — sem estouro, mas é
   o custo de usá-la em frase, não em palavra.
 
-- **`#212121` existe só na capa** (`.welcome`), no botão e na sombra do logo.
-  É um preto diferente do `ink` (`#212121`) do resto do app, e fica preso
-  àquele escopo de propósito — solto, viraria uma segunda tinta preta
+- **A capa (`.welcome`) crava `#212121`** no botão e na sombra do logo.
+  Houve um tempo em que isso era um preto DIFERENTE do `ink` do app
+  (`#23271C`); hoje os dois coincidem, porque a tinta do projeto virou
+  `#212121`. As declarações ficam: elas prendem a capa a este preto, que
+  responde à arte e não à interface.
   competindo com a do projeto. No rodapé, por exemplo, o logo segue em `ink`.
 - Véus de tinta, nomeados pela função (antes eram 12 opacidades avulsas):
   `linha` (8%, fio de 1px) · `separador` (12%, divisória) ·
@@ -190,10 +192,43 @@ da pastilha. Hoje há uma instância só, na segunda linha — mas a regra conti
 valendo para quem for duplicá-lo por CSS para "mostrar em dois lugares".
 
 ### O ☰: um painel no celular, uma folha no desktop
-Três assuntos, nesta ordem: **tema**, **estatísticas** e **um tópico só** para
-tudo que é dado — nuvem, atividades, capas em massa e os dois backups. Eram
-cinco itens soltos competindo com o resto; agora são cinco coisas da mesma
-família atrás de uma porta que abre em sanfona.
+**Nove portas, uma lista, sem gaveta**, nesta ordem:
+
+```
+Seus dados       (ou o NOME da pessoa, quando há um)    ← destaque (20px + avatar)
+Tema             com as 4 cores em palitos ao lado
+Fila de leitura
+Listas                                                    o dia a dia (16px)
+Estatísticas
+Atividades
+Capas            manutenção: se usa de vez em quando
+Backup
+Ajuda            a saída de quem não achou              ← apoio (14px + ícone)
+```
+
+**Houve um grupo e ele foi desfeito.** "Seus dados" abria uma sanfona com
+Perfil, Atividades, Capas e Backup dentro — agrupamento por assunto cujo preço
+era alto demais: quatro das nove portas custavam DOIS cliques e ficavam
+invisíveis até o primeiro. Um menu de nove itens cabe inteiro na tela; esconder
+metade dele para economizar um espaço que sobra é trocar alcance por arrumação.
+
+**A ordem é por frequência de uso, com as duas pontas marcadas.** Três portes,
+não nove linhas iguais: uma lista achatada obriga a ler os nove rótulos para
+achar o primeiro; com a primeira maior e a última menor, o olho pega as pontas
+antes de ler qualquer palavra. A diferença entre destaque e normal é de UM
+degrau da escala (20 contra 16px) — o suficiente para vir primeiro sem a linha
+virar cabeçalho.
+
+**Ícone só nas pontas.** Nos sete do meio viraria enfeite ao lado de uma palavra
+em caixa alta que já se lê de longe; nas pontas reforça o que o tamanho começou.
+O texto dessas duas fica recuado em relação aos outros, e é de propósito: são a
+cabeça e o pé da lista, não mais dois itens dela.
+
+**"Tema" não leva amostra de cor.** Houve duas tentativas: quatro palitos nas
+cores dos temas, que liam como quatro itens de lista dentro de um item de
+lista; e uma roda de cores, que resolvia isso mas ainda disputava atenção com
+o avatar do Perfil logo acima. A linha ficou só com a palavra — as cores estão
+a um clique, no pop-up, onde cada tema é uma faixa do tamanho de um tema.
 
 **Os três são PORTAS: cada linha abre uma tela.** O tema era a exceção — a
 escolha de cor morava aqui dentro, feita ali mesmo, com um fio mais forte
@@ -209,11 +244,37 @@ Com o menu aberto a segunda linha **não precisa sumir à mão**: o painel é fi
 começa embaixo da barra, então a cobre sozinho. Escondê-la daria um pulo na
 página ao abrir o menu, porque ela está no fluxo normal.
 
-**No painel, as linhas são grandes (`text-titulo`, 28px) e sem ícone.** São três
-assuntos, não uma lista de comandos, e a essa altura o ícone vira enfeite ao
-lado de uma palavra que já se lê de longe. Na folha do desktop, que é compacta,
-o ícone continua ajudando a varrer — o mesmo componente serve os dois pela
-prop `grande`.
+**As linhas são grandes (`font-cartaz text-obra`, caixa alta) e sem ícone**, com
+um fio entre elas. São assuntos, não uma lista de comandos, e a essa altura o
+ícone vira enfeite ao lado de uma palavra que já se lê de longe.
+
+**Um desenho só nos dois tamanhos.** Houve dois: o painel de tela cheia como
+acima, e a folha do desktop como uma lista compacta, com ícone e fundo
+arredondado no hover, servidos pelo mesmo componente através de uma prop
+`grande`. A prop saiu. O desktop ficou com a MOLDURA de pop-up — borda,
+sombra, 320px, ancorada no ☰ —, e o conteúdo dela passou a ser o do celular.
+
+Dois desenhos para o mesmo menu é dívida que se paga em todo item novo: "Ajuda"
+nasceu precisando de um ícone só por causa de um dos dois lados. E fazia o mesmo
+app parecer dois apps conforme a largura da tela.
+
+Com a prop foram **seis componentes de ícone** que ficaram órfãos (`IconTema`,
+`IconFila`, `IconListas`, `IconStats`, `IconCloud`, `IconAjuda`) — removidos
+junto, porque código morto que compila é o pior tipo: ninguém o encontra lendo,
+e ele volta a ser copiado no dia em que alguém procurar "como se faz um ícone
+aqui".
+
+O que o desktop ganhou de volta foi só `hover:text-acento-texto`: o celular não
+tem cursor e não precisa responder a ele, a folha suspensa precisa, ou o
+ponteiro passa por cima de seis palavras sem dizer qual vai ser clicada. Muda a
+COR, não o fundo — o fundo arredondado era justamente o que fazia a lista
+parecer outra coisa ali.
+
+E o fio do **último** item sai (`[&>*:last-child]:border-b-0` no pai): cada
+linha carrega uma régua para separá-la da seguinte, e a última não tem seguinte.
+No celular a sobra cai em espaço vazio e passa; no pop-up ela encosta na borda e
+vira régua solta. A regra olha a POSIÇÃO, e quem sabe a posição é quem contém —
+os filhos não são todos iguais — o primeiro e o último têm porte próprio.
 
 Com o ícone da nuvem fora, o **ponto de sincronização** ganhou lugar próprio ao
 lado do rótulo: a ação pode se esconder atrás de uma porta, o alerta não pode.
@@ -975,7 +1036,7 @@ utilitário), nunca `!important`.
 `tailwind.config.js` **exige reiniciar o servidor de dev**: o Tailwind lê a
 config na subida, e enquanto o processo antigo roda a classe nova simplesmente
 não gera CSS — o texto sai com tinta cheia e parece erro de código. O build de
-produção já saía certo (`#23271c1a`) enquanto a tela mentia.
+produção já saía certo (a tinta a 10%) enquanto a tela mentia.
 
 ### Animação de ícone nos botões
 No `index.css`, bloco próprio no fim. Seis gestos, todos dentro do teto de
@@ -1595,7 +1656,7 @@ casa não usa `#fff` em superfície nenhuma.
 O Candy é a exceção, porque a cortina dele é **menta** e portanto clara:
 papel ali dá **1,51:1** e a arte some. Nele a marca toma a cor dos ícones ao
 lado — `rgb(var(--sobre-acento) / .84)`, o mesmo valor do `.isl-icon` —, que
-no Candy resolve para `rgb(33 33 33 / 84%)` e dá **9,07:1**.
+no Candy resolve para `rgb(33 33 33 / 84%)` e dá **9,59:1**.
 
 | tema | cortina | marca alternativa |
 |---|---|---|
@@ -1645,7 +1706,7 @@ como se lê uma lista de opções.
 Os hex das faixas ficam **cravados no componente**, não em token: a faixa do
 Candy tem de ser rosa mesmo com o site no Midnight, senão a lista inteira vira
 a mesma cor e a escolha deixa de ser escolha. A tinta do nome sobre cada faixa
-também é escolhida por contraste — ink sobre o rosa dá 5,81:1, papel sobre o
+também é escolhida por contraste — ink sobre o rosa dá 6,15:1, papel sobre o
 midnight dá 16,29:1.
 
 **O escolhido leva anel E visto.** O anel usa a tinta do app, não a do tema:
@@ -2012,8 +2073,8 @@ mesmos em todos.
 | | acento | papel | acento-texto | sobre-acento |
 |---|---|---|---|---|
 | Moss | `#4B5D3A` | `#F4F0E6` creme | o próprio (6,31:1) | papel (6,31:1) |
-| Nockout | `#FF5000` | `#F0F0F0` prateado | `#C23A00` (4,73:1) | ink (4,64:1) |
-| Candy | `#DF8888` | `#F7F2F0` rosado | `#A8434A` (5,30:1) | ink (5,81:1) |
+| Nockout | `#FF5000` | `#F0F0F0` prateado | `#C23A00` (4,73:1) | ink (4,91:1) |
+| Candy | `#DF8888` | `#F7F2F0` rosado | `#A8434A` (5,30:1) | ink (6,15:1) |
 | Midnight | `#280137` | `#F3F1F6` lavanda | o próprio (16,29:1) | papel (16,29:1) |
 
 Os números foram **medidos**, não estimados: `node tools/contraste.cjs` roda a
@@ -2061,7 +2122,7 @@ damasco e menta.
 
 O erro era de premissa: a família não precisava ser escura, as INICIAIS é que
 precisavam mudar de cor. O rosa dado já tem luminância 0,35 e com tinta por
-cima dá 5,81:1. Daí nasceu **`--sobre-tinta`** — a tinta que vai em cima da
+cima dá 6,15:1. Daí nasceu **`--sobre-tinta`** — a tinta que vai em cima da
 tinta de capa ausente, branco por padrão, ink no Candy.
 
 Era `text-white` cravado em **nove lugares** (Card, Collection, DetailSheet,
@@ -2071,8 +2132,7 @@ cor fixa (`bg-rust`, `bg-box`) e não são tinta — não mexer.
 
 As oito se dividem em três famílias (três rosas, três damascos, duas mentas)
 para o sorteio por editora espalhar as cores em vez de insistir numa.
-`node tools/tintas.cjs` mede cada família contra a tinta certa: pior caso
-**5,81:1** no Candy.
+
 
 ##### A barra do Candy é MENTA, não o acento
 A cortina do topo é a única superfície GRANDE que o tema pinta. No Candy ela
@@ -2085,7 +2145,7 @@ outros três temas continuam seguindo o próprio acento (medido: Moss, Nockout e
 Midnight com cortina idêntica ao `--moss` de cada um).
 
 Pílulas e ícones não precisaram de nada: já usam `--sobre-acento`, que no Candy
-é tinta, e **tinta sobre menta dá 9,07:1**.
+é tinta, e **tinta sobre menta dá 9,59:1**.
 
 **A MARCA NÃO MUDA.** Houve uma versão em que ela invertia sobre a menta
 (miolo em tinta, sombra em rosa), porque `paper` sobre menta dá só **1,51:1**;
@@ -2093,7 +2153,7 @@ saiu a pedido de quem desenha o app. A regra do projeto vale inteira: a marca é
 a assinatura e não troca de cor com a barra, em tema nenhum.
 
 Na prática funciona porque quem desenha as letras sobre a menta é a **sombra**,
-que é tinta e dá 9,07:1 — o miolo claro lê como recorte, não como texto. Se um
+que é tinta e dá 9,59:1 — o miolo claro lê como recorte, não como texto. Se um
 dia incomodar, o caminho é **escurecer a menta da barra**, não repintar a
 marca.
 
@@ -2154,7 +2214,7 @@ existe:
 
 Os números que obrigaram a isso, medidos: #FF5000 como texto sobre creme dá
 **2,8:1**; creme sobre #FF5000 dá **2,88:1** — os dois reprovam para corpo
-pequeno. Com os tons separados a barra rolada sobe para **4,64:1**.
+pequeno. Com os tons separados a barra rolada sobe para **4,91:1**.
 
 **Auditoria feita** (varredura de todo texto da tela, comparando os dois temas
 no mesmo DOM). Só 7 elementos pioravam de passa→reprova, todos o mesmo selo —
@@ -2696,7 +2756,11 @@ cada modal, e (com mock) conectar nuvem / push automático / capas em massa.
 Os artefatos de teste ficam numa pasta `_test/` descartável (não versionar).
 
 ## Histórico de decisões (contexto que economiza retrabalho)
-- ink mudou de `#20241A` para `#212121` para bater com o `index.html`.
+- ink mudou de `#20241A` para `#23271C` para bater com o `index.html`; depois,
+  de `#23271C` para `#212121`, unificando com o preto que a capa já usava.
+  O `ink-2` (hover) acompanhou: era `#2c3124`, um cinza ESVERDEADO derivado do
+  verde-tinta antigo, e virou `#2c2c2c` — deixá-lo faria o hover puxar para o
+  verde a partir de um cinza puro.
 - Card: removido o brilho de cursor; mantido só o 3D + sombra dura.
 - Lista deixou de ser "toda branca": cabeçalho `bg-ink text-paper`, hover, pills.
 - Filtros: o vão vertical exagerado era o grid esticando (align-content). Corrigido com `content-start`.
@@ -2715,3 +2779,554 @@ Os artefatos de teste ficam numa pasta `_test/` descartável (não versionar).
 - Capas de volume no detalhe: naturais/flutuando, sem recorte/moldura.
 - Editor: Urgente e Lido viraram checkbox (`CheckTile`), com rótulos p/ alinhar.
 - "Importado" é selo azul; "Box" usa marrom `#8a6a45`; Urgente é `rust` com triângulo.
+
+---
+
+## Conta, entrada e ajuda (Etapa 0)
+
+A porta de entrada (`Entrada.jsx`) fica ENTRE a capa e a coleção. O botão da
+capa diz "Entrar"; o cabeçalho aparece no modo `soMarca` (só o logo, sem busca,
+menu ou contagem), porque é o logo que viaja da capa até a barra pelo
+`layoutId="marca"` — cortar o cabeçalho faria a marca sumir no meio da viagem.
+
+**O portão** (`App.jsx`) exige SESSÃO e CONTA de acordo:
+`!!sessao && !!conta.email && sessao.email === conta.email`. Sessão sozinha
+deixaria entrar sem perfil; conta sozinha deixaria entrar quem nunca digitou o
+e-mail. E a comparação existe porque restaurar backup troca a conta e NÃO a
+sessão — o arquivo de outra pessoa deixaria a sessão antiga valendo sobre dados
+que não são dela.
+
+**`conta` vai no blob, `sessao` não.** `conta` (e-mail, nascimento, termos) mora
+em `gibiteca_v1` junto das obras, logo vai no backup e na nuvem. `sessao` mora
+em `gibiteca_sessao`, chave própria: estar logado é fato DESTE aparelho, e levar
+isso num arquivo restaurado deixaria alguém logado num computador onde nunca
+digitou nada.
+
+**O servidor de mentira** (`lib/conta.js`) tem a superfície que o servidor de
+verdade vai ter: `pedirCodigo` e `conferirCodigo` são `async` sem esperar nada,
+para que a Etapa 1 troque só o corpo. O código aparece na tela num aviso dourado
+que some sozinho quando `r.codigo` parar de vir — andaime que se desmonta, em
+vez de andaime que alguém precisa lembrar de tirar.
+
+**O limite de envio sobrevive à morte do código.** `limparCodigo()` preserva
+`email`, `enviadoEm` e `envios`, apagando só `codigo`/`expira`/`tentativas`.
+Sem isso, queimar as 5 tentativas de propósito zerava a espera de 60s e o teto
+de 5 por hora — o limite existe contra quem insiste, e não pode depender de um
+dado que o insistente apaga. `conferirCodigo` ganhou `!p.codigo` na guarda pelo
+mesmo motivo: sem ela, o palpite era comparado com `undefined`, dava 'errado' e
+gastava tentativa de um código que já não existia.
+
+### `AnimatePresence mode="wait"` trava, e trava calado
+
+Duas tentativas, duas falhas diferentes, nenhuma com erro no console:
+
+1. **Três filhos irmãos condicionais** (`{passo==='x' && <motion.div key="x">}`).
+   `mode="wait"` quer UM filho com chave; com três, dois viram `false` e ele
+   recebe uma lista. A troca por clique funcionava; a troca feita DURANTE a
+   montagem (um efeito recompondo estado salvo) nunca completava.
+2. **Um filho com `key={passo}`** — o padrão documentado. Agora era a troca por
+   CLIQUE que parava: `passo` ia para 'cadastro' e a tela ficava em 'entrar'.
+
+Nos dois casos o estado estava certo e o DOM errado. Só apareceu com uma sonda
+registrando `passo` a cada render (`window.__renders`), porque não há erro, não
+há aviso, e o `aria-expanded`/estado interno diz que está tudo bem.
+
+**A saída foi tirar o `AnimatePresence` dos passos**: `<div><motion.div
+key={passo} {...FADE_PASSO}>`. A chave muda, o React remonta, o `initial`/
+`animate` dá a entrada. Perde-se a animação de saída (0,22s); ganha-se uma
+troca que não tem como emperrar. `mode="wait"` segura a entrada do novo até o
+velho sair — e quando essa saída não termina, não há nada na tela que diga.
+
+**E recompor estado salvo é ESTADO INICIAL, não efeito.** O código pendente
+depois de um F5 entra por `useState(() => ...)`, não por `useEffect` +
+`setPasso`. Nascer no passo certo não tem transição para travar, e ainda evita
+o piscar da tela anterior. Só recompõe código de conta que EXISTE: F5 no meio
+do cadastro perde o formulário (memória) mas não o código (disco), e confirmar
+ali abriria sessão para uma conta que nunca nasceu.
+
+### Armadilha de EOL: nunca cravar `\r\n` numa substituição
+
+`Cloud.jsx` é LF. Um `t.replace(/(\r?\n){3,}/, '\r\n\r\n')` injetou 2 CRLFs num
+arquivo de 265 linhas LF — e o próximo script, que detecta o EOL com
+`/\r\n/.test(b)`, passou a ver **3 linhas** em vez de 265. Todo `findIndex` por
+conteúdo quebrou de uma vez.
+
+A regra: a string de substituição usa o EOL **detectado**, nunca um literal.
+
+E a mesma armadilha tem uma segunda forma, que me pegou de novo: **anexar ao
+fim de um arquivo CRLF com uma ferramenta que escreve LF**. Um `cat >> arquivo
+<< 'FIM'` num `index.css` CRLF deixou 52 linhas LF no fim de um arquivo de 927
+CRLF. Não quebra nada na hora, e é o próximo script de linha que se perde.
+Depois de anexar, conferir — `(b.match(/\n/g)||[]).length - (b.match(/\r\n/g)||[]).length`
+tem de dar zero.
+E os arquivos deste projeto são mistos POR ARQUIVO — `Tema`, `Fila` e `Entrada`
+são CRLF; `Header`, `Listas`, `Backup`, `Editor`, `Cloud`, `store`, `helpers`
+são LF. Detectar por arquivo e preservar.
+
+### Outras duas, menores
+
+- **Dois `ml-auto` na mesma fileira flex**: o primeiro come o espaço e o segundo
+  fica sem. "Apagar conta" ficou no meio da fileira da nuvem em vez de na
+  direita. Virou linha própria no rodapé, que é o que "último botão" pedia.
+- **`<button>` dentro de `<label>`**: o nome acessível do checkbox é montado do
+  texto do label, e o botão aninhado vira um buraco — "Li e aceito os , e
+  declaro que…". O aceite dos termos anunciava tudo menos o que se aceita. O
+  `<label>` virou `<div>` e o nome foi para um `aria-label` explícito. E a frase
+  ao lado NÃO leva `aria-hidden`: ela contém o botão dos termos, e esconder da
+  árvore um controle que o teclado alcança é pior que ouvir a frase duas vezes.
+
+## Termos, privacidade e ajuda
+
+`lib/termos.js` tem os DOIS documentos e UMA versão (`DOC_VERSAO`), porque eles
+são aceitos no mesmo clique. Em dados, não em JSX: a mesma seção aparece no
+pop-up do cadastro, na central de ajuda e um dia numa página pública. O aceite
+guarda `{ aceito, versao, em }` — só "aceitou: true" não serve de nada no dia em
+que o texto mudar.
+
+`lib/ajuda.js` tem o FAQ (agrupado, com `temporaria: true` nas perguntas que
+morrem quando houver servidor) e a contestação. O texto da contestação é montado
+por função, fora do componente, porque vai para DOIS destinos — corpo do e-mail
+e área de transferência — e montado duas vezes um deles ficaria sem um campo.
+
+**A contestação abre um `mailto:` E copia.** `mailto:` falha calado em muito
+navegador e em quase todo webmail numa aba; um botão que não faz nada visível é
+pior que não ter botão, porque a pessoa acha que enviou.
+
+**Menu**: "Ajuda" entrou como ÚLTIMO item — é a porta de quem não achou o que
+queria nas outras. O grupo "Dados e nuvem" chegou a virar "Seus dados" e subir
+para o topo antes de ser desfeito de vez; ver a seção do ☰ acima.
+
+**`AvisoSemServidor.jsx` tem prazo de validade** e está num arquivo próprio por
+isso: misturado ao `AvisoSemEspaco`, viraria permanente por inércia. Só aparece
+para quem não conectou a nuvem, e o caminho (`☰ › Seus dados › Perfil`) está
+escrito no texto porque é o que sobra depois que alguém fecha o aviso.
+
+**Ele vive na PORTA DE ENTRADA, nunca dentro da coleção.** Nasceu no topo da
+estante e foi movido: ali era uma faixa de alerta permanente sobre algo que não
+acabou de acontecer, posta por cima justamente do que a pessoa abriu o app para
+ver — e alerta que está sempre na tela vira paisagem e deixa de alertar. Na
+entrada não há coleção para atrapalhar, e é o momento em que a pergunta "onde
+isso vai ficar guardado?" de fato se faz. Fica fora do passo do CÓDIGO, onde já
+existe o aviso dourado explicando por que o código está na tela: dois recados
+sobre o mesmo assunto, empilhados, anulam um ao outro.
+
+Mudar de lugar mudou o destino do botão: na entrada não existe painel de Perfil
+para abrir, porque ele vive do outro lado do login. Daí `TutorialGitHub.jsx`,
+com o passo a passo em `<PassosGitHub />` — usado pelo "Como fazer?" do Perfil
+— e um `PopupTutorialGitHub` para a entrada, que acrescenta onde ficam os
+campos, já que o "cole abaixo" do passo 4 fala de uma tela que ali não está.
+
+E a faixa ganhou um contêiner de `max-w-[820px]` na entrada: ela traz
+`max-w-[1320px]` de quando servia à estante larga, e de ponta a ponta sobre uma
+coluna de 420px o botão e o × ficavam longe do texto que respondem.
+
+---
+
+## O painel de filtros: parar de repetir
+
+**O que ele era:** dez controles empilhados, cada um com um rótulo em caixa
+alta por cima. A palavra "Todos"/"Todas" aparecia **seis vezes** — era a
+primeira opção de todo campo —, havia **oito rótulos**, três seletores
+segmentados com a mesma cara, e a ordenação estava partida em dois campos
+("Ordenar por" e "Ordem") que juntos diziam uma coisa só.
+
+**O princípio que organiza tudo o que mudou:**
+
+> Não filtrar não é uma opção — é a ausência de uma.
+
+"Todos" não é um valor ao lado de "Tenho" e "Quero"; é o que sobra quando
+nenhum dos dois está ligado. Tratá-lo como botão obrigava a desenhar um
+terceiro alvo, a escrever a palavra, e a explicar em cada campo que o estado
+inicial tem nome. Os segmentados viraram **chips que ligam e desligam**
+(`aria-pressed`, não `aria-checked`: é interruptor, não opção de grupo), e as
+seis palavras sumiram de uma vez.
+
+**O rótulo virou o texto do campo vazio.** "EDITORA ▸ Todas" virou uma caixa
+que diz `Editora` enquanto está vazia e `Panini +2` quando está cheia — rótulo
+e valor disputam o mesmo lugar porque nunca são necessários ao mesmo tempo.
+Dos oito rótulos restaram dois, e os dois nomeiam GRUPOS ("Afunilar por",
+"Ordenar"), não controles.
+
+**A opção vazia saiu da lista, não só trocou de nome.** Renomeada, `['', 'Todas']`
+virava uma linha chamada "Edição" dentro da lista de edições, marcada por
+padrão — uma opção com o nome do próprio campo. Em multi-seleção ela também não
+tinha função: quem limpa, desmarca. Sem o item `''`, o `Selecao` cai no
+`placeholder` sozinho (ver `rotuloVazio` lá dentro).
+
+**Os três tipos viraram glifos**: um volume, vários lado a lado, uma caixa. As
+formas que a estante já tem, desenhadas. O rótulo não some — vai no `title` e
+no `aria-label`, porque glifo sem nome acessível é botão mudo para quem ouve e
+enigma para quem passa o mouse na primeira vez.
+
+**A direção virou uma seta que gira.** E ela diz MAIS que as palavras diziam:
+"crescente" ao lado de "Nota" é ambíguo — nota maior primeiro, ou menor? —
+enquanto uma seta para cima encostada em "Nota" não tem essa dúvida. É a mesma
+seta girando 180°, não dois ícones trocando: o giro mostra a inversão
+acontecendo, que é o que o botão faz.
+
+**O botão conta.** "Ver resultados" era uma palavra genérica no lugar onde
+cabia a única informação que importa antes de fechar o painel — sobrou alguma
+coisa? Agora é "Ver 42 obras", "Ver 1 obra" ou "Nada encontrado".
+
+**Importados e Urgentes perderam o quadradinho.** A caixa de marcação dentro de
+uma pastilha repetia o que a pastilha acesa já dizia, e dois sinais para um
+estado é um a mais. Ganharam os mesmos símbolos que os cartões usam (globo e
+triângulo), que é o que permite ligar o filtro à obra filtrada sem legenda.
+
+### Uma armadilha de teste que parece bug
+
+Clicar em dois chips no mesmo tique dá resultado errado quando o primeiro
+muda quais tipos sobram: a cascata desabilita os tipos sem obra no recorte, e
+clique em botão desabilitado não faz nada. Num teste automatizado isso lê como
+"o filtro não aplicou". É a cascata funcionando — o mesmo motivo pelo qual os
+tipos vazios ficam VISÍVEIS e apagados em vez de sumirem: sumindo, o número de
+alvos mudaria a cada clique noutro filtro, e a mão aprende posição antes de
+aprender rótulo.
+
+## O avatar do perfil
+
+Virou um DISCO de 28px, do tamanho de um avatar de verdade — porque é num
+avatar que ele se transforma assim que há foto. Um ícone de 19px que vira uma
+foto de 19px seria uma foto que não se vê.
+
+O desenho é um **disco cheio com a figura recortada dele**, não uma figura
+desenhada sobre um fundo. É o padrão de avatar vazio que todo mundo já viu, e
+tem uma vantagem concreta: os ombros encostam na borda de baixo e saem pelo
+corte, do jeito que um retrato real sai. Uma silhueta desenhada dentro do
+círculo precisaria caber inteira, e caberia sempre pequena demais.
+
+`fillRule="evenodd"` faz o trabalho: disco, cabeça e ombros são um `d` só, e é
+a regra de preenchimento que decide que as formas internas FURAM a de fora em
+vez de somar a ela. Com a regra padrão, sai um disco sólido.
+
+A linha do Perfil ganhou `bg-toque` (o véu mais fraco do projeto, 5,5%) e
+**perdeu o fio de baixo**: fundo e régua fazem a mesma coisa — separar — e os
+dois juntos põem duas bordas a quatro pixels uma da outra.
+
+A roda de cores saiu da frente de "Tema", e `lib/temas.js` passou a servir só
+ao pop-up — mas fica onde está: o hex das quatro cores num arquivo próprio
+continua certo, e o `Tema.jsx` já lê de lá.
+
+---
+
+## A linha do menu diz o nome
+
+O primeiro item era "Perfil" e virou **"Seus dados"** — e, assim que o perfil
+tem um nome, vira **o nome**. O rótulo genérico serve até existir a palavra
+mais específica.
+
+**Só o primeiro nome.** "Rafael Moreco" em caixa alta de 20px não cabe ao lado
+do avatar numa folha de 320px, e truncar o sobrenome de alguém é pior que não
+mostrá-lo. O nome completo está no painel, a um clique. (`truncate` mesmo
+assim: primeiro nome também pode ser comprido, e a alternativa a cortar é a
+linha empurrar a folha.)
+
+**O título do PAINEL não vira o nome**, embora o item do menu vire. No menu o
+nome é a etiqueta de uma porta entre nove, e serve justamente para distinguir;
+lá dentro já não há o que distinguir, e um painel chamado "Rafael" deixaria de
+dizer o que se faz nele — mexer no e-mail, na nuvem e no botão de apagar a
+conta. Os dois se chamam "Seus dados" quando não há nome, pela regra de um
+nome por assunto.
+
+## A troca de tema é animada — e a animação só existe durante a troca
+
+Trocar o `data-tema` repinta a página num quadro só: fundo, tinta, bordas e
+ícones saltam de uma paleta para a outra. Funciona, e é seco.
+
+O jeito óbvio — `transition: background-color, color…` numa regra geral —
+cobraria caro o ano inteiro para enfeitar um clique por mês: todo hover, todo
+foco e toda pastilha que acende passariam a arrastar meio segundo. O custo
+recairia sobre o uso normal; o benefício, sobre o caso raro.
+
+Então a transição é **ligada só no instante da troca**: o store põe
+`.trocando-tema` no `<html>`, troca o atributo, e tira a classe ~0,7s depois.
+Fora desse instante o CSS é exatamente o que era — medido: `transitionDuration`
+do body é `0s` antes, `0.55s` durante, `0s` depois.
+
+- **`*` e `!important` são aceitáveis aqui** porque a regra dura menos de um
+  segundo e porque é isso que ela precisa fazer: vencer, por um instante, as
+  transições próprias de cada componente, que têm durações variadas e fariam a
+  página trocar de cor aos pedaços.
+- **Só cor entra na lista.** `transform` e `opacity` ficam de fora: são o que o
+  framer-motion anima, e arrastá-los por 0,55s faria qualquer gaveta aberta
+  durante a troca andar em câmera lenta. `background-image` também fica de
+  fora — degradê não interpola para outro degradê.
+- **Não anima na primeira pintura.** O efeito também roda na montagem, para
+  pendurar o tema guardado, e ali não houve troca: a página nasceria esmaecendo
+  as próprias cores, como se estivesse carregando. Um `useRef` segura isso.
+- **O `clearTimeout` do cleanup não é formalidade.** Trocando de tema duas vezes
+  seguidas, a limpeza da primeira tiraria a classe no meio da segunda — e a
+  segunda sairia seca. Testado: Candy → Midnight a 300ms mantém a classe e a
+  transição.
+- **`prefers-reduced-motion` recebe a troca seca.** Mudança de cor sem aviso
+  incomoda menos que meio segundo de tudo escorrendo para quem tem
+  sensibilidade a movimento.
+
+### Medir transição neste painel engana
+
+`getComputedStyle` leu a cor inicial mesmo depois de a transição ter acabado —
+o painel congela o `requestAnimationFrame` quando não está pintando, e a
+transição não avança. **Tirar um screenshot força a repintura**: logo depois, a
+mesma leitura deu `rgb(242,240,236)`, entre o moss e o nockout. Já estava
+registrado mais acima nesta documentação, e mesmo assim passou por bug.
+
+## O alinhamento dos filtros
+
+Três defeitos, todos medidos no navegador e não no olho:
+
+**Três alturas numa coluna só.** Chips davam 40px, os glifos de tipo 44 e a
+seta da ordem 42, porque cada um deixava a altura sair do conteúdo. Agora todo
+controle do painel leva `h-10` cravado — uma altura, medida: `alturasUnicas: [40]`.
+
+**Rótulos 2px à direita das caixas.** O `pl-0.5` herdado tentava alinhar o
+rótulo com o TEXTO dentro da pastilha (que tem `pl-3.5`), e não alinhava com
+nenhum dos dois. Saiu: rótulo de grupo alinha pela caixa do controle.
+
+**Cinco blocos, três sem rótulo, flutuando.** (Virou outra coisa de novo — ver "O par ligado" e "A ordem dos grupos" no fim.) Viraram **três**, por natureza do
+que perguntam:
+
+1. **A sua relação com a obra** — tenho/quero, lido/não lido, urgentes,
+   importados. Todos interruptores do mesmo tipo, duas fileiras a `gap-2` uma
+   da outra. Os fios separam as perguntas DENTRO da fileira; entre fileiras não
+   precisam.
+2. **O que a obra é** — tipo (glifos) + edição, editora, país, autor. Existiriam
+   igual se a obra não fosse sua, e por isso entraram todos sob um rótulo só. O
+   tipo estava num bloco próprio entre os dois, sem título, como se fosse de
+   outra natureza.
+3. **Ordenar**.
+
+O espaço entre blocos subiu de `gap-5` para `gap-6`: com blocos de verdade, a
+distância entre eles precisa ser maior que a de dentro deles.
+
+---
+
+## O par ligado, e a barra que aceita os dois
+
+"Tenho" e "Quero" não são dois interruptores independentes — são as duas
+respostas possíveis à MESMA pergunta, e uma obra nunca é as duas coisas.
+Soltos lado a lado, nada dizia isso: pareciam dois botões quaisquer que por
+acaso estavam perto.
+
+Viraram **um controle**, com as três respostas dentro:
+
+```
+┌───────────┬───┬───────────┐
+│   Tenho   │ / │   Quero   │
+└───────────┴───┴───────────┘
+```
+
+**A barra do meio é o estado neutro** — "tanto faz", que é o que o antigo botão
+"Todos" dizia com uma palavra. A barra diz o mesmo com o sinal que já significa
+isso em português escrito: "tenho/quero" se lê como um ou outro, e é exatamente
+o recorte que ela aplica. É a regra de "fugir das palavras" aplicada ao caso em
+que ela rendeu mais, porque a palavra que saiu era a mais repetida do painel.
+
+É `radiogroup` com três `radio`, e não três interruptores: são faces de uma
+escolha só, sempre com uma marcada. O grupo leva `aria-label` mesmo sem rótulo
+visível ("Tenho ou quero", "Lidos ou não lidos"), e a barra se chama "Todos" em
+voz alta — sem isso, quem ouve recebe três botões soltos sem saber de que
+pergunta são resposta.
+
+**Só os pares ganharam essa forma.** "Urgentes" e "Importados" continuam chips
+soltos: são booleanos independentes, uma obra pode ser os dois. A diferença de
+forma é honesta — ali se escolhe entre, aqui se liga.
+
+## A ordem dos grupos: afunilar → condições → ordenar
+
+**Afunilar primeiro** porque é o corte que mais reduz a estante, e porque quem
+abre o painel quase sempre quer chegar a uma obra — e chega por autor ou
+editora, não por "tenho". **Condições** refinam o que o afunilamento deixou.
+**Ordenar por último** porque não recorta nada: só decide a ordem do que sobrou.
+
+"Condições" é o nome certo para o segundo grupo: é o que depende de VOCÊ, não
+da obra. A mesma obra muda de condição conforme a estante de quem olha.
+
+## O véu dos pop-ups: vidro canelado
+
+Era `bg-veu backdrop-blur-xl` — tinta a 50% e um borrão uniforme. Funciona, e é
+o mesmo borrão de todo aplicativo.
+
+Vidro canelado não borra por igual: é uma sucessão de meias-canas verticais,
+cada uma com uma barriga grossa, que embaralha quase tudo, e uma quina fina,
+por onde ainda se enxerga. CSS não refrata, mas dá para imitar o que importa:
+**duas camadas de `backdrop-filter` com forças diferentes, recortadas por
+máscaras complementares de listras verticais**.
+
+```
+::before   blur(26px)   →  a barriga da cana
+::after    blur(7px)    →  a quina entre elas
+```
+
+- **As máscaras têm borda macia**, não corte seco. Com paradas duras as faixas
+  viram código de barras; a passagem gradual é o que faz a listra parecer a
+  curvatura de uma cana.
+- **14px por cana.** Abaixo de ~8px vira chuvisco; acima de ~24px o conteúdo
+  atrás volta a ser reconhecível na quina.
+- **A sombra do fio** vai no `background` do `::after`, que pinta DEPOIS do
+  `backdrop-filter` da própria camada — é a única forma de ela não ser borrada.
+- **A tinta mora na própria classe** (`--veu`, em `:root`, junto de `--linha` e
+  `--separador`), não num `bg-veu` do Tailwind na lista de classes. Eram dois
+  lugares definindo a mesma superfície, e mexer na opacidade pedia uma mudança
+  no `tailwind.config.js` — que neste projeto ainda obriga a reiniciar o
+  servidor para valer. Hoje é `--veu-alfa` (.58) MULTIPLICADA pela força de
+  entrada — ver a seção sobre `opacity` e backdrop root no fim. Subiu de 50%
+  para 58%: com o canelado, a quina de
+  cada cana deixa passar mais imagem que o borrão uniforme deixava.
+
+### `z-index: -1` nos pseudo-elementos não é detalhe — é o que faz funcionar
+
+Na maioria dos pop-ups deste app a folha é **filha** do véu, não irmã (o
+`onClick` que fecha ao clicar fora depende disso). E `::after` é, por
+definição, o ÚLTIMO filho: ele pintava DEPOIS do conteúdo, então o borrão e as
+listras caíam por cima do próprio pop-up — título, faixas de tema e texto
+saíam canelados junto com o fundo.
+
+**Só aparecia em alguns.** No painel de Filtros a gaveta é IRMÃ do véu, e ali
+nunca houve problema: o mesmo CSS com dois resultados conforme a árvore de quem
+o usa. Testar num só não bastava.
+
+Com `z-index: -1` os dois pseudos entram na camada que pinta ACIMA do fundo do
+véu e ABAIXO do conteúdo em fluxo. O véu já forma contexto de empilhamento
+(`position: fixed` com `z-index`), então o -1 não escapa para trás da página.
+
+E saiu o `isolation: isolate` que estava ali: não era necessário — o contexto
+já existia — e `isolation` é uma das propriedades que podem formar um
+**backdrop root**, o que faria o `backdrop-filter` parar de enxergar a página
+atrás do véu e passar a filtrar o nada.
+
+**Como provar que a tinta compõe:** trocar `--veu` por um vermelho forte pelo
+console e tirar um screenshot. Se o fundo fica vermelho e o pop-up continua
+limpo, as camadas estão na ordem certa. Medir `backgroundColor` só prova que a
+regra existe, não que ela pinta onde se pensa.
+- **Dois caminhos de recuo**: `@supports not (mask-image)` volta ao véu liso, e
+  abaixo de 640px também — numa tela estreita as canas ficam da largura de um
+  dedo, e são duas camadas de backdrop-filter em tela cheia no aparelho mais
+  fraco.
+
+**Custo:** é o filtro mais caro do CSS, e isto dobra. Vale porque só existe
+enquanto um pop-up está aberto, e enquanto ele está aberto nada mais anima.
+
+### Medir isto no painel do Claude engana (de novo)
+
+`innerWidth` deu **0** e a media query de 640px bateu, então a leitura mostrou o
+recuo de celular num painel de 1280px. É o mesmo congelamento de rAF já
+registrado: **tirar um screenshot antes de medir**. Depois disso, `blur(26px)` e
+máscara presente, como esperado.
+
+## Achado: blob sem `obras` derruba a conta junto
+
+`loadInitial` só aceita o blob guardado se `Array.isArray(d.obras)`; qualquer
+outra coisa cai no retorno de fallback, que devolve `conta: CONTA_VAZIA()`.
+
+Ou seja: se `gibiteca_v1` corromper — e o app PREVÊ isso, tem a faixa
+`dadoIlegivel` para o caso —, a pessoa não vê a faixa. Ela é jogada para a tela
+de login, porque o portão exige `conta.email`, e conclui que perdeu tudo e que
+precisa se cadastrar de novo.
+
+Descoberto por acidente, com uma fixture de teste sem `obras`. Não corrigido:
+separar a leitura da conta da leitura da coleção é uma decisão de produto, não
+uma limpeza.
+
+---
+
+## `opacity` animada mata `backdrop-filter` dos filhos
+
+O véu entrava em três etapas visíveis: **sem borrão → canelado → desfoque**.
+Parecia engasgo de desempenho. Não era.
+
+O véu era um `motion.div` com `initial={{ opacity: 0 }} animate={{ opacity: 1 }}`.
+E **`opacity < 1` forma um backdrop root**: enquanto a opacidade está no meio do
+caminho, o `backdrop-filter` dos descendentes não enxerga mais nada atrás — ele
+filtra o vazio. Aos 220ms, quando a opacidade bate exatamente em 1, o backdrop
+root desaparece e o borrão entra de uma vez.
+
+Ou seja: a animação de entrada do véu estava, por construção, **desligando o
+efeito que ela deveria revelar**. As "etapas" eram o nada, seguido do salto.
+
+A mesma armadilha vale para `filter`, `mask`, `mix-blend-mode` e `isolation`
+num ancestral — todos formam backdrop root. Num app que usa `backdrop-filter`,
+qualquer uma delas num pai é um bug esperando a hora.
+
+### A saída: uma força, não uma opacidade
+
+O véu não anima mais `opacity`. Ele anima **`--veu-forca`**, de 0 a 1, e a CSS
+pendura três coisas nela:
+
+```css
+.veu-canelado           { background: rgb(33 33 33 / calc(var(--veu-alfa) * var(--veu-forca))) }
+.veu-canelado::before,
+.veu-canelado::after    { opacity: var(--veu-forca) }
+```
+
+```jsx
+initial={{ '--veu-forca': 0 }} animate={{ '--veu-forca': 1 }} exit={{ '--veu-forca': 0 }}
+```
+
+- **Tinta e canelado entram juntos** porque saem do mesmo número. Não há como
+  um chegar antes do outro — é uma variável, não dois ajustes paralelos.
+- **O elemento nunca fica com `opacity < 1`**, então o backdrop root não
+  aparece e o borrão é real desde o primeiro quadro.
+- **A opacidade foi para os pseudo-elementos**, onde não faz mal: ali ela
+  afeta só a composição da própria camada, não o que está atrás dela.
+- **É mais barato.** O borrão é calculado uma vez e só o composite varia;
+  animar o RAIO (`blur(calc(26px * …))`) recalcularia o desfoque a cada
+  quadro, que é o filtro mais caro do CSS.
+- O framer anima variável CSS nativamente (v11), então não foi preciso
+  `@property` — ele escreve a variável em linha a cada quadro.
+
+`--veu-alfa` (`.58`, em `:root`) é a opacidade com a força cheia. Fica como
+número sem unidade, e não como cor pronta, justamente porque quem a usa
+multiplica pela força.
+
+### Por que isto não apareceu nos testes
+
+Medir não pegou: `getComputedStyle` em qualquer momento depois do fim da
+animação mostra tudo certo, porque no fim ESTÁ certo. O defeito só existe
+durante os 220ms, e o painel do Claude congela o rAF quando não está pintando
+— então nem a animação avança para ser amostrada.
+
+**O que pega:** travar a variável num valor intermediário pelo console
+(`style.setProperty('--veu-forca','0.35')`) e tirar um screenshot. Se o borrão
+aparece parcial, está vivo no meio do caminho; se some, há um backdrop root no
+caminho. Em 0,35 o desfoque é leve e as canas mal se veem; em 0,75 os dois já
+estão quase cheios — contínuo, e juntos.
+
+---
+
+## A primeira vez de quem já usava o app
+
+A conta nasceu depois da coleção. Quem já tinha obras guardadas abria o app,
+caía na tela de entrar, digitava o próprio e-mail e recebia um erro vermelho:
+*"Não encontramos conta com esse e-mail neste navegador."*
+
+Tudo funcionava — a coleção estava intacta e o cadastro a preservava —, mas a
+tela dizia o contrário do que estava acontecendo. Três correções:
+
+**A tela abre no CADASTRO quando não há conta neste navegador.** A tela de
+entrar é um beco sem saída nesse caso: não existe servidor onde procurar, então
+o e-mail nunca vai ser encontrado e a única resposta possível é um erro. Abrir
+direto no cadastro mostra primeiro o caminho que funciona. O link "Já tem
+conta? Entrar" continua ali. Um código pendente ganha de tudo: havendo um em
+andamento, é nele que a tela abre, com ou sem conta.
+
+**A mensagem separou dois casos que eram um só.** Sem conta nenhuma não é erro
+de quem digitou — é o estado normal de quem já usava o app, ou de um navegador
+novo. Conta de OUTRO e-mail é outra história, e aí o aviso vermelho está certo:
+*"Este navegador tem conta com outro e-mail."*
+
+**O cadastro diz que a coleção está a salvo.** A primeira pergunta de quem vê
+uma tela de cadastro onde antes havia uma estante é "cadê a minha coleção?". O
+aviso responde antes de ser perguntado — e só aparece quando há o que
+tranquilizar: num navegador vazio, "suas 142 obras continuam aqui" seria uma
+frase sobre nada.
+
+### Por que a coleção sobrevive
+
+`criarConta` escreve `conta`, `perfil` e a sessão. Não encosta em `obras`,
+`listas` nem `fila`. Verificado de ponta a ponta: 142 obras antes do cadastro,
+142 depois, com a conta e o perfil criados.
+
+Vale repetir porque o contrário seria catastrófico e silencioso — e porque o
+caminho ao lado faz exatamente isso: `apagarConta` passa pelo `applyData` com a
+coleção vazia. Os dois mexem nas mesmas três chaves; só um deles também zera a
+estante.

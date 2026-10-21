@@ -33,7 +33,7 @@ Coleção, filtros, busca, detalhe, editor, estatísticas, nuvem e capas em
 massa — paridade completa com a versão HTML, agora componentizado.
 
 ## Cores / estilo
-Fiéis à última versão HTML: `--ink #23271C`, selos moss/gold, importado em
+Fiéis à última versão HTML: `--ink #212121`, selos moss/gold, importado em
 azul (`#2f5aa8`), box em marrom (`#8a6a45`), urgente em rust com triângulo.
 
 ## Rodar

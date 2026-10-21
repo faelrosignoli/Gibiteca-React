@@ -3,9 +3,148 @@ import {
   MOLA_GAVETA, FADE, VOLTA_DO_ARRASTO, ELASTICO_DIREITA, ELASTICO_BAIXO,
   deveDispensar, useEhDesktop, usaMovimentoReduzido,
 } from '../lib/motion.js'
+import { useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import { linkDoGuia } from '../lib/catalogo.js'
-import { coverOf, tipoOf, edOf, edicaoDe, isImp, authorsOf, paisesOf, unitsForStatus, avgNota, unitsOf, ownedCount, sumValor, fmtBRL, statusMatch, initials, classeTinta, volumesSemCapa, naFila, podeEnfileirar } from '../lib/helpers.js'
+import { Switch, CheckTile, lbl, box } from './Campos.jsx'
+import { EstrelasInput } from './Estrelas.jsx'
+import { coverOf, tipoOf, edOf, edicaoDe, isImp, authorsOf, paisesOf, unitsForStatus, avgNota, unitsOf, ownedCount, sumValor, fmtBRL, statusMatch, initials, classeTinta, volumesSemCapa, naFila, podeEnfileirar , moneyFormat, moneyToNumber } from '../lib/helpers.js'
+
+/* ------------------------------------------------------------------
+   SITUAÇÃO E ANOTAÇÃO, EDITÁVEIS AQUI MESMO
+
+   Estavam dentro do editor, numa seção chamada "Situação". Saíram de lá
+   porque não são da mesma natureza do resto do editor: título, autoria,
+   editora e país descrevem a OBRA — existiriam igual se ela não fosse sua.
+   Status, urgência, leitura, nota e anotação descrevem a sua RELAÇÃO com
+   ela, e mudam toda semana enquanto o resto nunca muda.
+
+   Abrir um formulário de doze campos para marcar "li" era pedir o gesto
+   grande para a mudança pequena, e justamente para a que acontece mais.
+
+   SALVA SOZINHO, sem botão. Não há o que confirmar: cada controle é uma
+   decisão completa em si, e um "Salvar" aqui só serviria para a pessoa
+   esquecer de apertar.
+
+   A ANOTAÇÃO É A EXCEÇÃO: ela guarda no `blur`, não a cada tecla. Escrevendo
+   direto no store, cada letra viraria uma gravação no disco e um agendamento
+   de envio para a nuvem.
+   ------------------------------------------------------------------ */
+function Situacao({ obra }) {
+  const { upsertObra, fila, alternarFila } = useStore()
+  const avulsa = tipoOf(obra) === 'avulso'
+  const tem = obra.status === 'biblioteca'
+
+  /* As MESMAS normalizações do editor, de propósito. Obra que não é sua não
+     tem valor pago nem nota; obra que é sua não é "urgente" (urgência é a
+     pressa de comprar). Gravando sem isso, a ficha deixaria para trás
+     combinações que o editor nunca produz — e aí os dois caminhos passariam a
+     gerar obras diferentes a partir da mesma escolha. */
+  const gravar = (partes) => {
+    const d = { ...obra, ...partes }
+    const possui = d.status === 'biblioteca'
+    upsertObra({
+      ...d,
+      urgencia: !possui && !!d.urgencia,
+      valorPago: possui ? (d.valorPago || 0) : 0,
+      lido: possui && !!d.lido,
+      nota: possui ? (d.nota || 0) : 0,
+    })
+  }
+
+  /* Rascunho local da anotação. Sincroniza pela `key` do componente lá fora:
+     trocando de obra, o componente é outro e nasce com o texto certo. */
+  const [nota, setNota] = useState(obra.resenha || '')
+  const guardarNota = () => {
+    if ((obra.resenha || '') !== nota) gravar({ resenha: nota.trim() })
+  }
+
+  return (
+    <div className="px-5 pb-5 flex flex-col gap-4">
+      {/* Para SÉRIE e BOX nada disto aparece: ali status, leitura, nota e
+          valor são de cada volume, não do conjunto — e a lista de volumes,
+          logo abaixo, é onde eles moram. Uma "nota da série" seria uma média
+          disfarçada de escolha. */}
+      {avulsa && (
+        <section className="flex flex-col gap-2.5">
+          <h3 className="font-rotulo text-rotulo uppercase font-bold text-acento-texto flex items-center gap-2.5">
+            Situação<span className="flex-1 h-px bg-separador" />
+          </h3>
+
+          <Switch
+            options={[['wishlist', 'Quero'], ['biblioteca', 'Tenho']]}
+            value={obra.status}
+            onChange={v => gravar({ status: v })}
+          />
+
+          {/* Só para quem TEM. Quem só quer não pagou nada, não leu e não
+              enfileira — e a urgência, que era a pergunta deste lado, subiu
+              para o ícone do cabeçalho. */}
+          {tem && (
+            <>
+              <div className={box}>
+                <label className={lbl}>Valor pago</label>
+                <input
+                  className="field-input" inputMode="numeric"
+                  defaultValue={obra.valorPago ? moneyFormat(obra.valorPago) : ''}
+                  onBlur={e => {
+                    const v = moneyToNumber(e.target.value)
+                    if (v !== (obra.valorPago || 0)) gravar({ valorPago: v })
+                  }}
+                  placeholder="R$ 0,00"
+                />
+              </div>
+
+              {/* UMA LINHA, DOIS ESTADOS DA MESMA PERGUNTA: "e aí, já leu?"
+                  Antes de ler, o que falta é a vez na fila; depois de ler, o
+                  que falta é a nota. Nunca os dois ao mesmo tempo — então o
+                  segundo lugar da linha é um só, e troca de ocupante.
+
+                  Empilhados, eram três linhas para três perguntas que são uma
+                  só, e a fila ainda morava longe, lá em cima, perto da ficha
+                  técnica — onde não tinha nada a ver com o que está ao redor.
+
+                  Quem some sozinho é a fila: `podeEnfileirar` já exige estar
+                  na estante e NÃO estar lido, que é exatamente a condição do
+                  ternário. O `BotaoFila` devolve `null` quando não cabe, e o
+                  ternário existe para pôr as estrelas no lugar vago. */}
+              <div className="flex items-center gap-2.5">
+                <CheckTile checked={!!obra.lido} onChange={e => gravar({ lido: e.target.checked, ...(e.target.checked ? {} : { nota: 0 }) })}>
+                  Lido
+                </CheckTile>
+
+                {obra.lido ? (
+                  <div className="flex-1 h-[42px] flex items-center justify-center">
+                    <EstrelasInput value={obra.nota || 0} onChange={n => gravar({ nota: n })} />
+                  </div>
+                ) : (
+                  <BotaoFila
+                    naLista={naFila(fila, obra.id, null)}
+                    cabe={podeEnfileirar(obra)}
+                    onClick={() => alternarFila(obra.id, null)}
+                  />
+                )}
+              </div>
+            </>
+          )}
+        </section>
+      )}
+
+      <section className="flex flex-col gap-2.5">
+        <h3 className="font-rotulo text-rotulo uppercase font-bold text-acento-texto flex items-center gap-2.5">
+          Anotação<span className="flex-1 h-px bg-separador" />
+        </h3>
+        <textarea
+          className="field-input min-h-[80px] resize-y" rows={3}
+          value={nota}
+          onChange={e => setNota(e.target.value)}
+          onBlur={guardarNota}
+          placeholder="Escreva aqui…"
+        />
+      </section>
+    </div>
+  )
+}
 
 function Numero({ rotulo, valor, sub, capitalizar }) {
   return (
@@ -63,15 +202,31 @@ function BotaoFila({ naLista, cabe, compacto, rotulo, onClick }) {
   }
   return (
     <button type="button" onClick={onClick} aria-pressed={naLista}
-      title={titulo} className={'neo-btn w-full justify-center mt-3 ' + (naLista ? '!bg-moss !text-sobre-acento !border-moss' : '')}>
+      title={titulo} className={'neo-btn flex-1 justify-center ' + (naLista ? '!bg-moss !text-sobre-acento !border-moss' : '')}>
       {marcador}
       {naLista ? 'Na fila' : 'Salvar na fila'}
     </button>
   )
 }
 
-export default function DetailSheet({ obra, onClose, onEdit, onDuplicar, onDesmembrar }) {
-  const { fixada, fixarObra, filters, fila, alternarFila } = useStore()
+export default function DetailSheet({ obra: obraAberta, onClose, onEdit, onDuplicar, onDesmembrar }) {
+  const { fixada, fixarObra, filters, fila, alternarFila, obras, upsertObra } = useStore()
+
+  /* A FICHA LÊ A OBRA VIVA, não a cópia que a abriu.
+   *
+   * O App guarda em `detail` o objeto da obra no instante do clique. Enquanto
+   * a ficha só exibia, isso bastava. Agora ela EDITA — e editar gravava no
+   * store enquanto a tela continuava desenhando o retrato antigo: marcar
+   * "Tenho" salvava certo e não trocava "Urgente" por "Valor pago", porque a
+   * cópia na mão ainda dizia "Quero".
+   *
+   * Procurar pelo id a cada render resolve, e custa uma varredura numa lista
+   * que a estante inteira já percorre a cada filtro.
+   *
+   * O `|| obraAberta` cobre o instante entre apagar a obra e a gaveta fechar:
+   * sem ele, a busca devolveria `undefined` e a ficha quebraria no caminho
+   * para fora. */
+  const obra = (obraAberta && obras.find(o => o.id === obraAberta.id)) || obraAberta
   const estaFixada = obra != null && fixada === obra.id
   const multi = obra != null && (tipoOf(obra) === 'serie' || tipoOf(obra) === 'box')
   const todosOsVolumes = obra != null ? unitsOf(obra) : []
@@ -131,7 +286,7 @@ export default function DetailSheet({ obra, onClose, onEdit, onDuplicar, onDesme
     <AnimatePresence>
       {obra && (
         <>
-          <motion.div className="fixed inset-0 z-40 bg-veu backdrop-blur-xl" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={FADE} onClick={onClose} />
+          <motion.div className="fixed inset-0 z-40 veu-canelado" initial={{ '--veu-forca': 0 }} animate={{ '--veu-forca': 1 }} exit={{ '--veu-forca': 0 }} transition={FADE} onClick={onClose} />
           <motion.div
  className="fixed z-50 bg-surface border-separador flex flex-col right-0 top-0 h-full w-[min(460px,100%)] border-l sm:rounded-none max-sm:top-auto max-sm:bottom-0 max-sm:w-full max-sm:h-auto max-sm:max-h-[92vh] max-sm:rounded-t-grande max-sm:border-l-0 max-sm:border-t"
             initial={de} animate={{ x: 0, y: 0 }} exit={de}
@@ -156,6 +311,43 @@ export default function DetailSheet({ obra, onClose, onEdit, onDuplicar, onDesme
  className="flex items-center gap-2 px-5 py-4 border-b border-separador sm:cursor-grab sm:active:cursor-grabbing touch-none"
               onPointerDown={e => arrasto.start(e)}
             >
+              {/* ---- URGENTE ----
+                  Mora na PONTA ESQUERDA do cabeçalho, sozinho, longe dos
+                  outros três. Os de lá são ações sobre a ficha — fixar,
+                  duplicar, editar, fechar; este é um ESTADO da obra, e o
+                  único da ficha que precisa ser visto sem rolar.
+
+                  Só ícone, sem palavra: era uma caixa de marcação de largura
+                  inteira no corpo para uma coisa que é sim ou não.
+
+                  VERMELHO NOS DOIS ESTADOS, e não só quando ligado. Urgência
+                  é a única coisa nesta tela que usa rust, então a cor já
+                  identifica o botão antes de dizer se ele está aceso. O que
+                  separa ligado de desligado é o PREENCHIMENTO: apagado, o
+                  triângulo é só contorno sobre o fundo da barra; aceso, ele
+                  é um bloco cheio. Forma, não só cor — quem não distingue
+                  rust de tinta ainda vê um triângulo encher.
+
+                  Só aparece em obra avulsa que você ainda NÃO tem: urgência é
+                  a pressa de conseguir, e o que já está na estante não tem
+                  pressa nenhuma. Em série, a pressa é de cada volume. */}
+              {tipoOf(obra) === 'avulso' && obra.status !== 'biblioteca' && (
+                <button
+                  className={`neo-icon !w-9 !h-9 shrink-0 !border-rust ${obra.urgencia ? '!bg-rust !text-paper' : '!text-rust'}`}
+                  onClick={() => upsertObra({ ...obra, urgencia: !obra.urgencia })}
+                  aria-pressed={!!obra.urgencia}
+                  title={obra.urgencia ? 'Tirar a marca de urgente' : 'Marcar como urgente'}
+                  aria-label={obra.urgencia ? 'Tirar a marca de urgente' : 'Marcar como urgente'}
+                >
+                  <svg className="w-[17px] h-[17px]" viewBox="0 0 24 24"
+                       fill={obra.urgencia ? 'currentColor' : 'none'} stroke="currentColor"
+                       strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 4.2 21 19.4H3L12 4.2Z" />
+                    {!obra.urgencia && <path d="M12 10v3.6M12 16.4h.01" />}
+                  </svg>
+                </button>
+              )}
+
               {/* o título saiu daqui: com três botões ao lado ele só cabia
                   truncado. Agora abre o corpo, com a largura toda. */}
               <span className="flex-1" />
@@ -244,30 +436,37 @@ export default function DetailSheet({ obra, onClose, onEdit, onDuplicar, onDesme
                     </div>
                   ))}
                 </dl>
-                {/* consultar a ficha da obra onde a edição brasileira está
-                    certa. Link, não consulta: o Guia não tem API. */}
-                <a href={linkDoGuia(obra.nome)} target="_blank" rel="noopener noreferrer"
-                   className="neo-btn w-full justify-center mt-3">
-                  Ver no Guia dos Quadrinhos ↗
-                </a>
-                {/* Só para avulsa. Numa série a fila é por VOLUME: pôr "a
-                    série" na fila não diria o que ler hoje, que é a única
-                    pergunta que a fila responde. */}
-                {!multi && (
-                  <BotaoFila
-                    naLista={naFila(fila, obra.id, null)}
-                    cabe={podeEnfileirar(obra)}
-                    onClick={() => alternarFila(obra.id, null)}
-                  />
-                )}
+                {/* Consultar a ficha da obra onde a edição brasileira está
+                    certa. Link, não consulta: o Guia não tem API.
+
+                    DISCRETO, e não um botão de largura inteira. Ocupando a
+                    linha toda logo abaixo da ficha, ele lia como a ação
+                    principal da tela — e a ação principal daqui é o que você
+                    faz com a SUA obra, não sair do app. Encolhido e alinhado
+                    à direita, continua ao alcance de quem procura por ele e
+                    para de disputar com o resto.
+
+                    O rótulo perdeu o "Ver no": a seta já diz que leva para
+                    fora, e o nome do destino basta. */}
+                <div className="flex justify-end mt-2">
+                  <a href={linkDoGuia(obra.nome)} target="_blank" rel="noopener noreferrer"
+                     title="Abrir a ficha desta obra no Guia dos Quadrinhos"
+                     className="inline-flex items-center gap-1 text-apoio text-ink-faint hover:text-acento-texto
+                                underline underline-offset-2 decoration-linha hover:decoration-current transition-colors">
+                    Guia dos Quadrinhos
+                    <svg className="w-3 h-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M7 17 17 7M9 7h8v8" />
+                    </svg>
+                  </a>
+                </div>
               </div>
 
-              {obra.resenha && (
-                <div className="px-5 pb-5">
-                  <div className="font-rotulo text-rotulo uppercase text-ink-faint mb-2">Anotação</div>
-                  <p className="max-w-[62ch] text-corpo text-ink-soft leading-relaxed whitespace-pre-wrap">{obra.resenha}</p>
-                </div>
-              )}
+              {/* `key` na obra: trocando de obra, o componente é outro e o
+                  rascunho local da anotação nasce com o texto certo. Sem ela,
+                  o React reaproveitaria o mesmo componente e o texto da obra
+                  anterior ficaria no campo da seguinte. */}
+              <Situacao key={obra.id} obra={obra} />
 
               {/* ---- volumes ---- */}
               {multi && (

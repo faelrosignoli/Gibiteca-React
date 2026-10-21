@@ -20,7 +20,20 @@ import { FADE } from '../lib/motion.js'
  * No celular EMPILHA: texto em cima, botões embaixo, cada um na largura
  * inteira. Em linha, o grupo de botões (que não encolhe) tomava a largura e
  * espremia o texto numa coluna de uma palavra por linha. */
-function Faixa({ titulo, children, acoes, aoFechar }) {
+/* `tom` existe porque a faixa passou a servir a dois tipos de recado.
+ *
+ * RUST é falha: alguma coisa não funcionou e há dado em risco agora. GOLD é
+ * aviso: nada quebrou, mas há uma pendência que custa caro se for esquecida —
+ * o servidor que ainda não existe, por exemplo.
+ *
+ * Com uma cor só, o aviso de pendência teria a mesma urgência de um erro, e
+ * quem vê vermelho todo dia para de ver vermelho. */
+const TOM = {
+  rust: 'border-rust bg-tinta-rust',
+  gold: 'border-gold bg-tinta-gold',
+}
+
+export function Faixa({ titulo, children, acoes, aoFechar, tom = 'rust' }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
@@ -28,8 +41,8 @@ function Faixa({ titulo, children, acoes, aoFechar }) {
       role="alert"
       className="mx-auto w-full max-w-[1320px] px-3 sm:px-4 pt-4 sm:pt-6"
     >
-      <div className="relative rounded-medio border border-rust bg-tinta-rust p-4 pr-12 sm:pr-4
-                      flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
+      <div className={`relative rounded-medio border p-4 pr-12 sm:pr-4
+                      flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4 ${TOM[tom] || TOM.rust}`}>
         <div className="min-w-0 sm:flex-1">
           <div className="font-display text-obra text-ink">{titulo}</div>
           <p className="text-corpo text-ink-soft leading-relaxed mt-0.5">{children}</p>

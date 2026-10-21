@@ -37,8 +37,8 @@ function PopupNota({ alvo, onFechar, onConfirmar }) {
     <AnimatePresence>
       {alvo && (
         <motion.div
-          className="fixed inset-0 z-[70] flex items-start sm:items-center justify-center px-0 sm:px-3 py-0 sm:py-6 bg-veu backdrop-blur-xl"
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={FADE}
+          className="fixed inset-0 z-[70] flex items-start sm:items-center justify-center px-0 sm:px-3 py-0 sm:py-6 veu-canelado"
+          initial={{ '--veu-forca': 0 }} animate={{ '--veu-forca': 1 }} exit={{ '--veu-forca': 0 }} transition={FADE}
           onClick={(e) => { if (e.target === e.currentTarget) onFechar() }}
         >
           <motion.div
@@ -269,8 +269,8 @@ export default function Fila({ open, onClose, onNotice, onEditar }) {
       <AnimatePresence>
         {open && (
           <>
-            <motion.div className="fixed inset-0 z-40 bg-veu backdrop-blur-xl"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={FADE} onClick={onClose} />
+            <motion.div className="fixed inset-0 z-40 veu-canelado"
+              initial={{ '--veu-forca': 0 }} animate={{ '--veu-forca': 1 }} exit={{ '--veu-forca': 0 }} transition={FADE} onClick={onClose} />
             <motion.div
               className="fixed right-0 top-0 z-50 h-full w-[min(440px,100%)] bg-surface border-l border-separador flex flex-col"
               initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}

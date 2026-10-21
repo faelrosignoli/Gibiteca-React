@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { passes, sortList, fragmentosDe, chaveFila, itemDaFila, podeEnfileirar, volsOf } from './helpers.js'
 import { EDITORAS } from '../data.js'
+import { CONTA_VAZIA, limparCodigo } from './conta.js'
 import { ghCheckRepo, ghGet, ghPut, lerColecao, b64enc, b64dec, guessRepo } from './cloud.js'
 import { compararColecoes, mensagemDeCommit } from './diario.js'
 
@@ -13,6 +14,44 @@ export const useStore = () => useContext(StoreCtx)
  *
  * É função, não constante: devolvendo listas novas a cada chamada, "limpar
  * filtros" não entrega ao estado os mesmos arrays que estavam em uso. */
+/* O PERFIL: quem é o dono desta coleção.
+ *
+ * Mora dentro de `gibiteca_v1`, junto das obras — e não numa chave própria.
+ * O motivo é o mesmo da fila e das listas: é dado do usuário, e dado do
+ * usuário vai no backup e na nuvem. Trocar de aparelho sem levar o nome e a
+ * foto seria chegar numa casa vazia.
+ *
+ * É função e não constante para devolver um objeto novo a cada chamada:
+ * constante compartilhada vira estado compartilhado no primeiro `...spread`
+ * distraído.
+ *
+ * Primeiro nome e sobrenome SEPARADOS, não um campo só. Quem trata os dois
+ * como uma string descobre tarde que precisa do primeiro nome sozinho — para
+ * saudar, para ordenar, para abreviar — e aí tem que adivinhar onde cortar.
+ */
+export const PERFIL_VAZIO = () => ({ foto: null, nome: '', sobrenome: '' })
+
+/* A SESSAO — estar logado AGORA.
+ *
+ * Chave propria, fora de `gibiteca_v1`, e por isso fora do backup e da
+ * nuvem. Nao e dado da colecao, e fato deste aparelho: levar a sessao num
+ * arquivo restaurado deixaria a pessoa logada num computador onde ela nunca
+ * digitou o e-mail — e seria o backup, nao o login, decidindo quem entra.
+ *
+ * Guarda o e-mail junto do horario para o portao conferir se a sessao e da
+ * conta que esta aqui. Sem isso, restaurar o backup de outra conta deixaria
+ * a sessao antiga valendo sobre dados de outra pessoa.
+ */
+const CHAVE_SESSAO = 'gibiteca_sessao'
+
+function lerSessao() {
+  try {
+    const b = localStorage.getItem(CHAVE_SESSAO)
+    const d = b ? JSON.parse(b) : null
+    return d && typeof d === 'object' && d.email ? d : null
+  } catch (e) { return null }
+}
+
 export const filtrosPadrao = () => ({
   q: '', status: 'todos', tipo: '', tipoEdicao: [], editora: [], pais: [], autor: [],
   importado: false, urgencia: false, leitura: 'todos',
@@ -37,10 +76,10 @@ export function carimboDe(d) {
 function loadInitial() {
   let bruto = null
   try { bruto = localStorage.getItem('gibiteca_v1') } catch (e) { /* navegador sem storage */ }
-  if (!bruto) return { obras: [], editoras: EDITORAS, fila: [], listas: [], carimbo: 0, ilegivel: false }
+  if (!bruto) return { obras: [], editoras: EDITORAS, fila: [], listas: [], perfil: PERFIL_VAZIO(), conta: CONTA_VAZIA(), carimbo: 0, ilegivel: false }
   try {
     const d = JSON.parse(bruto)
-    if (Array.isArray(d.obras)) return { obras: d.obras, editoras: d.editoras || EDITORAS, fila: Array.isArray(d.fila) ? d.fila : [], listas: Array.isArray(d.listas) ? d.listas : [], carimbo: carimboDe(d), ilegivel: false }
+    if (Array.isArray(d.obras)) return { obras: d.obras, editoras: d.editoras || EDITORAS, fila: Array.isArray(d.fila) ? d.fila : [], listas: Array.isArray(d.listas) ? d.listas : [], perfil: { ...PERFIL_VAZIO(), ...(d.perfil || {}) }, conta: { ...CONTA_VAZIA(), ...(d.conta || {}) }, carimbo: carimboDe(d), ilegivel: false }
   } catch (e) { /* cai no aviso abaixo */ }
   /* HAVIA dado guardado e não deu para ler.
    *
@@ -49,7 +88,7 @@ function loadInitial() {
    * estivesse tudo bem. Agora a coleção continua vazia (não há o que mostrar),
    * mas o app DIZ que o dado existe e está ilegível — e o carimbo fica em
    * zero, então esse vazio nunca sobe para a nuvem por cima do que está lá. */
-  return { obras: [], editoras: EDITORAS, fila: [], listas: [], carimbo: 0, ilegivel: true }
+  return { obras: [], editoras: EDITORAS, fila: [], listas: [], perfil: PERFIL_VAZIO(), conta: CONTA_VAZIA(), carimbo: 0, ilegivel: true }
 }
 function loadCloud() {
   try { const r = localStorage.getItem(CLOUD_KEY); if (r) return { ...CLOUD_DEFAULT, ...JSON.parse(r) } } catch (e) { /* */ }
@@ -85,10 +124,43 @@ export function StoreProvider({ children }) {
       return TEMAS_VALIDOS.includes(t) ? t : TEMA_PADRAO
     } catch (e) { return TEMA_PADRAO }
   })
+  /* A TROCA DE TEMA É ANIMADA, e a animação só existe durante a troca.
+   *
+   * Trocar o atributo repinta a página inteira num quadro só: fundo, tinta,
+   * bordas e ícones saltam de uma paleta para a outra. Funciona, e é seco.
+   *
+   * O jeito óbvio — pôr `transition: background-color, color…` no CSS geral —
+   * cobraria caro o ano inteiro para enfeitar um clique por mês: TODO hover,
+   * TODO foco e TODA pastilha que acende passariam a arrastar meio segundo.
+   *
+   * Então a transição é LIGADA SÓ NO MOMENTO da troca, por uma classe no
+   * `<html>` que sai sozinha logo depois (ver `.trocando-tema` no index.css).
+   * Fora desse instante, o CSS é exatamente o que era.
+   *
+   * NÃO ANIMA NA PRIMEIRA PASSADA. Este efeito também roda na montagem, para
+   * pendurar o tema guardado — e ali não houve troca nenhuma: a página
+   * nasceria esmaecendo as próprias cores, como se estivesse carregando.
+   *
+   * O `setTimeout` é mais longo que a transição de propósito. Ele só precisa
+   * não cortar o movimento no meio; sobrar um pouco não custa nada, e deixa
+   * os dois números livres para divergir sem ninguém ter de sincronizá-los.
+   */
+  const primeiraPintura = useRef(true)
   useEffect(() => {
     const html = document.documentElement
-    if (tema === TEMA_PADRAO) delete html.dataset.tema
-    else html.dataset.tema = tema
+    const pintar = () => {
+      if (tema === TEMA_PADRAO) delete html.dataset.tema
+      else html.dataset.tema = tema
+    }
+
+    if (primeiraPintura.current) { primeiraPintura.current = false; pintar(); return }
+
+    html.classList.add('trocando-tema')
+    pintar()
+    const t = setTimeout(() => html.classList.remove('trocando-tema'), 700)
+    /* Trocando de tema duas vezes seguidas, a limpeza da primeira tiraria a
+       classe no meio da segunda — e a segunda troca sairia seca. */
+    return () => clearTimeout(t)
   }, [tema])
   const setTema = useCallback((t) => {
     const valido = TEMAS_VALIDOS.includes(t) ? t : TEMA_PADRAO
@@ -317,6 +389,56 @@ export function StoreProvider({ children }) {
     }))
   }, [])
 
+  // ---- perfil ----
+  const [perfil, setPerfilState] = useState(init.perfil)
+
+  /* Aceita pedaços: `setPerfil({ nome })` não apaga a foto. O formulário
+     grava campo a campo enquanto se digita, e um setter que substitui o
+     objeto inteiro zeraria o resto a cada tecla. */
+  const setPerfil = useCallback((partes) => {
+    marcarAlterado()
+    setPerfilState(p => ({ ...p, ...partes }))
+  }, [])
+
+  // ---- conta ----
+  const [conta, setContaState] = useState(init.conta)
+  const [sessao, setSessaoState] = useState(lerSessao)
+
+  /* Entrou: o e-mail ja foi confirmado pelo codigo. Esta funcao NAO confere
+     nada — quem confere e o `conferirCodigo` do conta.js, que na Etapa 1 vira
+     o servidor. Aqui so se registra o fato. */
+  const entrarNaConta = useCallback((email) => {
+    const s = { email, desde: Date.now() }
+    try { localStorage.setItem(CHAVE_SESSAO, JSON.stringify(s)) } catch (e) { /* sessao so nesta aba */ }
+    setSessaoState(s)
+  }, [])
+
+  /* Sair apaga a SESSAO e mais nada. A colecao fica onde esta: sair nao e
+     apagar, e quem sai de um aparelho proprio espera achar tudo de volta ao
+     entrar. Quem quer apagar usa o botao que diz apagar. */
+  const sairDaConta = useCallback(() => {
+    try { localStorage.removeItem(CHAVE_SESSAO) } catch (e) { /* */ }
+    setSessaoState(null)
+  }, [])
+
+  /* Criar conta e UMA operacao, apesar de escrever em tres lugares (conta,
+     perfil, sessao). Fica no store porque e o unico lugar que alcanca os tres
+     — espalhado pela tela, um cadastro interrompido no meio deixaria conta sem
+     perfil, ou perfil sem conta. */
+  const criarConta = useCallback(({ email, nascimento, termos, nome, sobrenome, foto }) => {
+    marcarAlterado()
+    setContaState({ email, nascimento, termos })
+    setPerfilState({ foto: foto || null, nome: nome || '', sobrenome: sobrenome || '' })
+    entrarNaConta(email)
+  }, [entrarNaConta])
+
+  /* Aceita pedacos, como o setPerfil: trocar o e-mail nao mexe no aceite dos
+     termos nem na data de nascimento. */
+  const setConta = useCallback((partes) => {
+    marcarAlterado()
+    setContaState(c => ({ ...c, ...partes }))
+  }, [])
+
   // ---- nuvem ----
   const cloudRef = useRef(loadCloud())
   const [cloud, setCloudState] = useState(cloudRef.current)
@@ -326,8 +448,8 @@ export function StoreProvider({ children }) {
   // permissão ou caminho — nem para quem escreveu o código.
   const [syncErro, setSyncErro] = useState('')
   const falhou = useCallback((e) => { setSyncErro(String(e && e.message || e || 'Erro desconhecido')); setSync('err') }, [])
-  const dataRef = useRef({ obras: init.obras, editoras: init.editoras, fila: init.fila, listas: init.listas })
-  useEffect(() => { dataRef.current = { obras, editoras, fila, listas } }, [obras, editoras, fila, listas])
+  const dataRef = useRef({ obras: init.obras, editoras: init.editoras, fila: init.fila, listas: init.listas, perfil: init.perfil, conta: init.conta })
+  useEffect(() => { dataRef.current = { obras, editoras, fila, listas, perfil, conta } }, [obras, editoras, fila, listas, perfil, conta])
   const writeCloud = useCallback((next) => {
     cloudRef.current = next; setCloudState(next)
     // se a configuração da nuvem não puder ser gravada, a pessoa vai
@@ -368,10 +490,10 @@ export function StoreProvider({ children }) {
         }
       }
 
-      const { obras, editoras, fila, listas } = dataRef.current
+      const { obras, editoras, fila, listas, perfil, conta } = dataRef.current
       const agora = Date.now()
       const json = JSON.stringify(
-        { version: 1, atualizadoEm: agora, updated: new Date(agora).toISOString(), obras, editoras, fila, listas }, null, 1)
+        { version: 1, atualizadoEm: agora, updated: new Date(agora).toISOString(), obras, editoras, fila, listas, perfil, conta }, null, 1)
       const b64 = b64enc(json)
       // Sem arquivo na nuvem, NÃO se manda sha: ele só existe para atualizar
       // algo que já está lá. Mandar um sha guardado de antes faz o GitHub
@@ -416,14 +538,21 @@ export function StoreProvider({ children }) {
     if (!dirty.current) return
     let gravou = true
     try {
-      localStorage.setItem('gibiteca_v1', JSON.stringify({ version: 1, atualizadoEm: carimbo.current, obras, editoras, fila, listas }))
+      localStorage.setItem('gibiteca_v1', JSON.stringify({ version: 1, atualizadoEm: carimbo.current, obras, editoras, fila, listas, perfil, conta }))
     } catch (e) { gravou = false }
     setSemEspaco(!gravou)
     if (!gravou) setFalhasAoGuardar(n => n + 1)
     if (skipPush.current) { skipPush.current = false; return }
     if (!gravou) { clearTimeout(pushTimer.current); pushToCloud(); return }
     scheduleCloudPush()
-  }, [obras, editoras, fila, listas, scheduleCloudPush, pushToCloud])
+  }, [obras, editoras, fila, listas, perfil, conta, scheduleCloudPush, pushToCloud])
+
+  /* Usado só pelo applyData: troca o perfil inteiro SEM carimbar alteração.
+     O `setPerfil` normal carimba, e carimbar aqui faria a coleção recém-
+     puxada da nuvem parecer mais nova que a nuvem — e voltar para lá. */
+  const setPerfil_aplicar = useCallback((p) => {
+    setPerfilState({ ...PERFIL_VAZIO(), ...(p || {}) })
+  }, [])
 
   const applyData = useCallback((data, { fromCloud = false } = {}) => {
     if (!Array.isArray(data?.obras)) return
@@ -440,6 +569,15 @@ export function StoreProvider({ children }) {
        ou pior, entradas vivas apontando para a obra errada. */
     setFila(Array.isArray(data.fila) ? data.fila : [])
     setListas(Array.isArray(data.listas) ? data.listas : [])
+    /* Arquivo sem perfil (backup anterior a isto) devolve o perfil VAZIO, e
+       não o que está na tela: restaurar é trocar a coleção inteira, e um
+       nome sobrevivente seria o dono errado numa coleção que não é dele. */
+    setPerfil_aplicar(data.perfil)
+    /* A conta vem do arquivo; a SESSAO nao. Restaurar e trocar a colecao,
+       inclusive de quem ela e — mas quem esta logado neste aparelho continua
+       sendo quem digitou o e-mail aqui. Se o arquivo for de outra conta, o
+       portao do App ve sessao e conta discordando e pede login de novo. */
+    setContaState({ ...CONTA_VAZIA(), ...(data.conta || {}) })
     setPage(1)
   }, [])
 
@@ -547,6 +685,31 @@ export function StoreProvider({ children }) {
   const resetFilters = useCallback(() => { setFilters(filtrosPadrao()); setPage(1) }, [])
   const setPageSize = useCallback((n) => { setPageSizeState(n); setPage(1); try { localStorage.setItem('gibiteca_pagesize', String(n)) } catch (e) { /* */ } }, [])
   const loadBackup = useCallback((data) => applyData(data), [applyData])
+
+  /* APAGAR A CONTA — o fim da linha, e o unico caminho que leva tudo.
+   *
+   * Passa pelo applyData, e nao por um `localStorage.clear()`, porque e o
+   * mesmo caminho de restaurar um backup: ja testado, ja carimbado, ja
+   * sincronizado. Um clear cru deixaria o React desenhando o estado antigo
+   * sobre um armazenamento vazio ate alguem recarregar a pagina.
+   *
+   * A SESSAO sai junto, e e a unica diferenca em relacao a restaurar: sem
+   * conta nao ha sessao possivel, e deixar a sessao viva depois de apagar
+   * deixaria o portao do App aberto para uma conta que nao existe mais.
+   *
+   * O codigo pendente tambem morre: um codigo valido sobrando apontaria para
+   * um e-mail que esta conta ja nao tem.
+   *
+   * O QUE ISTO NAO APAGA: o que ja subiu para a nuvem. A nuvem e um
+   * repositorio do GitHub com historico, e apagar de verdade la e outro
+   * assunto — por isso o aviso na tela diz exatamente isso em vez de
+   * prometer uma faxina que o app ainda nao sabe fazer.
+   */
+  const apagarConta = useCallback(() => {
+    sairDaConta()
+    limparCodigo()
+    applyData({ obras: [], editoras: EDITORAS, fila: [], listas: [], perfil: null, conta: null })
+  }, [applyData, sairDaConta])
   // troca a coleção inteira por uma versão já processada (ex.: capas movidas
   // para o repositório). Conta como alteração local: carimba e envia.
   const aplicarObras = useCallback((novas) => applyData({ obras: novas, editoras: dataRef.current.editoras }), [applyData])
@@ -685,6 +848,10 @@ export function StoreProvider({ children }) {
     nextId, upsertObra, duplicarObra, desmembrarObra, deleteObra, setCovers,
     // fila de leitura
     fila, alternarFila, removerDaFila, reordenarFila, marcarLido,
+    // perfil
+    perfil, setPerfil,
+    // conta e sessao
+    conta, setConta, sessao, criarConta, entrarNaConta, sairDaConta, apagarConta,
     // listas
     listas, criarLista, renomearLista, apagarLista, alternarNaLista, definirListasDaObra, alternarNumeracao, reordenarLista,
     filtered, total, totalPages, start, pageItems, all,

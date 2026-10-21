@@ -8,6 +8,7 @@ import Collection from './components/Collection.jsx'
 import Footer from './components/Footer.jsx'
 import Divisoria from './components/Divisoria.jsx'
 import Welcome from './components/Welcome.jsx'
+import Entrada from './components/Entrada.jsx'
 import Backup from './components/Backup.jsx'
 import Tema from './components/Tema.jsx'
 import Fila from './components/Fila.jsx'
@@ -21,10 +22,24 @@ import Cloud from './components/Cloud.jsx'
 import BulkCovers from './components/BulkCovers.jsx'
 import AvisoSemEspaco from './components/AvisoSemEspaco.jsx'
 import Atividades from './components/Atividades.jsx'
+import Ajuda from './components/Ajuda.jsx'
 import { baixarBackup } from './lib/backup.js'
 
 export default function App() {
-  const { filters, cloud: cloudCfg, obras, editoras, duplicarObra, desmembrarObra, fila, listas } = useStore()
+  const { filters, cloud: cloudCfg, obras, editoras, duplicarObra, desmembrarObra, fila, listas, conta, sessao } = useStore()
+
+  /* O PORTÃO: entrou ou não entrou.
+   *
+   * Exige as DUAS coisas de acordo — a sessão deste aparelho e a conta
+   * guardada. Uma sessão sozinha deixaria entrar sem perfil nenhum; uma
+   * conta sozinha deixaria entrar quem nunca digitou o e-mail aqui.
+   *
+   * E compara os e-mails porque restaurar um backup troca a CONTA e não a
+   * sessão (ver applyData no store): o arquivo de outra pessoa deixaria a
+   * sessão antiga valendo sobre dados que não são dela. Discordando, a porta
+   * reaparece e pede o e-mail de quem a coleção é agora.
+   */
+  const entrou = !!sessao && !!conta.email && sessao.email === conta.email
   // Abertura: a marca aparece no meio e viaja até o cabeçalho encolhendo.
   // Quem pediu menos movimento não vê tela nenhuma — entra direto na estante.
   const semMovimento = usaMovimentoReduzido()
@@ -50,6 +65,7 @@ export default function App() {
   const [cloud, setCloud] = useState(false)
   const [bulk, setBulk] = useState(false)
   const [atividades, setAtividades] = useState(false)
+  const [ajuda, setAjuda] = useState(false)
   const [backup, setBackup] = useState(false)
   const [temaAberto, setTemaAberto] = useState(false)
   const [filaAberta, setFilaAberta] = useState(false)
@@ -120,6 +136,16 @@ export default function App() {
           garante isso — um renderiza exatamente quando o outro não. */}
       {welcome ? (
         <Welcome onEntrar={() => setWelcome(false)} aberturaNoAr={abrindo} />
+      ) : !entrou ? (
+      /* A PORTA. O cabeçalho fica, só com a marca (`soMarca`): é ela que
+         viaja da capa até a barra, e cortar o cabeçalho aqui faria o logo
+         sumir no meio da viagem para voltar depois do login. Busca, menu e
+         contagem saem — são portas para uma coleção que ainda não se sabe
+         de quem é. */
+      <>
+        <Header soMarca aberturaNoAr={abrindo} />
+        <Entrada />
+      </>
       ) : (
       <>
       {/* sem embrulho: o sticky e o espaçamento moram na própria barra agora */}
@@ -127,6 +153,7 @@ export default function App() {
           onCloud={() => setCloud(true)}
           onBulk={openBulk}
           onAtividades={() => setAtividades(true)}
+          onAjuda={() => setAjuda(true)}
           onBackup={() => setBackup(true)}
           onTema={() => setTemaAberto(true)}
           onFila={() => setFilaAberta(true)}
@@ -163,6 +190,7 @@ export default function App() {
       <SearchOverlay open={search} onClose={() => setSearch(false)} />
       <Stats open={stats} onClose={() => setStats(false)} />
       <Atividades open={atividades} onClose={() => setAtividades(false)} />
+      <Ajuda open={ajuda} onClose={() => setAjuda(false)} onNotice={say} />
 
       <Cloud open={cloud} onClose={() => setCloud(false)} onNotice={say} />
       <BulkCovers open={bulk} onClose={() => setBulk(false)} onNotice={say} />

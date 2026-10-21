@@ -6,7 +6,7 @@ import Marca from './Marca.jsx'
 /* Página de boas-vindas: a capa da gibiteca.
  *
  * Uma imagem grande ocupando a tela, o logo grande um pouco abaixo do topo, e
- * um botão no rodapé que leva à coleção.
+ * um botão no rodapé que leva à porta de entrada.
  *
  * NÃO há cabeçalho aqui. O logo é o MESMO elemento do logo da barra aos olhos
  * do framer-motion — os dois carregam `layoutId="marca"` —, então ao entrar na
@@ -212,10 +212,10 @@ export default function Welcome({ onEntrar, aberturaNoAr = false }) {
             `.welcome__botao` devolve a simetria.
 
             O texto fica em caixa alta por CSS e não escrito em maiúsculas:
-            assim o nome acessível continua "Minha Coleção", do jeito que se
+            assim o nome acessível continua "Entrar", do jeito que se
             fala. */}
         <button type="button" className="cta cta-carimbo welcome__botao" onClick={onEntrar}>
-          Minha Coleção
+          Entrar
         </button>
       </div>
     </main>

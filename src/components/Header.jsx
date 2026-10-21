@@ -69,8 +69,23 @@ function useRolado() {
  * com o menu aberto — é isso que `comAcento` resolve. A mecânica está em
  * `.barra-topo`, no index.css; aqui só se liga o `data-acento`.
  */
-export default function Header({ onCloud, onBulk, onAtividades, onBackup, onTema, onFila, onListas, onFilters, onStats, onSearch, filterCount, aberturaNoAr = false }) {
-  const { obras, editoras, loadBackup, sync, view, setView, filters } = useStore()
+/* `soMarca`: a barra sem ferramenta nenhuma — só o logo no centro.
+ *
+ * Serve à tela de entrar, que aparece ANTES de haver coleção. Busca, filtro,
+ * menu e contagem são todos portas para dados que ainda não existem para
+ * quem não entrou; deixá-los ali seria oferecer a estante de outra pessoa.
+ *
+ * É um modo desta barra e não uma barra própria por causa do `layoutId` da
+ * marca: dois elementos com o mesmo id ao mesmo tempo quebram a animação, e
+ * uma segunda barra com um segundo logo seria exatamente isso na troca de
+ * tela. Assim o logo tem um dono só, do começo ao fim.
+ *
+ * As CÉLULAS laterais da grade continuam no lugar, vazias. A grade é
+ * `1fr auto 1fr`, e é ela que centra o logo — tirando as laterais, o centro
+ * deixaria de ser o centro e o logo escorregaria para a esquerda.
+ */
+export default function Header({ onCloud, onBulk, onAtividades, onAjuda, onBackup, onTema, onFila, onListas, onFilters, onStats, onSearch, filterCount, aberturaNoAr = false, soMarca = false }) {
+  const { obras, editoras, loadBackup, sync, view, setView, filters, perfil } = useStore()
   const aoInicio = useVoltarAoInicio()
   const rolado = useRolado()
   const ehDesktop = useEhDesktop()
@@ -143,23 +158,6 @@ export default function Header({ onCloud, onBulk, onAtividades, onBackup, onTema
   }
 
   const fechar = () => setMenu(false)
-  /* Sem ícone: são quatro frases curtas numa lista já recuada sob "Nuvem e
-     backup", e ali o ícone não ajuda a varrer — vira enfeite ao lado de uma
-     palavra que já se lê. O ponto de sincronização continua, porque é alerta,
-     não decoração.
-
-     "(.json)" saiu dos rótulos: quem abre este menu quer salvar a coleção, não
-     escolher formato. A extensão aparece no arquivo que se baixa.
-
-     Baixar e restaurar viraram UM item, "Backup", que abre um pop-up com as
-     duas ações. São o mesmo assunto, e lado a lado numa lista de atalhos eles
-     se pareciam demais para a diferença que têm. */
-  const acoesDados = [
-    { rotulo: 'Nuvem', ponto: sync, aoClicar: () => { fechar(); onCloud?.() } },
-    { rotulo: 'Atividades', aoClicar: () => { fechar(); onAtividades?.() } },
-    { rotulo: 'Capas', aoClicar: () => { fechar(); onBulk?.() } },
-    { rotulo: 'Backup', aoClicar: () => { fechar(); onBackup?.() } },
-  ]
 
   const botaoFiltros = (comRotulo) => (
     <button className="pill-btn !px-3 md:!px-4" onClick={onFilters} title="Filtros">
@@ -202,12 +200,16 @@ export default function Header({ onCloud, onBulk, onAtividades, onBackup, onTema
 
   const conteudoMenu = (
     <ConteudoMenu
-      grande={!ehDesktop}
-      sync={sync} acoes={acoesDados}
+      sync={sync} foto={perfil.foto} nome={perfil.nome}
+      onPerfil={() => { fechar(); onCloud?.() }}
+      onTema={() => { fechar(); onTema?.() }}
       onFila={() => { fechar(); onFila?.() }}
       onListas={() => { fechar(); onListas?.() }}
-      onTema={() => { fechar(); onTema?.() }}
       onStats={() => { fechar(); onStats?.() }}
+      onAtividades={() => { fechar(); onAtividades?.() }}
+      onBulk={() => { fechar(); onBulk?.() }}
+      onBackup={() => { fechar(); onBackup?.() }}
+      onAjuda={() => { fechar(); onAjuda?.() }}
     />
   )
 
@@ -229,10 +231,12 @@ export default function Header({ onCloud, onBulk, onAtividades, onBackup, onTema
                 tamanho, cor e o comportamento sobre o acento em um lugar só.
                 O ponto de "há busca ativa" vai para fora do fluxo: sem
                 contorno não há espaço interno para ele. */}
+            {!soMarca && (
             <button className="isl-icon !w-10 !h-10 sm:!w-9 sm:!h-9 relative" onClick={onSearch} title="Buscar" aria-label="Buscar">
               <IconBusca />
               {filters.q ? <span className={`absolute right-1 bottom-1 w-[7px] h-[7px] rounded-full transition-colors duration-[450ms] ${comAcento ? 'bg-paper' : 'bg-moss'}`} /> : null}
             </button>
+            )}
           </div>
 
           {/* centro: a marca */}
@@ -265,6 +269,7 @@ export default function Header({ onCloud, onBulk, onAtividades, onBackup, onTema
 
           {/* direita */}
           <div className="flex items-center gap-1.5 justify-self-end shrink-0">
+            {!soMarca && (
             <div className="relative">
               <button
                 type="button"
@@ -288,18 +293,20 @@ export default function Header({ onCloud, onBulk, onAtividades, onBackup, onTema
                     exit={{ opacity: 0, y: -6, scale: 0.97 }}
                     transition={MOLA_TOQUE}
                     style={{ transformOrigin: 'top right' }}
-                    className="absolute right-0 top-[calc(100%+10px)] z-40 w-[290px] rounded-medio border border-separador bg-surface p-2 shadow-amb-lg"
+                    className="absolute right-0 top-[calc(100%+10px)] z-40 w-[320px] rounded-medio border border-separador bg-surface px-5 py-1 shadow-amb-lg"
                   >
                     {conteudoMenu}
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
+            )}
           </div>
         </div>
 
       </div>
     </header>
+      {!soMarca && (<>
 
       {/* ---- segunda linha: o que é ferramenta ----
            Fica FORA da barra, em TODAS as larguras: rola embora com a página.
@@ -369,134 +376,161 @@ export default function Header({ onCloud, onBulk, onAtividades, onBackup, onTema
           </motion.div>
         )}
       </AnimatePresence>
+      </>)}
     </>
   )
 }
 
 /* ---------------------------------------------------------------
-   O conteúdo do menu, um só para os dois formatos.
+   O CONTEÚDO DO MENU — nove portas, uma lista, sem gaveta.
 
-   Três assuntos, nesta ordem: o tema, as estatísticas e UM tópico que guarda
-   tudo que é dado — nuvem, capas e backup. Eram cinco itens soltos competindo
-   com o resto; agora são cinco coisas da mesma família atrás de uma porta só.
+   ANTES HAVIA UM GRUPO: "Seus dados" abria uma sanfona com Perfil,
+   Atividades, Capas e Backup dentro. A ideia era agrupar por assunto, e o
+   preço era alto demais: quatro das nove portas custavam DOIS cliques e
+   ficavam invisíveis até o primeiro. Um menu de nove itens cabe inteiro na
+   tela — esconder metade dele para economizar um espaço que sobra é trocar
+   alcance por arrumação.
 
-   Os três são PORTAS: cada linha abre uma tela. O tema era a exceção — uma
-   escolha feita ali mesmo, com um fio mais forte em volta para avisar que não
-   era item de lista. Virando pop-up ele entrou na fila, e a exceção sumiu.
+   A ORDEM NÃO É ALFABÉTICA NEM POR TAMANHO: é por frequência de uso, com as
+   duas pontas marcadas.
 
-   O menu é o MESMO nos dois tamanhos. Estatísticas chegou a viver na barra do
-   desktop, e manter os dois caminhos daria duas portas para a mesma tela.
+     Perfil          quem você é, e a porta da nuvem — em destaque
+     Tema            ·
+     Fila de leitura ·  o dia a dia da coleção
+     Listas          ·
+     Estatísticas    ·
+     Atividades      ·
+     Capas           ·  manutenção: se usa de vez em quando
+     Backup          ·
+     Ajuda           a saída de quem não achou — em apoio
 
-   `grande` muda só o tamanho dos alvos: no painel de tela cheia as linhas
-   precisam de altura de dedo, na folha do desktop não.
+   TRÊS PORTES, e não nove linhas iguais. Uma lista achatada obriga a ler os
+   nove rótulos para achar o primeiro; com a primeira linha maior e a última
+   menor, o olho pega as pontas antes de ler qualquer palavra. Perfil é o que
+   a maioria abre, Ajuda é o que quase ninguém abre — e o tamanho diz isso
+   sem precisar de uma régua, de um título de seção ou de uma gaveta.
+
+   ÍCONE SÓ NAS PONTAS. Nos sete do meio ele viraria enfeite ao lado de uma
+   palavra em caixa alta que já se lê de longe; nas pontas ele reforça o que
+   o tamanho já começou. O texto dessas duas fica recuado em relação aos
+   outros por causa disso, e é de propósito: são a cabeça e o pé da lista,
+   não mais dois itens dela.
    --------------------------------------------------------------- */
-function ConteudoMenu({ grande, acoes, onTema, onFila, onListas, onStats }) {
-  const [dadosAberto, setDadosAberto] = useState(false)
-  /* No painel de tela cheia as linhas são GRANDES e SEM ícone: são três
-     assuntos, não uma lista de comandos, e a essa altura o ícone vira enfeite
-     ao lado de uma palavra que já se lê de longe. Na folha do desktop, que é
-     compacta, o ícone continua ajudando a varrer. */
-  const linha = grande
-    ? 'w-full flex items-center gap-3 py-4 font-cartaz text-obra font-semibold uppercase text-ink text-left'
-    : 'w-full flex items-center gap-2.5 rounded-medio px-3 py-2.5 text-corpo font-medium text-ink text-left hover:bg-toque'
-  const risco = grande ? 'border-b border-linha' : ''
 
+/* O comum a todas as linhas. `hover:text-acento-texto` é a única concessão
+   ao desktop: o celular não tem cursor e não precisa responder a ele; a folha
+   suspensa precisa, ou o ponteiro passa por cima de nove palavras sem dizer
+   qual delas vai ser clicada. Muda a COR e não o fundo — fundo arredondado
+   era o que fazia esta lista parecer outra coisa no desktop. */
+const BASE_LINHA = 'w-full flex items-center gap-3 font-cartaz font-semibold uppercase text-left'
+  + ' border-b border-linha transition-colors hover:text-acento-texto'
+
+/* Os três portes. A diferença entre `destaque` e `normal` é de um degrau da
+   escala tipográfica (20px contra 16px) — "levemente maior", o suficiente
+   para o olho pegar primeiro sem a linha virar um cabeçalho. */
+const PORTE = {
+  destaque: 'py-4 text-secao text-ink',
+  normal:   'py-4 text-obra text-ink',
+  apoio:    'py-3 text-corpo text-ink-soft',
+}
+
+
+function ConteudoMenu({ sync, foto, nome, onPerfil, onTema, onFila, onListas, onStats, onAtividades, onBulk, onBackup, onAjuda }) {
   return (
-    <div className="flex flex-col">
-      {/* ---- tema ----
-          Era um bloco de escolha aqui dentro, com um fio mais forte
-          (`separador`) separando-o do resto: ele não era um item de lista como
-          os outros, era um ajuste, e precisava de uma régua só para dizer
-          isso. Virou pop-up, igual ao Backup, e com isso virou um item como
-          qualquer outro — o fio de exceção saiu junto. */}
-      <button role="menuitem" onClick={onTema} className={`${linha} ${risco}`}>
-        {!grande && <span className="text-ink-soft shrink-0 inline-flex"><IconTema /></span>}
+    /* O fio do ÚLTIMO item sai. Cada linha carrega uma régua embaixo para
+       separá-la da seguinte — e a última não tem seguinte. No celular a sobra
+       cai em espaço vazio e passa; no pop-up ela encosta na borda e vira uma
+       régua solta, a dois pixels de outra linha. */
+    <div className="flex flex-col [&>*:last-child]:border-b-0">
+
+      {/* ---- PERFIL ----
+           Primeiro e maior. É a porta de quem você é, e também a da nuvem —
+           e enquanto não há servidor, é por ela que a coleção deixa de
+           depender de um navegador só. O ponto de sincronização mora aqui
+           porque é alerta, não decoração: ele some do ☰ para aparecer uma vez
+           só, no lugar onde se resolve o que ele avisa. */}
+      {/* O FUNDO CINZA-CLARO, e por que ele dispensa o fio.
+          `bg-toque` é o véu mais fraco do projeto (5,5%) — o bastante para a
+          linha se destacar das outras e de longe nem ser lida como cor. Com
+          ele, a régua de baixo sai: fundo e fio fazem a mesma coisa, separar,
+          e os dois juntos põem duas bordas a quatro pixels uma da outra.
+          `-mx-3 px-3` dá ao plano uma folga lateral para além do texto, senão
+          ele fica apertado nas letras; `rounded-medio` o mantém dentro dos
+          cantos do pop-up, que um plano de ponta a ponta atravessaria. */}
+      <button
+        role="menuitem" onClick={onPerfil}
+        className={`${BASE_LINHA} ${PORTE.destaque} !border-b-0 bg-toque rounded-medio -mx-3 px-3`}
+      >
+        <AvatarPerfil foto={foto} />
+        {/* O ponto vem DEPOIS da palavra, dentro do mesmo span: assim ele
+            acompanha a linha do texto, e `items-center` o alinha pela altura
+            da palavra e não pela do botão inteiro. */}
+        {/* O NOME NO LUGAR DO RÓTULO.
+            Enquanto não há nome, a linha diz o que há atrás dela: "Seus
+            dados". Assim que há, ela passa a dizer de quem são — e o rótulo
+            genérico só serve até existir a palavra mais específica.
+
+            SÓ O PRIMEIRO NOME. "Rafael Moreco" em caixa alta de 20px não cabe
+            ao lado do avatar numa folha de 320px, e truncar o sobrenome de
+            alguém é pior que não mostrá-lo. O nome completo está no painel,
+            a um clique.
+
+            `truncate` mesmo assim: primeiro nome também pode ser comprido, e
+            a alternativa a cortar é a linha empurrar a folha. */}
+        <span className="inline-flex items-center gap-2 min-w-0">
+          <span className="truncate">{nome?.trim() || 'Seus dados'}</span>
+          {sync && sync !== 'off' && <PontoNuvem sync={sync} />}
+        </span>
+      </button>
+
+      {/* ---- TEMA ---- */}
+      <button role="menuitem" onClick={onTema} className={`${BASE_LINHA} ${PORTE.normal}`}>
         Tema
       </button>
 
-      {/* ---- fila de leitura ---- */}
-      <button role="menuitem" onClick={onFila} className={`${linha} ${risco}`}>
-        {!grande && <span className="text-ink-soft shrink-0 inline-flex"><IconFila /></span>}
+      {/* ---- o dia a dia ---- */}
+      <button role="menuitem" onClick={onFila} className={`${BASE_LINHA} ${PORTE.normal}`}>
         Fila de leitura
       </button>
-
-      {/* ---- listas ---- */}
-      <button role="menuitem" onClick={onListas} className={`${linha} ${risco}`}>
-        {!grande && <span className="text-ink-soft shrink-0 inline-flex"><IconListas /></span>}
+      <button role="menuitem" onClick={onListas} className={`${BASE_LINHA} ${PORTE.normal}`}>
         Listas
       </button>
-
-      {/* ---- estatísticas ---- */}
-      <button role="menuitem" onClick={onStats} className={`${linha} ${risco}`}>
-        {!grande && <span className="text-ink-soft shrink-0 inline-flex"><IconStats /></span>}
+      <button role="menuitem" onClick={onStats} className={`${BASE_LINHA} ${PORTE.normal}`}>
         Estatísticas
       </button>
 
-      {/* ---- um tópico só para tudo que é dado ---- */}
-      <div className={risco}>
-        <button
-          role="menuitem"
-          aria-expanded={dadosAberto}
-          onClick={() => setDadosAberto(a => !a)}
-          className={linha}
-        >
-          {!grande && (
-            <span className="relative text-ink-soft shrink-0 inline-flex">
-              <IconCloud />
-            </span>
-          )}
-          {/* Sem ponto aqui: ele mora UMA vez, ao lado de "Nuvem" lá dentro.
-              Repetido no título e no ☰, o mesmo alerta aparecia três vezes na
-              mesma tela e deixava de chamar atenção em qualquer uma delas. */}
-          Nuvem e backup
-          <motion.span
-            className="ml-auto text-ink-faint inline-flex"
-            animate={{ rotate: dadosAberto ? 180 : 0 }} transition={MOLA_TOQUE}
-          >
-            <IconSeta />
-          </motion.span>
-        </button>
+      {/* ---- manutenção ----
+           Saíram de dentro da gaveta "Seus dados" e viraram linhas como as
+           outras. São menos usadas que a fila e as listas, e por isso vêm
+           depois — mas "menos usada" não é motivo para ficar escondida. */}
+      <button role="menuitem" onClick={onAtividades} className={`${BASE_LINHA} ${PORTE.normal}`}>
+        Atividades
+      </button>
+      <button role="menuitem" onClick={onBulk} className={`${BASE_LINHA} ${PORTE.normal}`}>
+        Capas
+      </button>
+      <button role="menuitem" onClick={onBackup} className={`${BASE_LINHA} ${PORTE.normal}`}>
+        Backup
+      </button>
 
-        <AnimatePresence initial={false}>
-          {dadosAberto && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={MOLA_TOQUE}
-              className="overflow-hidden"
-            >
-              <div className={`flex flex-col ${grande ? 'pb-3 pl-7' : 'pb-1 pl-3'}`}>
-                {acoes.map(a => (
-                  <button
-                    key={a.rotulo} role="menuitem" onClick={a.aoClicar}
-                    className={grande
-                      ? 'w-full flex items-center gap-3 py-2.5 text-corpo text-ink-soft text-left'
-                      : 'w-full flex items-center gap-2.5 rounded-medio px-3 py-2 text-corpo text-ink-soft text-left hover:bg-toque'}
-                  >
-                    {/* O ponto vem DEPOIS da palavra e dentro do mesmo span:
-                        assim ele acompanha a linha do texto e `items-center`
-                        o alinha pela altura da palavra, não pela da linha do
-                        botão inteiro. */}
-                    <span className="inline-flex items-center gap-2">
-                      {a.rotulo}
-                      {a.ponto && a.ponto !== 'off' && (
-                        <PontoNuvem sync={a.ponto} />
-                      )}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+      {/* ---- AJUDA ----
+           Última e menor. É a porta de quem não achou o que queria nas
+           outras: posta no topo, apareceria antes do app que ela explica. */}
+      <button role="menuitem" onClick={onAjuda} className={`${BASE_LINHA} ${PORTE.apoio}`}>
+        <IconAjuda />
+        Ajuda
+      </button>
     </div>
   )
 }
 
 /* o rótulo da nuvem diz o estado, não só a categoria */
-/* O rótulo do menu é só "Nuvem"; quem diz o ESTADO é o ponto ao lado dele.
+/* O rótulo do menu é "Perfil"; quem diz o ESTADO DA NUVEM é o ponto ao lado.
+ *
+ * O ponto continua sendo da nuvem mesmo depois de o item virar "Perfil": a
+ * nuvem mora dentro do painel de Perfil, e é por essa porta que se chega
+ * nela. O `title` diz "Nuvem" em voz alta justamente por isso — a bolinha é
+ * sobre sincronização, não sobre o nome de quem usa o app.
  *
  * Mas cor sozinha não é informação: quem não distingue verde de laranja, ou
  * usa leitor de tela, ficaria sem saber. Por isso o estado continua existindo
@@ -571,36 +605,6 @@ const IconFiltros = () => (
     <circle className="ico-funil__gota" cx="12" cy="8" r="1.15" fill="currentColor" stroke="none" />
   </svg>
 )
-/* Círculo meio cheio: o símbolo de sempre para troca de tinta. Um balde ou
-   um pincel falaria de pintar; aqui não se pinta nada, escolhe-se entre duas
-   faces da mesma casa. */
-/* Um marcador de página saindo de uma pilha: é o gesto que a fila guarda —
-   separar o que vem a seguir sem tirar da estante. */
-/* Pastas empilhadas, que é o que as listas são: gavetas feitas à mão onde
-   a obra fica guardada sem deixar de estar na coleção. */
-const IconListas = () => (
-  <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 7.5l2-2.5h4l1.5 2H19a1 1 0 0 1 1 1V18a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" />
-  </svg>
-)
-const IconFila = () => (
-  <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4 5h9M4 10h9M4 15h5" />
-    <path d="M16 3h5v12l-2.5-2L16 15z" />
-  </svg>
-)
-const IconTema = () => (
-  <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <circle cx="12" cy="12" r="9" />
-    <path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none" />
-  </svg>
-)
-const IconStats = () => (
-  <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 3v18h18" /><path d="M7 15l4-4 3 3 5-6" /></svg>
-)
-const IconSeta = () => (
-  <svg className="w-[15px] h-[15px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6" /></svg>
-)
 /* Galeria e Lista são DOIS botões lado a lado, sempre visíveis — não um ícone
    que se transforma. Então não há morfose a fazer: o que cabe é cada ícone
    prever o próprio resultado quando o cursor passa. Aqui os quadros brotam em
@@ -623,6 +627,60 @@ const IconLista = () => (
     <path className="ico-lista__l3" d="M8 18h13" />
   </svg>
 )
-const IconCloud = () => (
-  <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.5 19a4.5 4.5 0 1 0-1.4-8.8A6 6 0 1 0 6 16" /><path d="M8 16h9.5" /></svg>
+
+/* O AVATAR DO PERFIL.
+ *
+ * Deixou de ser um ícone de contorno ao lado da palavra e virou um DISCO, do
+ * tamanho de um avatar de verdade — porque é num avatar que ele se transforma
+ * assim que a pessoa escolhe uma foto. Um ícone de 19px que vira uma foto de
+ * 19px seria uma foto que não se vê; 28px é o menor tamanho em que um rosto
+ * ainda é um rosto.
+ *
+ * FUNDO ESCURO, FIGURA CLARA: no vazio, o disco preenchido em tinta ocupa o
+ * mesmo peso visual que a foto vai ocupar depois. Um contorno vazado encolhe
+ * quando a foto entra, e a linha inteira dá um pulo.
+ *
+ * A silhueta é PREENCHIDA, não traçada. A 28px sobre um disco escuro, um
+ * traço de 1,8px some; a forma cheia continua legível. É a mesma razão pela
+ * qual ícones de contorno não funcionam dentro de pastilhas pequenas.
+ *
+ * `object-cover` na foto: ela já chega quadrada de `lib/foto.js` (corte
+ * central antes de reduzir), mas uma foto antiga, de antes daquele corte,
+ * ainda pode vir 3:4 — e espremer um retrato num círculo achata o rosto.
+ */
+const AvatarPerfil = ({ foto }) => (
+  <span className="w-7 h-7 rounded-full overflow-hidden shrink-0 inline-flex items-center justify-center">
+    {foto
+      ? <img src={foto} alt="" className="w-full h-full object-cover" />
+      : (
+        /* O desenho é um DISCO CHEIO com a figura RECORTADA dele, e não uma
+           figura desenhada em cima de um fundo. É o padrão de avatar vazio
+           que todo mundo já viu, e ele tem uma vantagem concreta: os ombros
+           podem encostar na borda de baixo e sair pelo corte, do jeito que
+           um retrato real sai. Uma silhueta desenhada dentro do círculo
+           precisaria caber inteira, e caberia sempre pequena demais.
+
+           `fillRule="evenodd"`: o caminho é uma só figura — disco, cabeça e
+           ombros no mesmo `d` —, e é a regra de preenchimento que decide que
+           as duas formas internas furam a de fora em vez de somar a ela.
+           Com a regra padrão, o resultado seria um disco cheio e sólido. */
+        <svg className="w-full h-full text-ink-mute" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path
+            fillRule="evenodd"
+            d="M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24Zm0 5.1a3.9 3.9 0 1 1 0 7.8 3.9 3.9 0 0 1 0-7.8Zm0 9.3c3.5 0 6.4 2.1 6.9 4.9a9.6 9.6 0 0 1-13.8 0c.5-2.8 3.4-4.9 6.9-4.9Z"
+          />
+        </svg>
+      )}
+  </span>
+)
+
+/* Interrogação dentro de um círculo: o símbolo de ajuda mais reconhecido que
+   existe, e o único ícone desta lista que seria lido sem rótulo nenhum.
+   Menor que o do Perfil, para acompanhar a linha de apoio. */
+const IconAjuda = () => (
+  <svg className="w-[15px] h-[15px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <circle cx="12" cy="12" r="9" />
+    <path d="M9.4 9.2a2.7 2.7 0 1 1 3.4 3.3c-.6.2-.9.7-.9 1.3v.4" />
+    <path d="M12 17.2h.01" />
+  </svg>
 )

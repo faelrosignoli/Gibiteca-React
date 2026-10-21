@@ -14,6 +14,14 @@
   --linha: rgba(33,33,33,.08);
   --separador: rgba(33,33,33,.12);
   --toque: rgba(33,33,33,.055);
+  /* Opacidade do véu dos pop-ups COM A FORÇA CHEIA. Era 50% e subiu para
+     58%: com o vidro canelado, a quina de cada cana deixa passar mais imagem
+     que o borrão uniforme deixava, e o conjunto ficou transparente demais —
+     a estante atrás competia com a folha da frente.
+
+     É um número sem unidade, e não uma cor pronta, porque quem o usa
+     multiplica por `--veu-forca` para entrar e sair. */
+  --veu-alfa: .58;
 
   /* Multiplicador da escala tipográfica. Mudar este número reescala a
      tipografia inteira do app — truque do --scale-ratio do Son Daven. */
@@ -166,7 +174,7 @@ body {
   --moss-line:     248 203 184;
   --tinta-moss:    255 237 228;
   --acento-texto:  194 58 0;      /* #C23A00 — 4,6:1 sobre o creme */
-  --sobre-acento:  33 33 33;      /* ink — 4,8:1 sobre o #FF5000 */
+  --sobre-acento:  33 33 33;      /* ink — 4,91:1 sobre o #FF5000 */
 }
 
 /* brilho ambiente + grão de filme, presos à viewport (sem repaint ao rolar) */
@@ -443,7 +451,7 @@ body::after {
   /* o rosa cheio dá 2,3:1 como texto sobre o papel — ilegível em corpo
      pequeno. Este é o mesmo rosa levado ao ponto em que se lê: 5,3:1 */
   --acento-texto:  168  67  74;   /* #A8434A */
-  --sobre-acento:   35  39  28;   /* ink — 5,8:1 sobre o rosa */
+  --sobre-acento:   33  33  33;   /* ink — 6,15:1 sobre o rosa */
 }
 /* A FAMÍLIA DO CANDY É PASTEL, e as iniciais vão em TINTA.
 
@@ -453,14 +461,14 @@ body::after {
    vê, que é a parede de capas.
 
    Aqui as três aparecem como são. O rosa dado já tem luminância 0,35, e com
-   tinta por cima dá 5,8:1 — não precisava escurecer nada, precisava trocar
+   tinta por cima dá 6,15:1 — não precisava escurecer nada, precisava trocar
    a cor das iniciais. Quem faz isso é `--sobre-tinta`.
 
    As oito se dividem em três famílias, para o sorteio por editora espalhar
    as cores pela estante em vez de insistir numa: três rosas, três damascos
-   e duas mentas. Medidas com tinta por cima: 5,81:1 no pior caso. */
+   e duas mentas. Medidas com tinta por cima: 6,15:1 no pior caso. */
 [data-tema='candy'] {
-  --sobre-tinta:  35  39  28;   /* ink: a família é clara */
+  --sobre-tinta:  33  33  33;   /* ink: a família é clara */
 
   --tinta-0: 223 136 136;       /* rosa — a cor dada     */
   --tinta-1: 235 178 115;       /* damasco — a cor dada  */
@@ -480,7 +488,7 @@ body::after {
    tela, ele deixava de ser destaque e virava fundo.
 
    Pílulas e ícones não precisam de nada: já usam `--sobre-acento`, que no
-   Candy é tinta, e tinta sobre menta dá 9,07:1.
+   Candy é tinta, e tinta sobre menta dá 9,59:1.
 
    A MARCA NÃO MUDA, e isso é decisão de quem desenha o app, tomada depois
    de ver o número: o miolo dela é `paper`, e paper sobre menta dá 1,51:1.
@@ -489,7 +497,7 @@ body::after {
    assinatura e não troca de cor com a barra, em tema nenhum.
 
    Então o miolo quase não separa do fundo, e quem desenha a marca sobre a
-   menta é a SOMBRA, que é tinta e dá 9,07:1. Se um dia isso incomodar, o
+   menta é a SOMBRA, que é tinta e dá 9,59:1. Se um dia isso incomodar, o
    caminho é escurecer a menta da barra — e não repintar a marca. */
 [data-tema='candy'] {
   --barra: 181 205 197;         /* #B5CDC5 — a menta */
@@ -570,7 +578,7 @@ body::after {
 /* MENOS NO CANDY, onde a cortina é menta e portanto CLARA: ali o papel dá
    1,51:1 e a arte some. Ela toma a mesma cor dos ícones ao lado —
    `--sobre-acento` a 84%, o mesmo valor do `.isl-icon` —, o que no Candy
-   resolve para rgb(33 33 33 / 84%) e dá 9,07:1.
+   resolve para rgb(33 33 33 / 84%) e dá 9,59:1.
 
    SÓ o Candy. O Nockout tem cortina quente e o papel ali é 3,3:1, abaixo do
    ideal — mas é o visual escolhido, e houve uma versão que o mudou junto
@@ -902,9 +910,14 @@ button:hover .ico-lixo__tampa { transform: rotate(-18deg) translateY(-1px) }
 /* Lexend Zetta Black, a mesma do COLEÇÃO: é a tipografia de palavra grande
    deste projeto, e aqui a palavra É o botão. Sendo larguíssima, pede padding
    menor que o normal — senão a pílula não cabe num telefone estreito. */
-/* #212121 e não o `ink` (#212121) do resto do app: é a cor da capa, pedida
-   para casar com a parte escura do logo ali. Fica presa ao escopo `.welcome`
-   — solta, viraria uma segunda tinta preta competindo com a do projeto. */
+/* A capa pede #212121 na sombra do logo e no botão — foi escolhido para
+   casar com a arte dela. Durante um tempo era um preto DIFERENTE do `ink`
+   do app (que era #23271C); hoje os dois valores coincidem, porque a tinta
+   do projeto passou a ser #212121.
+
+   As linhas ficam mesmo assim, e não é descuido: elas PRENDEM a capa a
+   este preto. Se um dia a tinta do app mudar de novo, a capa não vai
+   junto — ela responde à arte, não à interface. */
 .welcome { --marca-sombra: #212121 }
 .welcome__botao {
   background: #212121;
@@ -916,6 +929,307 @@ button:hover .ico-lixo__tampa { transform: rotate(-18deg) translateY(-1px) }
   padding: .75rem 1.5rem;
   max-width: calc(100vw - 2.5rem);
 }
-/* `.cta:hover` devolveria o `ink-2` do projeto; na capa o botão clareia
-   dentro do próprio tom, para não trocar de família de preto no hover. */
+/* O `ink-2` do projeto hoje é este mesmo #2c2c2c, pelo mesmo motivo do
+   bloco acima: a tinta convergiu. Fica cravado aqui pela mesma razão —
+   a capa não segue a interface. */
 .welcome__botao:hover { background: #2c2c2c }
+/* ------------------------------------------------------------------
+   A TROCA DE TEMA, animada
+
+   Esta regra fica DESLIGADA o tempo todo. O store põe `.trocando-tema` no
+   `<html>` no instante em que o tema muda e a tira ~0,7s depois (ver o efeito
+   do tema em `lib/store.jsx`); fora desse instante, o CSS do app é
+   exatamente o que era.
+
+   POR QUE NÃO UMA TRANSIÇÃO PERMANENTE. Pôr `transition: background-color,
+   color…` numa regra geral animaria a troca de tema — e também todo hover,
+   todo foco e toda pastilha que acende, o ano inteiro, para enfeitar um
+   clique por mês. O custo recairia sobre o uso normal; o benefício, sobre o
+   caso raro.
+
+   `*` E `!important` são aceitáveis AQUI porque a regra dura menos de um
+   segundo e porque é justamente isso que ela precisa fazer: vencer, por um
+   instante, as transições próprias de cada componente (que têm durações
+   variadas e fariam a página trocar de cor aos pedaços).
+
+   O QUE ENTRA NA LISTA é só cor: fundo, tinta, borda, preenchimento, traço,
+   sombra e contorno. `transform` e `opacity` ficam de fora de propósito —
+   são o que o framer-motion anima, e arrastá-los por 0,55s faria qualquer
+   gaveta aberta durante a troca andar em câmera lenta.
+
+   `background-image` não entra: degradê não interpola para outro degradê, e
+   pedir isso ao navegador só gera um salto no fim da transição.
+   ------------------------------------------------------------------ */
+.trocando-tema,
+.trocando-tema *,
+.trocando-tema *::before,
+.trocando-tema *::after {
+  transition:
+    background-color .55s var(--ease-prem),
+    color            .55s var(--ease-prem),
+    border-color     .55s var(--ease-prem),
+    fill             .55s var(--ease-prem),
+    stroke           .55s var(--ease-prem),
+    box-shadow       .55s var(--ease-prem),
+    outline-color    .55s var(--ease-prem) !important;
+  transition-delay: 0s !important;
+}
+
+/* Quem pediu menos movimento recebe a troca seca, que é o que ela era antes.
+   Mudança de cor sem aviso incomoda menos que meio segundo de tudo
+   escorrendo para quem tem sensibilidade a movimento. */
+@media (prefers-reduced-motion: reduce) {
+  .trocando-tema,
+  .trocando-tema *,
+  .trocando-tema *::before,
+  .trocando-tema *::after { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------
+   O VÉU DOS POP-UPS: vidro canelado
+
+   Era `bg-veu backdrop-blur-xl` — tinta a 50% e um borrão uniforme. Funciona,
+   e é o mesmo borrão de todo aplicativo.
+
+   Vidro canelado (aquele de porta de banheiro antigo, de divisória de
+   escritório) não borra por igual: ele é uma sucessão de meias-canas
+   verticais, e cada uma tem uma barriga grossa, que embaralha quase tudo, e
+   uma quina fina, por onde ainda se enxerga. O que chega do outro lado é uma
+   alternância de faixas — mais cega, menos cega, mais cega.
+
+   CSS não refrata. Mas dá para imitar o efeito que importa: DUAS camadas de
+   `backdrop-filter`, com forças diferentes, recortadas por máscaras
+   complementares de listras verticais. Onde uma aparece, a outra some.
+
+     ::before  blur forte  →  a barriga da cana
+     ::after   blur fraco  →  a quina entre elas
+
+   AS MÁSCARAS TÊM BORDA MACIA, não corte seco. Com paradas duras, as faixas
+   viram um código de barras — quatro pixels de borrado colados em quatro de
+   nítido, sem nada entre os dois. A passagem gradual é o que faz a listra
+   parecer a curvatura de uma cana em vez de uma tarja.
+
+   A LARGURA (14px por cana) é escolhida para ler como vidro e não como
+   textura: abaixo de ~8px vira chuvisco, acima de ~24px as faixas ficam
+   largas demais e o conteúdo atrás volta a ser reconhecível na quina.
+
+   CUSTO: são duas camadas de `backdrop-filter` em tela cheia, contra uma. É
+   o filtro mais caro do CSS, e isto dobra. Vale porque só existe enquanto um
+   pop-up está aberto — e enquanto ele está aberto, nada mais está animando.
+   ------------------------------------------------------------------ */
+.veu-canelado {
+  /* A TINTA mora AQUI, e não mais num `bg-veu` do Tailwind na lista de
+     classes. Eram dois lugares definindo a mesma superfície, e mexer na
+     opacidade pedia uma mudança no tailwind.config.js — que, neste projeto,
+     ainda obriga a reiniciar o servidor para valer. */
+  background: rgb(33 33 33 / calc(var(--veu-alfa) * var(--veu-forca)));
+
+  /* `--veu-forca` vai de 0 a 1 e é quem ENTRA e SAI. O framer a anima
+     diretamente (ver os pop-ups), e ela move as três coisas ao mesmo tempo:
+     a tinta aqui, e a opacidade das duas camadas de borrão abaixo.
+
+     O valor declarado aqui é só a rede de segurança para um véu que apareça
+     sem o framer por trás; o estilo em linha do motion.div ganha dele. */
+  --veu-forca: 1;
+}
+
+/* O Z-INDEX NEGATIVO É O QUE IMPEDE AS CANAS DE COBRIREM O POP-UP.
+
+   Na maioria dos pop-ups deste app a folha é FILHA do véu, não irmã dele
+   (o `onClick` que fecha ao clicar fora depende disso). E `::after` é, por
+   definição, o ÚLTIMO filho: ele pintava depois do conteúdo, então o
+   borrão e as listras caíam por cima do próprio pop-up — o título, as
+   faixas de tema e o texto saíam canelados junto com o fundo.
+
+   Só aparecia em alguns: no painel de Filtros a gaveta é IRMÃ do véu, e ali
+   nunca houve problema. Um mesmo CSS com dois resultados conforme a árvore
+   de quem o usa.
+
+   Com `z-index: -1`, os dois pseudo-elementos entram na camada que pinta
+   ACIMA do fundo do véu e ABAIXO do conteúdo em fluxo. O véu já forma
+   contexto de empilhamento próprio (`position: fixed` com `z-index`), então
+   o -1 não escapa para trás da página.
+
+   E saiu o `isolation: isolate` que estava aqui: ele não era necessário —
+   o contexto já existia — e `isolation` é uma das propriedades que podem
+   formar um BACKDROP ROOT, o que faria o `backdrop-filter` parar de
+   enxergar a página atrás do véu e passar a filtrar o nada. */
+
+.veu-canelado::before,
+.veu-canelado::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: var(--veu-forca);
+}
+
+/* A BARRIGA: onde o vidro é mais grosso e quase nada passa. */
+.veu-canelado::before {
+  -webkit-backdrop-filter: blur(26px) saturate(1.12);
+          backdrop-filter: blur(26px) saturate(1.12);
+  -webkit-mask-image: repeating-linear-gradient(90deg,
+    #000 0, #000 4px, transparent 9px, transparent 10px, #000 14px);
+          mask-image: repeating-linear-gradient(90deg,
+    #000 0, #000 4px, transparent 9px, transparent 10px, #000 14px);
+}
+
+/* A QUINA: o fio entre duas canas, por onde ainda se enxerga alguma coisa.
+   O `background` desenha a sombra fina que a quina faz — e ele pinta DEPOIS
+   do backdrop-filter desta mesma camada, que é a única forma de a sombra não
+   ser borrada pela camada de baixo. */
+.veu-canelado::after {
+  -webkit-backdrop-filter: blur(7px) saturate(1.04);
+          backdrop-filter: blur(7px) saturate(1.04);
+  background: repeating-linear-gradient(90deg,
+    rgba(255, 255, 255, .055) 0, rgba(255, 255, 255, 0) 3px,
+    rgba(0, 0, 0, .05) 7px, rgba(255, 255, 255, 0) 11px, rgba(255, 255, 255, .055) 14px);
+  -webkit-mask-image: repeating-linear-gradient(90deg,
+    transparent 0, transparent 4px, #000 9px, #000 10px, transparent 14px);
+          mask-image: repeating-linear-gradient(90deg,
+    transparent 0, transparent 4px, #000 9px, #000 10px, transparent 14px);
+}
+
+/* Navegador sem `mask-image`: as duas camadas apareceriam inteiras, uma sobre
+   a outra, e o resultado seria um borrão de 33px — mais forte que o antigo,
+   sem canelura nenhuma. Aqui ele volta a ser o véu liso de antes. */
+@supports not ((-webkit-mask-image: linear-gradient(#000, #000)) or (mask-image: linear-gradient(#000, #000))) {
+  .veu-canelado::before { -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
+  .veu-canelado::after { display: none; }
+}
+
+/* Quem pediu menos movimento não pediu menos borrão — mas quem usa um
+   aparelho fraco sente duas camadas de backdrop-filter em tela cheia. Numa
+   tela estreita a canelura também não se lê: as canas ficam da largura de um
+   dedo. Abaixo de 640px, véu liso. */
+@media (max-width: 639.98px) {
+  .veu-canelado::before {
+    -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+    -webkit-mask-image: none; mask-image: none;
+  }
+  .veu-canelado::after { display: none; }
+}
+
+/* ------------------------------------------------------------------
+   A ILUSTRAÇÃO DE HOVER DAS FAIXAS DE TEMA
+
+   Cada faixa do pop-up de tema é uma cor cheia. Ao passar o mouse, uma
+   ilustração entra POR CIMA dela — e sai quando o mouse vai embora. A cor
+   nunca é substituída: ela continua sendo o fundo, e arte com transparência
+   deixa a cor do tema aparecer por baixo.
+
+   ---- AS MEDIDAS (para quem for desenhar) ----
+
+   A faixa tem PROPORÇÃO FIXA de 40:7 (5,714:1) em qualquer largura. Não é
+   altura cravada: a altura sai da largura, justamente para a proporção nunca
+   mudar — assim UMA ilustração serve o celular e o desktop, sem segunda
+   versão e sem recorte diferente em cada tela.
+
+       celular de 320px ....... 280 × 49
+       celular de 375px ....... 335 × 59
+       desktop (640px ou +) ... 410 × 72   ← o tamanho mais comum
+       janela de 639px ........ 599 × 105  ← o maior que existe
+
+   Desenhar em 1200 × 210, que é o maior caso em dobro para tela de
+   densidade 2 — e 1200/210 dá exatamente 40:7.
+
+   ---- RECORTE: NENHUM ----
+
+   Com a proporção da caixa igual à da imagem, `cover` preenche sem cortar
+   nada: a ilustração inteira aparece em qualquer largura, só maior ou menor.
+
+   `cover` em vez de `100% 100%` por segurança: se um dia alguma coisa forçar
+   a faixa para fora da proporção, `cover` corta um pedaço — `100% 100%`
+   esticaria a arte, que é muito pior de notar e muito pior de ver.
+
+   ---- ONDE O TEXTO CAI ----
+
+   O rótulo tem tamanho FIXO em pixels, mas a imagem estica junto com a
+   faixa. Então, em proporção da imagem, o texto ocupa mais espaço no celular
+   do que no desktop — medido com "MIDNIGHT", o rótulo mais longo:
+
+       celular 375 ..... x de  6,0% a 35,1%   y de 32,9% a 67,1%
+       desktop ......... x de  4,9% a 28,8%   y de 36,1% a 63,9%
+       janela 639 ...... x de  3,3% a 19,6%   y de 40,5% a 59,5%
+
+   A área a manter calma é a UNIÃO das três. No arquivo de 1200 × 210:
+
+       x de 30 a 440      (o terço da esquerda, com folga)
+       y de 60 a 150      (a faixa do meio, com folga)
+
+   Fora desse retângulo a arte pode encher.
+
+   ---- O QUE NÃO DESENHAR ----
+
+   Cantos arredondados: o recorte de 28px é do CSS (`border-radius: inherit`).
+   Arte com canto já arredondado ficaria com um canto dentro do outro.
+
+   ---- FORMATO ----
+
+   WebP, com transparência se quiser a cor do tema por baixo. Numa faixa de
+   72px de altura, qualquer coisa acima de ~60 KB por arquivo é peso sem
+   retorno: são quatro, e todas carregam quando o pop-up abre.
+   ------------------------------------------------------------------ */
+.faixa-arte {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  pointer-events: none;
+
+  /* ENTRA GIRANDO, COM A QUINA DE BAIXO À ESQUERDA PRESA.
+
+     A camada é a ilustração inteira, do tamanho exato da faixa. Ela começa
+     inclinada e gira até 0° — no fim, está perfeitamente sobreposta à faixa,
+     pixel com pixel.
+
+     O TRUQUE QUE FAZ ISSO FUNCIONAR não está no CSS, está no desenho: o
+     fundo desta imagem é a MESMA cor chapada da faixa embaixo. Enquanto ela
+     gira, a cunha que sobra descobre exatamente a mesma cor — então não se vê
+     um retângulo girando, vê-se só o DESENHO girando. Com fundos diferentes,
+     a borda da imagem apareceria varrendo a faixa.
+
+      `transform-origin: 0 100%` é a quina inferior esquerda. Ela foi escolhida
+     porque é o canto mais longe do desenho — e quanto mais longe o eixo, mais
+     o desenho viaja para o mesmo ângulo. A 8°, a arte (a uns 350px do eixo)
+     sobe cerca de 48px, dois terços da altura da faixa.
+
+     O ÂNGULO É POSITIVO no repouso: a ponta direita começa ABAIXO e sobe ao
+     entrar. Entrar subindo lê como algo que chega; descendo, como algo que
+     cai. */
+  --giro: 8deg;
+  opacity: 0;
+  transform-origin: 0 100%;
+  transform: rotate(var(--giro));
+  transition: opacity .42s var(--ease-prem), transform .42s var(--ease-prem);
+}
+
+/* `@media (hover: hover)` porque em tela de toque não existe "passar por
+   cima": o que o navegador chama de hover ali é o estado que fica preso
+   DEPOIS do toque, e a arte ficaria acesa na última faixa tocada até alguém
+   tocar noutra. */
+@media (hover: hover) {
+  /* A IMAGEM SÓ EXISTE ONDE HÁ PONTEIRO.
+
+     `background-image` mora aqui dentro, e não no estilo em linha do
+     elemento: o navegador só baixa e decodifica um arquivo que alguma regra
+     aplicada de fato pede. Num celular esta regra nunca casa, então as quatro
+     ilustrações não são baixadas nem decodificadas — e o hover, que é a única
+     coisa que elas servem, não existe ali de qualquer jeito. */
+  .faixa-arte { background-image: var(--arte); }
+
+  .grupo-faixa:hover .faixa-arte {
+    opacity: 1;
+    transform: rotate(0deg);
+  }
+}
+
+/* Quem pediu menos movimento recebe a troca sem o zoom — a arte ainda entra,
+   porque ela é informação sobre o tema, mas sem nada se mexendo. */
+@media (prefers-reduced-motion: reduce) {
+  .faixa-arte { transform: none; transition: opacity .2s linear; }
+  .grupo-faixa:hover .faixa-arte { transform: none; }
+}

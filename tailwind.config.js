@@ -16,12 +16,12 @@ export default {
         // Carriers faz. Vantagem sobre cores sólidas: o texto continua legível
         // sobre qualquer superfície, inclusive sobre uma capa colorida.
         ink: {
-          DEFAULT: 'rgba(35,39,28,1)',      // texto forte
-          soft:    'rgba(35,39,28,.78)',    // subtítulo
-          faint:   'rgba(35,39,28,.56)',    // apoio
-          mute:    'rgba(35,39,28,.38)',    // desabilitado
-          sussurro:'rgba(35,39,28,.10)',    // marca-d'água: lê como textura, não como texto
-          2:       '#2c3124',               // hover de superfície escura
+          DEFAULT: 'rgba(33,33,33,1)',      // texto forte
+          soft:    'rgba(33,33,33,.78)',    // subtítulo
+          faint:   'rgba(33,33,33,.56)',    // apoio
+          mute:    'rgba(33,33,33,.38)',    // desabilitado
+          sussurro:'rgba(33,33,33,.10)',    // marca-d'água: lê como textura, não como texto
+          2:       '#2c2c2c',               // hover de superfície escura
         },
         /* O ACENTO é temável: os valores moram em variáveis no index.css, e
            trocar o tema repinta os ~100 usos de uma vez. Canais separados por
@@ -54,14 +54,14 @@ export default {
         // ---- véus de tinta, nomeados por PAPEL ----
         // Antes eram 12 opacidades avulsas espalhadas pelos componentes.
         // O componente pede a função, não o tom.
-        linha:     'rgba(35,39,28,.08)',    // fio de 1px, separação sutil
-        separador: 'rgba(35,39,28,.12)',    // divisória com presença
+        linha:     'rgba(33,33,33,.08)',    // fio de 1px, separação sutil
+        separador: 'rgba(33,33,33,.12)',    // divisória com presença
         // Contorno de CAMPO. Separador é véu de divisória: num formulário
         // inteiro de caixas ele some, e a tela vira creme sobre creme. Aqui o
         // fio precisa dizer onde o campo começa e onde termina.
-        contorno:  'rgba(35,39,28,.24)',    // borda de input, botão, seletor
-        toque:     'rgba(35,39,28,.055)',   // fundo de hover
-        veu:       'rgba(35,39,28,.5)',     // backdrop de modal
+        contorno:  'rgba(33,33,33,.24)',    // borda de input, botão, seletor
+        toque:     'rgba(33,33,33,.055)',   // fundo de hover
+        veu:       'rgba(33,33,33,.5)',     // backdrop de modal
 
         // ---- tintas pálidas de estado ----
         'tinta-moss': 'rgb(var(--tinta-moss) / <alpha-value>)',
@@ -105,9 +105,9 @@ export default {
       },
 
       boxShadow: {
-        amb:      '0 16px 34px -22px rgba(35,39,28,.45)',
-        'amb-lg': '0 26px 46px -24px rgba(35,39,28,.5)',
-        island:   'inset 0 1px 0 rgba(255,255,255,.85), 0 18px 44px -22px rgba(35,39,28,.42)',
+        amb:      '0 16px 34px -22px rgba(33,33,33,.45)',
+        'amb-lg': '0 26px 46px -24px rgba(33,33,33,.5)',
+        island:   'inset 0 1px 0 rgba(255,255,255,.85), 0 18px 44px -22px rgba(33,33,33,.42)',
       },
 
       // ---- raios: três nomeados. `core` é derivado, não arbitrário: é

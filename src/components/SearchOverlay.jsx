@@ -25,13 +25,13 @@ export default function SearchOverlay({ open, onClose }) {
     <AnimatePresence>
       {open && (
         <motion.div
- className="fixed inset-0 z-[70] flex items-start justify-center px-3 pt-[8vh] bg-veu backdrop-blur-xl"
-          initial={{ opacity: 0 }} animate={{ opacity: 1, pointerEvents: 'auto' }}
+ className="fixed inset-0 z-[70] flex items-start justify-center px-3 pt-[8vh] veu-canelado"
+          initial={{ '--veu-forca': 0 }} animate={{ '--veu-forca': 1, pointerEvents: 'auto' }}
           /* pointerEvents sai no INSTANTE em que a saida comeca (nao e animavel,
              o framer aplica de uma vez). Se o fade travar — thread ocupada, aba
              em segundo plano —, a camada fica presa no DOM, e sem isso ela
              engoliria todo clique do app com a tela aparentemente normal. */
-          exit={{ opacity: 0, pointerEvents: 'none' }}
+          exit={{ '--veu-forca': 0, pointerEvents: 'none' }}
           onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
         >
           <motion.div

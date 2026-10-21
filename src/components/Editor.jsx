@@ -7,6 +7,7 @@ import { TIPOS_EDICAO } from '../data.js'
 import Combo from './Combo.jsx'
 import Pessoas from './Pessoas.jsx'
 import { EstrelasInput } from './Estrelas.jsx'
+import { Switch, CheckTile, lbl, box } from './Campos.jsx'
 import { linkDoGuia } from '../lib/catalogo.js'
 
 const emptyVol = () => ({ nome: '', imagem: null, roteirista: '', desenhista: '', status: 'wishlist', urgencia: false, valorPago: 0, lido: false, nota: 0, _open: true })
@@ -117,30 +118,6 @@ function Secao({ titulo, children }) {
       </h4>
       <div className="grid grid-cols-2 gap-x-3 gap-y-3">{children}</div>
     </section>
-  )
-}
-
-/* ---------- pequenos controles ---------- */
-function Switch({ options, value, onChange }) {
-  return (
-    <div className="flex w-full rounded-full border border-contorno overflow-hidden">
-      {options.map(([v, l]) => (
-        <button key={String(v)} type="button" onClick={() => onChange(v)}
- className={`flex-1 text-corpo font-semibold py-2 px-2 transition ${value === v ? 'bg-moss text-sobre-acento' : 'bg-surface text-ink-soft hover:bg-paper-2'}`}>{l}</button>
-      ))}
-    </div>
-  )
-}
-const lbl ="font-rotulo text-rotulo uppercase text-ink-soft pl-0.5"
-const box ="flex flex-col gap-1"
-
-// checkbox estilizado com a mesma altura dos inputs (para alinhar em linha/coluna)
-function CheckTile({ checked, onChange, danger, children }) {
-  return (
-    <label className={`flex items-center gap-2.5 rounded-full border h-[42px] px-3.5 text-corpo font-semibold cursor-pointer transition select-none ${checked ? (danger ? 'border-rust text-rust bg-surface-2' : 'border-moss text-acento-texto bg-surface-2') : 'border-contorno text-ink-soft bg-surface hover:bg-paper-2'}`}>
-      <input type="checkbox" className={`w-[16px] h-[16px] ${danger ? 'accent-rust' : 'accent-moss'}`} checked={checked} onChange={onChange} />
-      {children}
-    </label>
   )
 }
 
@@ -274,8 +251,8 @@ function PopupListas({ aberto, listas, escolhidas, onAlternar, onFechar }) {
     <AnimatePresence>
       {aberto && (
         <motion.div
-          className="fixed inset-0 z-[80] flex items-start sm:items-center justify-center px-0 sm:px-3 py-0 sm:py-6 bg-veu backdrop-blur-xl"
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={FADE}
+          className="fixed inset-0 z-[80] flex items-start sm:items-center justify-center px-0 sm:px-3 py-0 sm:py-6 veu-canelado"
+          initial={{ '--veu-forca': 0 }} animate={{ '--veu-forca': 1 }} exit={{ '--veu-forca': 0 }} transition={FADE}
           onClick={(e) => { if (e.target === e.currentTarget) onFechar() }}
         >
           <motion.div
@@ -439,8 +416,8 @@ export default function Editor({ target, onClose, onSaved }) {
       <AnimatePresence>
         {open && (
           <motion.div
- className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center px-0 sm:px-3 py-0 sm:py-6 bg-veu backdrop-blur-xl"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={FADE}
+ className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center px-0 sm:px-3 py-0 sm:py-6 veu-canelado"
+            initial={{ '--veu-forca': 0 }} animate={{ '--veu-forca': 1 }} exit={{ '--veu-forca': 0 }} transition={FADE}
             /* o clique fora NAO fecha: aqui tem formulario preenchido, e perder
                o cadastro por um clique no vazio custa caro. Só o X, Cancelar
                ou Salvar fecham. */
@@ -621,48 +598,8 @@ export default function Editor({ target, onClose, onSaved }) {
                       </div>
                     </Secao>
 
-                    <Secao titulo="Situação">
-                    <div className={box}>
-                      <label className={lbl}>Status</label>
-                      <Switch options={[['wishlist', 'Quero'], ['biblioteca', 'Tenho']]} value={d.status}
-                        onChange={v => patch({ status: v, ...(v === 'biblioteca' ? { urgencia: false } : {}) })} />
-                    </div>
-                    {!ownedAvulso ? (
-                      <div className={box}>
-                        <label className={lbl}>Urgência</label>
-                        <CheckTile danger checked={d.urgencia} onChange={e => patch({ urgencia: e.target.checked })}>Urgente ⚠️</CheckTile>
-                      </div>
-                    ) : (
-                      <div className={box}>
-                        <label className={lbl}>Valor pago</label>
-                        <input className="field-input" inputMode="numeric" value={d.valorPago ? moneyFormat(d.valorPago) : ''}
-                          onChange={e => patch({ valorPago: moneyToNumber(e.target.value) })} placeholder="R$ 0,00" />
-                      </div>
-                    )}
-                    {ownedAvulso && (
-                      <>
-                        <div className={box}>
-                          <label className={lbl}>Leitura</label>
-                          <CheckTile checked={d.lido} onChange={e => patch({ lido: e.target.checked, ...(e.target.checked ? {} : { nota: 0 }) })}>Lido</CheckTile>
-                        </div>
-                        {d.lido ? (
-                          <div className={box}>
-                            <label className={lbl}>Nota</label>
-                            <div className="h-[42px] flex items-center"><EstrelasInput value={d.nota} onChange={n => patch({ nota: n })} /></div>
-                          </div>
-                        ) : <div />}
-                      </>
-                    )}
-                    </Secao>
                   </>
                 )}
-
-                <Secao titulo="Anotações">
-                  <div className={`${box} col-span-2`}>
-                    <label className={lbl}>Anotações / resenha</label>
-                    <textarea className="field-input min-h-[80px] resize-y" rows={3} value={d.resenha} onChange={e => patch({ resenha: e.target.value })} placeholder="Escreva aqui…" />
-                  </div>
-                </Secao>
 
               </div>
 

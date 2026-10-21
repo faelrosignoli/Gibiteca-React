@@ -7,15 +7,19 @@
     <meta name="color-scheme" content="light" />
     <title>Minha Gibiteca</title>
     <script>
-      /* Antes do React, senão quem usa Nockout vê o Moss piscar enquanto o
-         bundle carrega. Em try/catch porque navegador sem storage existe. */
+      /* Antes do React, senão quem escolheu outro tema vê o Moss piscar
+         enquanto o bundle carrega. A lista está repetida aqui de propósito:
+         este script roda ANTES de qualquer módulo, então não há de onde
+         importá-la. Mexeu em TEMAS_VALIDOS no store, mexe aqui.
+         Em try/catch porque navegador sem storage existe. */
       try {
-        if (localStorage.getItem('gibiteca_tema') === 'nockout')
-          document.documentElement.dataset.tema = 'nockout'
+        var t = localStorage.getItem('gibiteca_tema')
+        if (['nockout', 'candy', 'midnight'].indexOf(t) >= 0)
+          document.documentElement.dataset.tema = t
       } catch (e) {}
     </script>
-    <script type="module" crossorigin src="./assets/index-DszxoyXr.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-Bt88Xvsg.css">
+    <script type="module" crossorigin src="./assets/index-Dga99vhp.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-DrjdQoC6.css">
   </head>
   <body>
     <div id="root"></div>

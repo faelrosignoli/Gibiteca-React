@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { FADE, MOLA_GAVETA } from '../lib/motion.js'
 import { useStore } from '../lib/store.jsx'
+import { TEMAS } from '../lib/temas.js'
 
 /* Pop-up do tema.
  *
@@ -20,25 +21,6 @@ import { useStore } from '../lib/store.jsx'
  * crescer sem ninguém mexer no layout.
  */
 
-/* [valor, rótulo, cores]
- *
- * As cores são o que o tema PARECE, não o que ele usa por dentro: um tema de
- * três cores mostra as três em degradê, um de uma mostra a cor cheia. Elas
- * ficam cravadas em hex de propósito — a faixa do Candy tem de ser rosa
- * mesmo quando o site está no Midnight, senão a lista inteira vira a mesma
- * cor e a escolha deixa de ser uma escolha.
- *
- * `sobre` é a tinta do nome em cima da faixa. É escolhida por contraste, não
- * por gosto: #212121 (ink) sobre o rosa do Candy dá 5,8:1, e o papel sobre o
- * Midnight dá 16,3:1. Conferido com a mesma conta do WCAG que o resto do
- * projeto usa.
- */
-const TEMAS = [
-  { v: 'moss',     rotulo: 'Moss',     cores: ['#4B5D3A'],                        sobre: '#F4F0E6' },
-  { v: 'nockout',  rotulo: 'Nockout',  cores: ['#FF5000'],                        sobre: '#212121' },
-  { v: 'candy',    rotulo: 'Candy',    cores: ['#DF8888', '#EBB273', '#B5CDC5'],  sobre: '#212121' },
-  { v: 'midnight', rotulo: 'Midnight', cores: ['#280137'],                        sobre: '#F3F1F6' },
-]
 
 /* Uma cor vira cor cheia; mais de uma, degradê na diagonal.
    `135deg` e não `90deg`: na horizontal as três faixas do Candy leem como
@@ -53,8 +35,8 @@ export default function Tema({ open, onClose }) {
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center px-0 sm:px-3 py-0 sm:py-6 bg-veu backdrop-blur-xl"
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={FADE}
+          className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center px-0 sm:px-3 py-0 sm:py-6 veu-canelado"
+          initial={{ '--veu-forca': 0 }} animate={{ '--veu-forca': 1 }} exit={{ '--veu-forca': 0 }} transition={FADE}
           onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
         >
           <motion.div
@@ -69,10 +51,15 @@ export default function Tema({ open, onClose }) {
 
             {/* `radiogroup`: são faces da MESMA escolha, não botões soltos.
                 Sem isso o leitor de tela anuncia "Moss, botão" sem dizer de
-                que pergunta aquilo é resposta. */}
+                que pergunta aquilo é resposta.
+
+                O POP-UP NÃO FECHA AO ESCOLHER. A troca de tema repinta a
+                página inteira atrás do véu, e fechar junto tiraria da vista
+                justamente o que mudou — além de impedir experimentar os temas
+                sem reabrir o menu a cada um. */}
             <div className="px-5 sm:px-6 py-5 overflow-auto">
               <div role="radiogroup" aria-label="Tema do site" className="flex flex-col gap-2.5">
-                {TEMAS.map(({ v, rotulo, cores, sobre }) => {
+                {TEMAS.map(({ v, rotulo, cores, sobre, arte }) => {
                   const escolhido = tema === v
                   return (
                     <button
@@ -83,7 +70,7 @@ export default function Tema({ open, onClose }) {
                          comeria uma fatia dela. O anel usa a tinta do app, não
                          a do tema — ele é a voz da interface dizendo "é este",
                          e teria de mudar de cor a cada faixa para ser visto. */
-                      className={`relative w-full rounded-grande px-5 py-6 text-left
+                      className={`grupo-faixa relative w-full overflow-hidden rounded-grande aspect-[40/7] flex items-center px-5 text-left
                         transition-transform duration-200 ease-[cubic-bezier(0.32,0.72,0,1)]
                         hover:-translate-y-px active:scale-[.99]
                         outline-none focus-visible:ring-2 focus-visible:ring-offset-2
@@ -91,7 +78,31 @@ export default function Tema({ open, onClose }) {
                         ${escolhido ? 'ring-2 ring-offset-2 ring-offset-surface ring-ink' : ''}`}
                       style={{ background: fundo(cores), color: sobre }}
                     >
-                      <span className="font-display font-extrabold uppercase text-secao leading-none">
+                      {/* A ILUSTRAÇÃO DE HOVER.
+                          Entra por cima da cor cheia, nunca no lugar dela: a
+                          cor continua sendo o fundo, e a arte é uma camada que
+                          aparece e some. Arte com transparência deixa a cor do
+                          tema aparecer por baixo — que é o jeito de ela nunca
+                          competir com o rótulo.
+
+                          `aria-hidden`: é decoração. O nome acessível da faixa
+                          já é o nome do tema. */}
+                      {arte && (
+                        <span
+                          aria-hidden="true"
+                          className="faixa-arte"
+                          /* A URL entra como VARIÁVEL, não como `background-image`.
+                             Quem decide se ela vira imagem é o CSS, dentro do
+                             `@media (hover: hover)` — assim o celular, que nunca
+                             vai ver o hover, também nunca baixa o arquivo. */
+                          style={{ '--arte': `url(${import.meta.env.BASE_URL}${arte})` }}
+                        />
+                      )}
+
+                      {/* `relative` no rótulo e no visto: sem isso eles ficam
+                          na mesma camada da arte, que é posicionada, e somem
+                          atrás dela no hover. */}
+                      <span className="relative font-display font-extrabold uppercase text-secao leading-none">
                         {rotulo}
                       </span>
 
@@ -101,7 +112,7 @@ export default function Tema({ open, onClose }) {
                           reconhece um visto. Quem ouve recebe o `aria-checked`,
                           que não depende de nenhum dos dois. */}
                       {escolhido && (
-                        <span aria-hidden="true" className="absolute right-5 top-1/2 -translate-y-1/2">
+                        <span aria-hidden="true" className="absolute right-5 top-1/2 -translate-y-1/2 z-[1]">
                           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M4 12.5l5 5L20 6.5" />
@@ -113,13 +124,6 @@ export default function Tema({ open, onClose }) {
                 })}
               </div>
 
-              {/* O pop-up NÃO fecha ao escolher. A troca de tema repinta a
-                  página inteira atrás do véu, e fechar junto tiraria da vista
-                  justamente o que mudou — além de impedir experimentar os
-                  temas sem reabrir o menu a cada um. */}
-              <p className="mt-4 text-apoio text-ink-faint leading-relaxed">
-                A escolha vale na hora e fica guardada neste navegador.
-              </p>
             </div>
           </motion.div>
         </motion.div>

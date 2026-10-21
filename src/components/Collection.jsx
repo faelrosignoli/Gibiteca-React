@@ -120,9 +120,16 @@ export default function Collection({ onOpen }) {
     return (
       <div className="mx-auto max-w-[1320px] px-3 sm:px-4 mt-5">
         <div className="rounded-grande border border-dashed border-separador px-5 py-16 text-center text-ink-faint">
-          <div className="font-display text-secao text-acento-texto mb-1.5 bg-gradient-to-r from-moss via-gold to-moss bg-[length:200%_auto] bg-clip-text text-transparent animate-[shine_3.6s_linear_infinite]">Nada por aqui</div>
+          {/* DOIS VAZIOS DIFERENTES, e por isso dois títulos.
+              Estante vazia é um convite — não há o que fazer além de começar.
+              Filtro sem resultado é um beco: a coleção existe, o recorte é que
+              não achou nada, e o que se faz é mexer no recorte. Um título só
+              para os dois mandaria a mesma pessoa fazer coisas opostas. */}
+          <div className="font-display text-secao text-acento-texto mb-1.5 bg-gradient-to-r from-moss via-gold to-moss bg-[length:200%_auto] bg-clip-text text-transparent animate-[shine_3.6s_linear_infinite]">
+            {obras.length === 0 ? 'Sua coleção está vazia!' : 'Nada por aqui'}
+          </div>
           {obras.length === 0
-            ? <>Sua coleção está vazia neste preview. <br />Clique em <b className="text-ink">Backup</b> (no topo) e carregue seu <b className="text-ink">gibiteca-dados.json</b> pra ver tudo aqui.</>
+            ? <>Adicione uma nova obra por aqui, para organizarmos tudo.</>
             : <>Nenhuma obra corresponde aos filtros. Ajuste a busca ou os filtros.</>}
         </div>
       </div>
