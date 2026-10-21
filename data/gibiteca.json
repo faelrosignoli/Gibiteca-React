@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1792554959754,
- "updated": "2026-10-21T03:55:59.754Z",
+ "atualizadoEm": 1792554993149,
+ "updated": "2026-10-21T03:56:33.149Z",
  "obras": [
   {
    "id": 1,
@@ -7869,10 +7869,10 @@
   },
   {
    "id": 480,
-   "nome": "A Preferência do Sistema",
+   "nome": "Preferência do Sistema",
    "tipo": "avulso",
    "origem": "nacional",
-   "editora": "Pipoca & Nanquim",
+   "editora": "Comix Zone",
    "pais": "França",
    "tags": [],
    "resenha": "",
