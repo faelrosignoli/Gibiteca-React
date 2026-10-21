@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1792457407493,
- "updated": "2026-10-20T00:50:07.493Z",
+ "atualizadoEm": 1792553292047,
+ "updated": "2026-10-21T03:28:12.047Z",
  "obras": [
   {
    "id": 1,
@@ -11711,11 +11711,12 @@
    "pais": "França",
    "tags": [],
    "resenha": "",
+   "tipoEdicao": "",
    "imagem": "https://raw.githubusercontent.com/faelrosignoli/Gibiteca-React/main/covers/bouncer-o-ouro-maldito-a-espinha-do-dragao-562.jpg",
    "roteirista": "François Boucq",
    "desenhista": "François Boucq",
    "status": "wishlist",
-   "urgencia": false,
+   "urgencia": true,
    "valorPago": 0,
    "lido": false,
    "nota": 0
