@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1792554303700,
- "updated": "2026-10-21T03:45:03.700Z",
+ "atualizadoEm": 1792554423207,
+ "updated": "2026-10-21T03:47:03.207Z",
  "obras": [
   {
    "id": 1,
@@ -13253,6 +13253,25 @@
    "imagem": null,
    "roteirista": "Andrea Pazienza",
    "desenhista": "Andrea Pazienza",
+   "status": "wishlist",
+   "urgencia": false,
+   "valorPago": 0,
+   "lido": false,
+   "nota": 0
+  },
+  {
+   "id": 627,
+   "nome": "Cannon",
+   "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Pipoca & Nanquim",
+   "pais": "",
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
+   "imagem": null,
+   "roteirista": "Wallace Wood",
+   "desenhista": "Wallace Wood",
    "status": "wishlist",
    "urgencia": false,
    "valorPago": 0,
