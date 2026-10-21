@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1792554827272,
- "updated": "2026-10-21T03:53:47.272Z",
+ "atualizadoEm": 1792554937035,
+ "updated": "2026-10-21T03:55:37.035Z",
  "obras": [
   {
    "id": 1,
@@ -5131,10 +5131,11 @@
    "nome": "Paracuellos",
    "tipo": "serie",
    "origem": "nacional",
-   "editora": "Pipoca & Nanquim",
+   "editora": "Comix Zone",
    "pais": "Espanha",
    "tags": [],
    "resenha": "",
+   "tipoEdicao": "",
    "volumes": [
     {
      "nome": "Paracuellos",
