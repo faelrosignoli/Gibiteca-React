@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1792554109396,
- "updated": "2026-10-21T03:41:49.396Z",
+ "atualizadoEm": 1792554191775,
+ "updated": "2026-10-21T03:43:11.775Z",
  "obras": [
   {
    "id": 1,
@@ -13233,6 +13233,25 @@
    "imagem": null,
    "roteirista": "Max",
    "desenhista": "Max",
+   "status": "wishlist",
+   "urgencia": false,
+   "valorPago": 0,
+   "lido": false,
+   "nota": 0
+  },
+  {
+   "id": 626,
+   "nome": "Zanardi",
+   "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Comix Zone",
+   "pais": "",
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
+   "imagem": null,
+   "roteirista": "Andrea Pazienza",
+   "desenhista": "Andrea Pazienza",
    "status": "wishlist",
    "urgencia": false,
    "valorPago": 0,
