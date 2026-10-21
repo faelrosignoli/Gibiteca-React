@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1792554747164,
- "updated": "2026-10-21T03:52:27.164Z",
+ "atualizadoEm": 1792554827272,
+ "updated": "2026-10-21T03:53:47.272Z",
  "obras": [
   {
    "id": 1,
@@ -13328,6 +13328,25 @@
    "desenhista": "",
    "status": "wishlist",
    "urgencia": true,
+   "valorPago": 0,
+   "lido": false,
+   "nota": 0
+  },
+  {
+   "id": 630,
+   "nome": "MW",
+   "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Pipoca & Nanquim",
+   "pais": "",
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
+   "imagem": null,
+   "roteirista": "Osamu Tezuka",
+   "desenhista": "Osamu Tezuka",
+   "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
