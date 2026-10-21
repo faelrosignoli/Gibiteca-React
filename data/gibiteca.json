@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1792554461097,
- "updated": "2026-10-21T03:47:41.097Z",
+ "atualizadoEm": 1792554566693,
+ "updated": "2026-10-21T03:49:26.693Z",
  "obras": [
   {
    "id": 1,
@@ -13306,6 +13306,25 @@
    "desenhista": "",
    "status": "wishlist",
    "urgencia": false,
+   "valorPago": 0,
+   "lido": false,
+   "nota": 0
+  },
+  {
+   "id": 629,
+   "nome": "Dragão Negro",
+   "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Pipoca & Nanquim",
+   "pais": "",
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
+   "imagem": null,
+   "roteirista": "Chris Claremont",
+   "desenhista": "",
+   "status": "wishlist",
+   "urgencia": true,
    "valorPago": 0,
    "lido": false,
    "nota": 0
