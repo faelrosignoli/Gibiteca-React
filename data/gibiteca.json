@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1792554736719,
- "updated": "2026-10-21T03:52:16.719Z",
+ "atualizadoEm": 1792554747164,
+ "updated": "2026-10-21T03:52:27.164Z",
  "obras": [
   {
    "id": 1,
@@ -2978,7 +2978,7 @@
    "roteirista": "Shotaro Ishinomori",
    "desenhista": "Shotaro Ishinomori",
    "status": "wishlist",
-   "urgencia": false,
+   "urgencia": true,
    "valorPago": 0,
    "lido": false,
    "nota": 0
