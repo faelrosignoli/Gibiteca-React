@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1792554191775,
- "updated": "2026-10-21T03:43:11.775Z",
+ "atualizadoEm": 1792554303700,
+ "updated": "2026-10-21T03:45:03.700Z",
  "obras": [
   {
    "id": 1,
@@ -7966,13 +7966,14 @@
   },
   {
    "id": 487,
-   "nome": "Obsolecencia Programada dos Nossos Sentimentos",
+   "nome": "A Obsolecência Programada dos Nossos Sentimentos",
    "tipo": "avulso",
    "origem": "nacional",
    "editora": "Pipoca & Nanquim",
    "pais": "Bélgica",
    "tags": [],
    "resenha": "",
+   "tipoEdicao": "",
    "imagem": null,
    "roteirista": "Zidrou",
    "desenhista": "Aimée de Jongh",
