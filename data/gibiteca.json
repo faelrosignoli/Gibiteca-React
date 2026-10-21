@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1792554566693,
- "updated": "2026-10-21T03:49:26.693Z",
+ "atualizadoEm": 1792554736719,
+ "updated": "2026-10-21T03:52:16.719Z",
  "obras": [
   {
    "id": 1,
@@ -2968,14 +2968,17 @@
    "id": 180,
    "nome": "Miyamoto Musashi",
    "tipo": "avulso",
-   "imagem": null,
-   "roteirista": "",
-   "desenhista": "",
    "origem": "nacional",
    "editora": "Pipoca & Nanquim",
    "pais": "",
-   "urgencia": false,
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
+   "imagem": null,
+   "roteirista": "Shotaro Ishinomori",
+   "desenhista": "Shotaro Ishinomori",
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
