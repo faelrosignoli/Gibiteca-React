@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1792553424488,
- "updated": "2026-10-21T03:30:24.488Z",
+ "atualizadoEm": 1792553632273,
+ "updated": "2026-10-21T03:33:52.273Z",
  "obras": [
   {
    "id": 1,
@@ -13091,6 +13091,25 @@
    "imagem": null,
    "roteirista": "",
    "desenhista": "",
+   "status": "wishlist",
+   "urgencia": false,
+   "valorPago": 0,
+   "lido": false,
+   "nota": 0
+  },
+  {
+   "id": 620,
+   "nome": "3\"",
+   "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Comix Zone",
+   "pais": "",
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
+   "imagem": null,
+   "roteirista": "Marc-Antoine Mathieu",
+   "desenhista": "Marc-Antoine Mathieu",
    "status": "wishlist",
    "urgencia": false,
    "valorPago": 0,
