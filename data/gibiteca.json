@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1792554937035,
- "updated": "2026-10-21T03:55:37.035Z",
+ "atualizadoEm": 1792554959754,
+ "updated": "2026-10-21T03:55:59.754Z",
  "obras": [
   {
    "id": 1,
@@ -7869,13 +7869,14 @@
   },
   {
    "id": 480,
-   "nome": "Preferência do Sistema",
+   "nome": "A Preferência do Sistema",
    "tipo": "avulso",
    "origem": "nacional",
    "editora": "Pipoca & Nanquim",
    "pais": "França",
    "tags": [],
    "resenha": "",
+   "tipoEdicao": "",
    "imagem": null,
    "roteirista": "Ugo Bienvenu",
    "desenhista": "Ugo Bienvenu",
