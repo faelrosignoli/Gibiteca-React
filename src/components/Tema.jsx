@@ -94,8 +94,29 @@ export default function Tema({ open, onClose }) {
                           /* A URL entra como VARIÁVEL, não como `background-image`.
                              Quem decide se ela vira imagem é o CSS, dentro do
                              `@media (hover: hover)` — assim o celular, que nunca
-                             vai ver o hover, também nunca baixa o arquivo. */
-                          style={{ '--arte': `url(${import.meta.env.BASE_URL}${arte})` }}
+                             vai ver o hover, também nunca baixa o arquivo.
+
+                             E ENTRA ABSOLUTA, resolvida aqui no JS. Não é
+                             preciosismo: `url()` dentro de uma custom property é
+                             resolvido contra a FOLHA DE ESTILO que usa o `var()`,
+                             não contra o documento nem contra onde a variável foi
+                             declarada.
+
+                             Com `base: './'`, o `BASE_URL` é `./`. Em
+                             desenvolvimento o Vite injeta o CSS como <style> no
+                             documento, então `./tema-moss.webp` cai na raiz e
+                             tudo funciona. Publicado, o CSS é um arquivo em
+                             `/assets/index-xxxx.css` — e o mesmo `./` passa a
+                             apontar para `/assets/tema-moss.webp`, que não
+                             existe. O hover simplesmente não pintava nada, sem
+                             erro nenhum no console.
+
+                             `new URL(..., document.baseURI)` tira a relatividade
+                             do caminho antes de ele encostar no CSS, e aí não
+                             importa de onde a folha está sendo servida. */
+                          style={{
+                            '--arte': `url("${new URL(`${import.meta.env.BASE_URL}${arte}`, document.baseURI).href}")`,
+                          }}
                         />
                       )}
 
