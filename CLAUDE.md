@@ -2076,6 +2076,41 @@ quatro ilustrações não são baixadas nem decodificadas. (E `hover: hover`
 também evita o estado que fica PRESO depois do toque numa tela sensível, que
 deixaria a arte acesa na última faixa tocada.)
 
+##### A URL da arte precisa ser ABSOLUTA, e isso custou um site quebrado
+
+A variável sai do JS já resolvida:
+
+```js
+'--arte': `url("${new URL(`${import.meta.env.BASE_URL}${arte}`, document.baseURI).href}")`
+```
+
+Parece preciosismo e não é. **`url()` dentro de uma custom property é
+resolvido contra a FOLHA DE ESTILO que usa o `var()`** — não contra o
+documento, e nem contra o lugar onde a variável foi declarada (que aqui é um
+`style` em linha).
+
+Com `base: './'`, o `BASE_URL` é `./`. E as duas pontas divergem:
+
+| | onde o CSS mora | `./tema-moss.webp` vira |
+|---|---|---|
+| desenvolvimento | `<style>` no documento | `/tema-moss.webp` ✅ |
+| publicado | `/Gibiteca-React/assets/index-xxxx.css` | `/Gibiteca-React/assets/tema-moss.webp` ❌ 404 |
+
+**O sintoma era mudo**: a camada continuava aparecendo e girando no hover,
+só que vazia. Nenhum erro no console, nenhuma falha no build, e funcionando
+perfeitamente na máquina de quem escreveu. Só quebrava publicado.
+
+Diagnosticado medindo no site no ar: `getComputedStyle` da camada devolvia
+`url("https://…/Gibiteca-React/assets/tema-moss.webp")`, e um `fetch` nessa
+URL dava 404 enquanto o mesmo arquivo na raiz dava 200 com os bytes certos.
+
+`new URL(…, document.baseURI)` tira a relatividade antes de o caminho encostar
+no CSS, e aí não importa de onde a folha é servida.
+
+> **Os outros `BASE_URL` do projeto estão a salvo** e por um motivo preciso:
+> `Divisoria`, `Welcome` e `Salvaguarda` usam o caminho em `src`/`srcSet` de
+> `<img>`, que resolve contra o DOCUMENTO. A armadilha é exclusiva de caminho
+> relativo que atravessa uma variável CSS até uma regra de folha.
 **A área a manter calma** é o terço da esquerda, onde cai o rótulo: no arquivo
 de 1200 × 210, x de 30 a 440 e y de 60 a 150. Fora desse retângulo a arte pode
 encher. As quatro atuais respeitam isso — o desenho vive na ponta direita.
