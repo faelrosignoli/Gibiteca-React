@@ -24,6 +24,11 @@
  * Só o nome, sem barra na frente: o endereço sai de `BASE_URL + nome`, e
  * `/arte.webp` viraria `//arte.webp`, que o navegador lê como outro domínio.
  *
+ * Quem monta o endereço (`Tema.jsx`) ainda o torna ABSOLUTO antes de pôr na
+ * variável CSS — caminho relativo dentro de `url()` numa custom property é
+ * resolvido contra a folha de estilo, não contra o documento, e publicado isso
+ * aponta para dentro de `/assets/`. A explicação inteira está lá.
+ *
  * É OPCIONAL, e some sozinha: faixa sem `arte` não desenha camada nenhuma, e
  * arquivo que não existe não aparece — o navegador simplesmente não pinta um
  * `background-image` que deu 404, e fica a cor cheia de sempre. Dá para
