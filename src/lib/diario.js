@@ -221,7 +221,7 @@ export function mensagemDeCommit(mudancas, quando = new Date()) {
   return resumoDe(mudancas) + '\n\n' + corpo.join('\n')
 }
 
-/* Lê de volta o que `mensagemDeCommit` escreveu, para a tela de Atividades.
+/* Lê de volta o que `mensagemDeCommit` escreveu, para a ficha de atividades.
  * Mensagens antigas ("Atualiza coleção — …") continuam válidas: viram um
  * item sem detalhe, em vez de sumirem do histórico. */
 export function lerMensagem(texto) {
@@ -232,4 +232,86 @@ export function lerMensagem(texto) {
     .filter(l => l.startsWith('- '))
     .map(l => l.slice(2).trim())
   return { assunto, itens }
+}
+
+/* ------------------------------------------------------------------
+   OS MOVIMENTOS — a classificação de volta.
+
+   `compararColecoes` sabe o tipo de cada mudança (`{tipo, texto}`), mas o
+   commit só leva o TEXTO: a mensagem tem de ser legível por um humano no
+   GitHub, e `[leitura] Marcou como lido` não é. Então o tipo se perde na
+   escrita, e a ficha precisa dele para organizar.
+
+   RECONSTRUIR A PARTIR DA FRASE, e não carimbar o tipo na mensagem, por dois
+   motivos:
+
+     1. funciona no histórico QUE JÁ EXISTE. Carimbando, só os commits futuros
+        seriam organizáveis, e o histórico de quem já usa o app ficaria todo
+        num balaio de "outro" para sempre;
+     2. mantém a mensagem limpa no GitHub, que foi a razão de o diário existir.
+
+   Só funciona porque as frases são nossas: saem todas de `mudancasInternas` e
+   de `RESUMOS`, logo acima, e o conjunto é fechado. Mexer num verbo lá em cima
+   sem mexer aqui embaixo faz a linha cair em "Outro" — o teste
+   `_test/diario-movimentos.cjs` cobre cada frase que o arquivo sabe escrever,
+   justamente para isso não passar batido.
+
+   OS SETE MOVIMENTOS não são os quinze `tipo` do diário: são as perguntas que
+   se fazem de um histórico de coleção. "Mudou a editora" e "Mudou o país" são
+   tipos diferentes para quem escreve a frase e a mesma coisa para quem procura
+   ("mexi na ficha dessa obra"). Quinze filtros não organizam nada.
+   ------------------------------------------------------------------ */
+export const MOVIMENTOS = [
+  { v: 'entrou',  rotulo: 'Entrou'  },   // obra ou volume que chegou
+  { v: 'saiu',    rotulo: 'Saiu'    },   // obra ou volume que foi embora
+  { v: 'estante', rotulo: 'Estante' },   // tenho/quero e a pressa de comprar
+  { v: 'leitura', rotulo: 'Leitura' },   // lido, não lido, nota
+  { v: 'capa',    rotulo: 'Capa'    },
+  { v: 'ficha',   rotulo: 'Ficha'   },   // os dados da obra em si
+  { v: 'valor',   rotulo: 'Valor'   },
+  { v: 'outro',   rotulo: 'Outro'   },   // mensagens antigas, antes do diário
+]
+
+/* A ORDEM IMPORTA, e é por isso que é uma lista e não um objeto.
+   Vários verbos abrem mais de uma frase: "Tirou" começa capa, nota, urgência e
+   volume; "Mudou o" começa valor e status. Quem casa primeiro ganha, então o
+   específico vem antes do geral. */
+const REGRAS = [
+  /* Duas formas, e as duas precisam casar: a linha solta é "Subiu para a
+     nuvem a capa de X" e o resumo da leva é "Subiu 110 capas para a nuvem". */
+  [/^Subiu (para a nuvem a capa|\d+ capas? para a nuvem)/i, 'capa'],
+  [/^(Pôs capa em|Mexeu na capa|(Tirou|Trocou) a capa)/i, 'capa'],
+
+  [/^(Adicionou|Acrescentou \d+ volume)/i,          'entrou'],
+  [/^(Removeu|Tirou \d+ volumes? de)/i,             'saiu'],
+
+  [/^Marcou como (lido|não lido)|^Marcou a leitura/i, 'leitura'],
+  [/^(Deu .*estrelas?|Tirou a nota)/i,              'leitura'],
+
+  [/^(Marcou como Tenho|Voltou para Quero|Mudou o status)/i, 'estante'],
+  [/como urgente$|^Tirou a urgência/i,              'estante'],
+
+  [/^(Anotou .*pago em|Apagou o valor pago|Mudou o valor)/i, 'valor'],
+
+  /* Editora é "a", país e origem são "o" — por isso os dois artigos. Deixar só
+     "a" fazia `Mudou o país de …` cair em "Outro" sem ninguém notar. */
+  [/^(Renomeou|Escreveu uma anotação|Editou |(Pôs|Mudou|Apagou) (a|o) )/i, 'ficha'],
+]
+
+/* De que natureza é esta linha do histórico. */
+export function classificar(texto) {
+  const t = String(texto || '').trim()
+  for (const [re, v] of REGRAS) if (re.test(t)) return v
+  return 'outro'
+}
+
+/* O movimento de uma ENTRADA inteira (o commit), que pode ter várias linhas.
+ *
+ * Mistura de naturezas devolve `null`, e não o primeiro tipo nem "outro": uma
+ * leva com capa, leitura e valor junto não É nenhum dos três, e fingir que é
+ * faria a etiqueta mentir. Quem recebe `null` mostra a contagem no lugar da
+ * etiqueta — que é a informação honesta ali. */
+export function movimentoDaEntrada(assunto, itens) {
+  const tipos = new Set((itens && itens.length ? itens : [assunto]).map(classificar))
+  return tipos.size === 1 ? [...tipos][0] : null
 }

@@ -1,17 +1,18 @@
 /* OS TEMAS, em dados.
  *
- * Saiu de dentro do `Tema.jsx` quando o menu passou a mostrar as quatro cores
- * numa fileirinha de palitos ao lado da palavra "Tema". Dois lugares desenham
- * as mesmas quatro cores agora, e hex repetido em dois arquivos é hex que num
- * dia qualquer deixa de ser o mesmo — o palito do menu continuaria rosa depois
- * de o Candy virar outra coisa.
+ * Saiu de dentro do `Tema.jsx` para ser a fonte única dos quatro hex. Hex
+ * repetido em dois arquivos é hex que num dia qualquer deixa de ser o mesmo.
  *
- * As cores são o que o tema PARECE, não o que ele usa por dentro: um tema de
- * três cores mostra as três, um de uma mostra a cor cheia. Ficam cravadas em
- * hex de propósito — a amostra do Candy tem de ser rosa mesmo quando o site
- * está no Midnight, senão a lista inteira vira a mesma cor e a escolha deixa
- * de ser uma escolha. É o único lugar do projeto onde cor não sai de variável
- * CSS, e é por isso.
+ * AS CORES SÃO AS DAS ILUSTRAÇÕES, medidas dos arquivos, não escolhidas à
+ * parte. É isto que faz a animação de hover funcionar: a arte tem o mesmo
+ * fundo chapado da faixa, então enquanto ela gira a cunha que sobra descobre
+ * exatamente a mesma cor. Mexer num hex daqui sem mexer na arte faz aparecer
+ * um retângulo girando dentro da faixa.
+ *
+ * Ficam cravadas em hex, e não em variável CSS, de propósito: a amostra do
+ * Candy tem de ser menta mesmo quando o site está no Midnight, senão a lista
+ * inteira vira a mesma cor e a escolha deixa de ser uma escolha. É o único
+ * lugar do projeto onde cor não sai de variável CSS, e é por isso.
  *
  * `sobre` é a tinta do nome em cima da faixa, no pop-up. Escolhida por
  * contraste, não por gosto: #212121 sobre o rosa do Candy dá 6,15:1, e o papel
@@ -46,14 +47,9 @@ export const TEMAS = [
    * que é onde as três cores do Candy se encontram de novo. E a tinta por
    * cima continua sendo ink, que sobre a menta dá 9,59:1.
    *
-   * Para voltar ao degradê, é só devolver as três cores à lista. */
+   * DECIDIDO, não provisório: o #B5CDC5 foi lido do pixel do arquivo, e é o
+   * mesmo nas duas partes da ilustração. Devolver as três cores à lista aqui
+   * quebraria o giro — a arte continuaria menta e a faixa viraria degradê. */
   { v: 'candy',    rotulo: 'Candy',    cores: ['#B5CDC5'],                        sobre: '#212121', arte: 'tema-candy.webp' },
   { v: 'midnight', rotulo: 'Midnight', cores: ['#280137'],                        sobre: '#F3F1F6', arte: 'tema-midnight.webp' },
 ]
-
-/* A cor que REPRESENTA o tema quando só cabe uma.
- *
- * O palito do menu tem 3px de largura; não há como mostrar o degradê de três
- * cores do Candy ali dentro. A primeira da lista é a cor principal de cada
- * tema — a que dá nome ao conjunto —, então é ela que vai. */
-export const corPrincipal = (tema) => tema.cores[0]

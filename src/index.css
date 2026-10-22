@@ -10,10 +10,27 @@
   --ink-2: #2c2c2c;
   --rust: #9C4A2E;
   --surface: #FFFDF8;
+  /* A TINTA, em canais RGB soltos — é daqui que sai a rampa inteira do
+     tailwind.config.js (ink, ink-soft, ink-faint, ink-mute, sussurro) e os
+     véus abaixo. Existe como variável para que uma superfície escura possa
+     inverter os nove de uma vez; ver `.rodape`. */
+  --tinta: 33 33 33;
+
+  /* A FORÇA DE CADA VÉU, como número solto.
+     Cada véu tem DOIS donos: o token do Tailwind (`border-separador`) e a
+     variável CSS (`var(--separador)`, que o `.pill-btn` usa). Com a opacidade
+     escrita nos dois lugares, inverter a tinta num contexto acertava um e
+     deixava o outro para trás — a borda do botão ficava com uma força e a
+     divisória ao lado com outra. Agora os dois leem o mesmo número. */
+  --a-linha:     .08;
+  --a-separador: .12;
+  --a-contorno:  .24;
+  --a-toque:     .055;
+
   /* veus de tinta, os mesmos nomes do tailwind.config.js */
-  --linha: rgba(33,33,33,.08);
-  --separador: rgba(33,33,33,.12);
-  --toque: rgba(33,33,33,.055);
+  --linha:     rgb(var(--tinta) / var(--a-linha));
+  --separador: rgb(var(--tinta) / var(--a-separador));
+  --toque:     rgb(var(--tinta) / var(--a-toque));
   /* Opacidade do véu dos pop-ups COM A FORÇA CHEIA. Era 50% e subiu para
      58%: com o vidro canelado, a quina de cada cana deixa passar mais imagem
      que o borrão uniforme deixava, e o conjunto ficou transparente demais —
@@ -808,14 +825,6 @@ button:hover .ico-lupa__reticula { opacity: .55 }
 }
 button:hover .ico-lixo__tampa { transform: rotate(-18deg) translateY(-1px) }
 
-/* ---- Voltar ao topo: a seta sobe e outra toma o lugar ------------ */
-.seta-topo { display: inline-block; overflow: hidden; height: 1em; line-height: 1 }
-.seta-topo__par {
-  display: flex; flex-direction: column;
-  transition: transform .3s var(--ease-prem);
-}
-.seta-topo__par > span { height: 1em; line-height: 1 }
-.pill-btn:hover .seta-topo__par { transform: translateY(-1em) }
 
 /* ---- Nova obra: carimbo ------------------------------------------
    Esta é a única que acontece no CLIQUE, não no hover — por isso pode ser
@@ -834,7 +843,6 @@ button:hover .ico-lixo__tampa { transform: rotate(-18deg) translateY(-1px) }
   .ico-lista [class^='ico-lista__'],
   .ico-lixo__tampa,
   .ico-lupa,
-  .seta-topo__par,
   .cta-carimbo {
     transition: none !important;
     transform: none !important;
@@ -842,7 +850,6 @@ button:hover .ico-lixo__tampa { transform: rotate(-18deg) translateY(-1px) }
   .pill-btn:hover .ico-funil__gota,
   button:hover .ico-lixo__tampa,
   button:hover .ico-lupa,
-  .pill-btn:hover .seta-topo__par,
   .cta-carimbo:active { transform: none !important }
   .ico-grade rect,
   .ico-lista path {
@@ -1167,9 +1174,17 @@ button:hover .ico-lixo__tampa { transform: rotate(-18deg) translateY(-1px) }
 
    ---- FORMATO ----
 
-   WebP, com transparência se quiser a cor do tema por baixo. Numa faixa de
-   72px de altura, qualquer coisa acima de ~60 KB por arquivo é peso sem
-   retorno: são quatro, e todas carregam quando o pop-up abre.
+   WebP OPACO, com o fundo na cor chapada do tema — não transparente. É o que
+   faz o giro funcionar (explicado em `.faixa-arte`, logo abaixo).
+
+   Numa faixa de 72px de altura, qualquer coisa acima de ~60 KB por arquivo é
+   peso sem retorno: são quatro, e todas carregam quando o pop-up abre. As
+   quatro que estão no ar pesam de 4,6 a 5,0 KB.
+
+   E o tamanho do ARQUIVO importa menos que o das MEDIDAS: um WebP de 30 KB em
+   5000 × 875 ocupa 16,7 MB de memória depois de decodificado, e quatro deles
+   passam de 60 MB. Em 1200 × 210 são 1,0 MB cada. Foi por isso que as
+   primeiras versões, que vieram em 5000px, foram refeitas.
    ------------------------------------------------------------------ */
 .faixa-arte {
   position: absolute;
@@ -1232,4 +1247,95 @@ button:hover .ico-lixo__tampa { transform: rotate(-18deg) translateY(-1px) }
 @media (prefers-reduced-motion: reduce) {
   .faixa-arte { transform: none; transition: opacity .2s linear; }
   .grupo-faixa:hover .faixa-arte { transform: none; }
+}
+
+
+/* ------------------------------------------------------------------
+   O RODAPÉ ESCURO.
+
+   Uma faixa de #212121 fechando a página. Depois de rolar uma coleção
+   inteira de papel creme, o fim precisa ser visto como fim — e é a única
+   peça do app que tem essa função, então é a única que troca de fundo.
+
+   ---- A INVERSÃO É DE UMA LINHA ----
+
+   `--tinta: var(--paper)` e acabou. A rampa de tinta inteira — ink, soft,
+   faint, mute, sussurro — e os três véus saem dessa variável, então os nove
+   valores viram do avesso juntos, guardando as MESMAS proporções entre si.
+   Nenhuma classe muda nos componentes: o `text-ink-faint` do copyright
+   continua sendo `text-ink-faint`, e é a variável que diz o que isso quer
+   dizer AQUI.
+
+   É `var(--paper)`, e não um creme cravado: assim a tinta do rodapé pega o
+   papel do tema da vez — creme no Moss, prateado no Nockout, quase-branco no
+   Candy, lilás no Midnight. Os quatro passam de 14:1 sobre o #212121.
+
+   ---- OS VÉUS SOBEM DE FORÇA ----
+
+   .08 / .12 / .24 / .055 são opacidades calibradas para tinta escura sobre
+   papel. Clara sobre escuro, a mesma opacidade some: fundo escuro perdoa
+   menos. Os quatro sobem — o que mantém o fio PARECENDO o mesmo fio, que é o
+   ponto. Igualar o número deixaria a divisória pontilhada invisível.
+
+   São os `--a-*`, e por isso valem para os DOIS donos de cada véu de uma vez:
+   o `border-separador` da divisória e o `var(--separador)` da borda do botão
+   "Voltar ao topo" mudam juntos. Separados, o rodapé teria um fio de .22 ao
+   lado de um de .12 e ninguém veria por quê.
+
+   ---- O FUNDO NÃO É TEMÁVEL ----
+
+   `var(--ink)` é #212121 em todos os temas (nenhum bloco `[data-tema]` o
+   redeclara). O rodapé é a mesma faixa escura sempre; quem acompanha o tema é
+   só a tinta em cima dela.
+
+   ---- A MARCA NÃO MUDA ----
+
+   Por pedido, e sai de graça: ela não usa a rampa de tinta. As letras já são
+   `rgb(var(--paper))` e continuam exatamente como estão no corpo da página.
+   A sombra deslocada é `#212121` — a mesma cor do fundo daqui —, então ela
+   não some por engano: ela se recolhe, e sobra a letra limpa. É o mesmo
+   desenho que a capa de abertura usa, onde `.welcome` também crava a sombra
+   em #212121.
+   ------------------------------------------------------------------ */
+/* UMA ILHA DE POLARIDADE NORMAL dentro de um contexto invertido.
+ *
+ * O cartão da ficha é de papel e mora sobre a faixa escura. Lá dentro a rampa
+ * está virada — `text-ink` é claro, `border-linha` é um fio claro —, e os dois
+ * sumiriam no papel. Esta classe devolve a tinta ao escuro para o que estiver
+ * dentro dela.
+ *
+ * Repete as quatro forças e os três véus porque variável que referencia outra
+ * é resolvida no elemento onde foi DECLARADA: os `--linha` e companhia do
+ * `.rodape` já nasceram claros, e trocar `--tinta` aqui não volta atrás para
+ * refazê-los. (Os tokens do Tailwind não têm esse problema — o `var()` deles
+ * mora na propriedade final.) */
+.tinta-normal {
+  --tinta: 33 33 33;
+  --a-linha: .08;
+  --a-separador: .12;
+  --a-contorno: .24;
+  --a-toque: .055;
+  --linha:     rgb(var(--tinta) / var(--a-linha));
+  --separador: rgb(var(--tinta) / var(--a-separador));
+  --toque:     rgb(var(--tinta) / var(--a-toque));
+}
+
+.rodape {
+  background: var(--ink);
+  --tinta: var(--paper);
+
+  --a-linha:     .14;
+  --a-separador: .22;
+  --a-contorno:  .34;
+  --a-toque:     .09;
+
+  /* Os três véus prontos precisam ser REDECLARADOS aqui, e não só os números.
+     Variável que referencia outra é resolvida no elemento onde foi DECLARADA:
+     o `--separador` do `:root` já nasceu com a tinta escura do `:root`, e
+     trocar `--tinta` aqui embaixo não volta atrás para refazê-lo. Os tokens do
+     Tailwind não têm esse problema porque o `var()` deles mora na propriedade
+     final, que é resolvida no elemento que a usa. */
+  --linha:     rgb(var(--tinta) / var(--a-linha));
+  --separador: rgb(var(--tinta) / var(--a-separador));
+  --toque:     rgb(var(--tinta) / var(--a-toque));
 }

@@ -21,7 +21,7 @@ import Stats from './components/Stats.jsx'
 import Cloud from './components/Cloud.jsx'
 import BulkCovers from './components/BulkCovers.jsx'
 import AvisoSemEspaco from './components/AvisoSemEspaco.jsx'
-import Atividades from './components/Atividades.jsx'
+import FichaAtividades from './components/FichaAtividades.jsx'
 import Ajuda from './components/Ajuda.jsx'
 import { baixarBackup } from './lib/backup.js'
 
@@ -64,7 +64,7 @@ export default function App() {
   const [stats, setStats] = useState(false)
   const [cloud, setCloud] = useState(false)
   const [bulk, setBulk] = useState(false)
-  const [atividades, setAtividades] = useState(false)
+  const [movimentacao, setMovimentacao] = useState(false)
   const [ajuda, setAjuda] = useState(false)
   const [backup, setBackup] = useState(false)
   const [temaAberto, setTemaAberto] = useState(false)
@@ -152,7 +152,6 @@ export default function App() {
       <Header
           onCloud={() => setCloud(true)}
           onBulk={openBulk}
-          onAtividades={() => setAtividades(true)}
           onAjuda={() => setAjuda(true)}
           onBackup={() => setBackup(true)}
           onTema={() => setTemaAberto(true)}
@@ -166,7 +165,7 @@ export default function App() {
       />
       <Collection onOpen={setDetail} />
       <Divisoria />
-      <Footer />
+      <Footer onAbrirFicha={() => setMovimentacao(true)} fichaAberta={movimentacao} />
 
       {/* FAB Nova obra */}
       <button
@@ -189,7 +188,7 @@ export default function App() {
       <DetailSheet obra={detail} onClose={() => setDetail(null)} onEdit={openEditor} onDuplicar={duplicar} onDesmembrar={desmembrar} />
       <SearchOverlay open={search} onClose={() => setSearch(false)} />
       <Stats open={stats} onClose={() => setStats(false)} />
-      <Atividades open={atividades} onClose={() => setAtividades(false)} />
+      <FichaAtividades open={movimentacao} onClose={() => setMovimentacao(false)} />
       <Ajuda open={ajuda} onClose={() => setAjuda(false)} onNotice={say} />
 
       <Cloud open={cloud} onClose={() => setCloud(false)} onNotice={say} />

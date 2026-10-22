@@ -3,7 +3,7 @@ import {
   MOLA_GAVETA, FADE, VOLTA_DO_ARRASTO, ELASTICO_DIREITA, ELASTICO_BAIXO,
   deveDispensar, useEhDesktop, usaMovimentoReduzido,
 } from '../lib/motion.js'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import { linkDoGuia } from '../lib/catalogo.js'
 import { Switch, CheckTile, lbl, box } from './Campos.jsx'
@@ -80,53 +80,66 @@ function Situacao({ obra }) {
           {/* Só para quem TEM. Quem só quer não pagou nada, não leu e não
               enfileira — e a urgência, que era a pergunta deste lado, subiu
               para o ícone do cabeçalho. */}
-          {tem && (
-            <>
-              <div className={box}>
-                <label className={lbl}>Valor pago</label>
-                <input
-                  className="field-input" inputMode="numeric"
-                  defaultValue={obra.valorPago ? moneyFormat(obra.valorPago) : ''}
-                  onBlur={e => {
-                    const v = moneyToNumber(e.target.value)
-                    if (v !== (obra.valorPago || 0)) gravar({ valorPago: v })
-                  }}
-                  placeholder="R$ 0,00"
-                />
-              </div>
+          {/* OS TRÊS NA MESMA LINHA: quanto custou, já leu, e o que falta
+              fazer com isso. São as três perguntas que se fazem de um gibi que
+              já está na estante, e empilhadas viravam três blocos para um
+              assunto só.
 
-              {/* UMA LINHA, DOIS ESTADOS DA MESMA PERGUNTA: "e aí, já leu?"
-                  Antes de ler, o que falta é a vez na fila; depois de ler, o
-                  que falta é a nota. Nunca os dois ao mesmo tempo — então o
-                  segundo lugar da linha é um só, e troca de ocupante.
+              O CAMPO DE VALOR ENCOLHEU PARA 100px. Em largura inteira ele era
+              o elemento mais pesado da ficha para guardar "R$ 29,90" — oito
+              caracteres ocupando 409. Campo de tamanho fixo também diz, só
+              pela forma, que ali cabe pouco.
 
-                  Empilhados, eram três linhas para três perguntas que são uma
-                  só, e a fila ainda morava longe, lá em cima, perto da ficha
-                  técnica — onde não tinha nada a ver com o que está ao redor.
+              `items-end` alinha pela BASE, não pelo meio: o campo de valor tem
+              rótulo em cima e os outros dois não, então alinhar pelo centro
+              deixaria o "Lido" flutuando meio dedo acima da linha de base dos
+              controles.
 
-                  Quem some sozinho é a fila: `podeEnfileirar` já exige estar
-                  na estante e NÃO estar lido, que é exatamente a condição do
-                  ternário. O `BotaoFila` devolve `null` quando não cabe, e o
-                  ternário existe para pôr as estrelas no lugar vago. */}
-              <div className="flex items-center gap-2.5">
+              A VAGA É `flex-1`, e com isso o "Lido" não anda ao trocar de
+              ocupante — ele vem ANTES do elemento elástico, e quem absorve a
+              diferença é quem vem depois. Era o que a largura fixa de 210px
+              resolvia antes de o campo de valor entrar na linha; com três
+              elementos, o elástico no último faz o mesmo de graça.
+
+              `min-w` + `flex-wrap`: abaixo de uns 400px de linha não há como
+              pôr os três lado a lado sem espremer "Salvar na fila" até sumir.
+              Em vez de escolher um ponto de quebra por tamanho de tela — que
+              erraria, porque a ficha é larga no desktop e estreita no celular
+              com a MESMA janela —, a vaga declara a largura mínima de que
+              precisa e desce sozinha quando não cabe. */}
+          {tem && (() => {
+            const vaga = obra.lido
+              ? <CaixaNota valor={obra.nota || 0} onChange={n => gravar({ nota: n })} />
+              : (podeEnfileirar(obra)
+                  ? <BotaoFila
+                      naLista={naFila(fila, obra.id, null)}
+                      cabe
+                      onClick={() => alternarFila(obra.id, null)}
+                    />
+                  : null)
+            return (
+              <div className="flex flex-wrap items-end gap-2.5">
+                <div className={`${box} w-[100px] shrink-0`}>
+                  <label className={lbl} htmlFor={`valor-${obra.id}`}>Valor pago</label>
+                  <CampoValor
+                    id={`valor-${obra.id}`}
+                    valor={obra.valorPago || 0}
+                    onCommit={v => gravar({ valorPago: v })}
+                  />
+                </div>
+
                 <CheckTile checked={!!obra.lido} onChange={e => gravar({ lido: e.target.checked, ...(e.target.checked ? {} : { nota: 0 }) })}>
                   Lido
                 </CheckTile>
 
-                {obra.lido ? (
-                  <div className="flex-1 h-[42px] flex items-center justify-center">
-                    <EstrelasInput value={obra.nota || 0} onChange={n => gravar({ nota: n })} />
-                  </div>
-                ) : (
-                  <BotaoFila
-                    naLista={naFila(fila, obra.id, null)}
-                    cabe={podeEnfileirar(obra)}
-                    onClick={() => alternarFila(obra.id, null)}
-                  />
-                )}
+                {/* Quem some sozinho é a fila: `podeEnfileirar` já exige estar
+                    na estante e NÃO estar lido, que é exatamente a condição do
+                    ternário. Sem vaga nenhuma, o `flex-1` não é desenhado e os
+                    dois primeiros ficam no tamanho que têm. */}
+                {vaga && <div className="flex-1 min-w-[200px]">{vaga}</div>}
               </div>
-            </>
-          )}
+            )
+          })()}
         </section>
       )}
 
@@ -178,6 +191,85 @@ function Numero({ rotulo, valor, sub, capitalizar }) {
  *
  * `compacto` é a versão de volume: ícone só, do tamanho do selo ao lado.
  */
+/* O CAMPO DE VALOR PAGO, com a máscara de dinheiro funcionando.
+ *
+ * A MÁSCARA SÓ EXISTE EM CAMPO CONTROLADO. A primeira versão aqui usava
+ * `defaultValue` + `onBlur` para evitar gravar no disco a cada tecla — e com
+ * isso a máscara nunca rodava: `defaultValue` é lido uma vez, na montagem, e
+ * depois o React não toca mais no campo. Digitava-se `2990` e ficava `2990` na
+ * tela, sem virar `R$ 29,90` nunca. O Editor sempre funcionou porque lá o
+ * campo é controlado (`value` + `onChange`).
+ *
+ * Então o campo é controlado por um RASCUNHO LOCAL: cada tecla reformata na
+ * tela, e só o `blur` grava no store. As duas coisas que pareciam incompatíveis
+ * — formatar a cada tecla e gravar uma vez só — eram incompatíveis apenas
+ * enquanto o único estado era o do store.
+ *
+ * O `useEffect` existe para o valor que muda POR FORA: trocar o status para
+ * "Quero" zera `valorPago` no store (ver `gravar`), e sem a sincronia o campo
+ * continuaria exibindo o rascunho antigo quando a obra voltasse para "Tenho".
+ * Só sincroniza com o campo SEM FOCO — sincronizar durante a digitação faria o
+ * cursor saltar.
+ */
+function CampoValor({ id, valor, onCommit }) {
+  const ref = useRef(null)
+  const [rascunho, setRascunho] = useState(valor)
+
+  useEffect(() => {
+    if (document.activeElement !== ref.current) setRascunho(valor)
+  }, [valor])
+
+  return (
+    <input
+      id={id} ref={ref} className="field-input" inputMode="numeric"
+      value={moneyFormat(rascunho)}
+      onChange={e => setRascunho(moneyToNumber(e.target.value))}
+      onBlur={() => { if (rascunho !== valor) onCommit(rascunho) }}
+      placeholder="R$ 0,00"
+    />
+  )
+}
+
+/* A CAIXA DE NOTA — as estrelas com moldura e nome.
+ *
+ * Soltas, as cinco estrelas ao lado do "Lido" não liam como um campo: liam
+ * como um enfeite que apareceu. O "Lido" tem contorno, o botão da fila tinha
+ * contorno, e no meio deles a nota era a única coisa flutuando. A moldura põe
+ * os dois ocupantes da vaga na mesma forma, que é o que faz um parecer ter
+ * dado lugar ao outro.
+ *
+ * O NOME VAI DENTRO, e não como rótulo em cima ao jeito de "Valor pago": um
+ * rótulo acima cresceria a linha para cima e empurraria o "Lido" — justamente
+ * o que esta caixa existe para evitar.
+ *
+ * ESTRELAS DE 20px, não 24: é o que sobra depois do rótulo e do × dentro de
+ * 210px. Continuam com alvo de toque de 42px pela altura da caixa.
+ */
+function CaixaNota({ valor, onChange }) {
+  return (
+    <div className="w-full h-[42px] rounded-full border border-contorno bg-surface px-2.5
+                    flex items-center justify-center gap-1.5">
+      <span className="font-rotulo text-rotulo uppercase text-ink-soft shrink-0">Nota</span>
+      <EstrelasInput value={valor} onChange={onChange} tamanho="w-5 h-5" limpar={false} />
+      {/* O "limpar" escrito não cabe aqui, e sem ele não haveria como voltar a
+          zero: clicar na estrela marcada vai para a metade dela, e da metade
+          volta para a inteira. Vira um ×, que ocupa 18px em vez de 44. */}
+      {valor > 0 && (
+        <button
+          type="button" onClick={() => onChange(0)}
+          title="Tirar a nota" aria-label="Tirar a nota"
+          className="shrink-0 text-ink-mute hover:text-rust transition-colors leading-none"
+        >
+          <svg className="w-[14px] h-[14px]" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               strokeWidth="2.4" strokeLinecap="round">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+      )}
+    </div>
+  )
+}
+
 function BotaoFila({ naLista, cabe, compacto, rotulo, onClick }) {
   if (!cabe) return null
   const titulo = naLista ? 'Tirar da fila de leitura' : 'Salvar na fila de leitura'
@@ -202,7 +294,7 @@ function BotaoFila({ naLista, cabe, compacto, rotulo, onClick }) {
   }
   return (
     <button type="button" onClick={onClick} aria-pressed={naLista}
-      title={titulo} className={'neo-btn flex-1 justify-center ' + (naLista ? '!bg-moss !text-sobre-acento !border-moss' : '')}>
+      title={titulo} className={'neo-btn w-full justify-center ' + (naLista ? '!bg-moss !text-sobre-acento !border-moss' : '')}>
       {marcador}
       {naLista ? 'Na fila' : 'Salvar na fila'}
     </button>
@@ -311,51 +403,27 @@ export default function DetailSheet({ obra: obraAberta, onClose, onEdit, onDupli
  className="flex items-center gap-2 px-5 py-4 border-b border-separador sm:cursor-grab sm:active:cursor-grabbing touch-none"
               onPointerDown={e => arrasto.start(e)}
             >
-              {/* ---- URGENTE ----
-                  Mora na PONTA ESQUERDA do cabeçalho, sozinho, longe dos
-                  outros três. Os de lá são ações sobre a ficha — fixar,
-                  duplicar, editar, fechar; este é um ESTADO da obra, e o
-                  único da ficha que precisa ser visto sem rolar.
+              {/* ---- O PAR DA ESQUERDA: FIXAR E URGENTE ----
 
-                  Só ícone, sem palavra: era uma caixa de marcação de largura
-                  inteira no corpo para uma coisa que é sim ou não.
+                  Os dois são ESTADOS da obra — ela é o destaque da grade, ela
+                  é urgente. Os da direita (duplicar, editar, fechar) são AÇÕES
+                  sobre a ficha. Estado numa ponta, ação na outra: a divisão se
+                  lê sem precisar de legenda, e nenhum botão que liga e desliga
+                  fica encostado num que dispara e acaba.
 
-                  VERMELHO NOS DOIS ESTADOS, e não só quando ligado. Urgência
-                  é a única coisa nesta tela que usa rust, então a cor já
-                  identifica o botão antes de dizer se ele está aceso. O que
-                  separa ligado de desligado é o PREENCHIMENTO: apagado, o
-                  triângulo é só contorno sobre o fundo da barra; aceso, ele
-                  é um bloco cheio. Forma, não só cor — quem não distingue
-                  rust de tinta ainda vê um triângulo encher.
+                  OS DOIS COM CONTORNO. Botão que acende precisa de moldura já
+                  apagado — senão o estado ligado não parece ligado, parece um
+                  botão que surgiu do nada no lugar onde não havia nada.
 
-                  Só aparece em obra avulsa que você ainda NÃO tem: urgência é
-                  a pressa de conseguir, e o que já está na estante não tem
-                  pressa nenhuma. Em série, a pressa é de cada volume. */}
-              {tipoOf(obra) === 'avulso' && obra.status !== 'biblioteca' && (
-                <button
-                  className={`neo-icon !w-9 !h-9 shrink-0 !border-rust ${obra.urgencia ? '!bg-rust !text-paper' : '!text-rust'}`}
-                  onClick={() => upsertObra({ ...obra, urgencia: !obra.urgencia })}
-                  aria-pressed={!!obra.urgencia}
-                  title={obra.urgencia ? 'Tirar a marca de urgente' : 'Marcar como urgente'}
-                  aria-label={obra.urgencia ? 'Tirar a marca de urgente' : 'Marcar como urgente'}
-                >
-                  <svg className="w-[17px] h-[17px]" viewBox="0 0 24 24"
-                       fill={obra.urgencia ? 'currentColor' : 'none'} stroke="currentColor"
-                       strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 4.2 21 19.4H3L12 4.2Z" />
-                    {!obra.urgencia && <path d="M12 10v3.6M12 16.4h.01" />}
-                  </svg>
-                </button>
-              )}
-
-              {/* o título saiu daqui: com três botões ao lado ele só cabia
-                  truncado. Agora abre o corpo, com a largura toda. */}
-              <span className="flex-1" />
+                  O `!border` é obrigatório nos dois: o `.neo-icon` traz
+                  `border-0`, e pedir só a COR da borda pinta uma linha de zero
+                  pixel — o contorno simplesmente não aparece. */}
 
               {/* Fixar destaca a obra na grade. Só uma por vez: fixar outra
                   troca a anterior, e clicar de novo desafixa. */}
               <button
-                className={`neo-icon !w-9 !h-9 shrink-0 ${estaFixada ? '!bg-moss !text-sobre-acento' : ''}`}
+                className={`neo-icon !w-9 !h-9 shrink-0 !border
+                  ${estaFixada ? '!border-moss !bg-moss !text-sobre-acento' : '!border-contorno'}`}
                 onClick={() => fixarObra(obra.id)}
                 aria-pressed={estaFixada}
                 title={estaFixada ? 'Desafixar da grade' : 'Fixar como destaque da grade'}
@@ -363,6 +431,63 @@ export default function DetailSheet({ obra: obraAberta, onClose, onEdit, onDupli
               >
                 <IconFixar preenchido={estaFixada} />
               </button>
+
+              {/* ---- URGENTE ----
+                  Só ícone, sem palavra: era uma caixa de marcação de largura
+                  inteira no corpo para uma coisa que é sim ou não.
+
+                  VERMELHO NOS DOIS ESTADOS, e não só quando ligado. Urgência
+                  é a única coisa nesta tela que usa rust, então a cor já
+                  identifica o botão antes de dizer se ele está aceso.
+
+                  LIGADO = fundo rosado e um VISTO no canto. O triângulo não
+                  muda: quem carrega o estado é o par fundo+visto, e o visto é
+                  o que diz "está marcado" para quem não lê a diferença entre
+                  um branco e um rosa muito claro. Forma além de cor, como no
+                  resto do app.
+
+                  Só aparece em obra avulsa que você ainda NÃO tem: urgência é
+                  a pressa de conseguir, e o que já está na estante não tem
+                  pressa nenhuma. Em série, a pressa é de cada volume. */}
+              {tipoOf(obra) === 'avulso' && obra.status !== 'biblioteca' && (
+                <button
+                  className={`neo-icon !w-9 !h-9 shrink-0 relative !border !border-rust !text-rust
+                    ${obra.urgencia ? '!bg-tinta-rust' : ''}`}
+                  onClick={() => upsertObra({ ...obra, urgencia: !obra.urgencia })}
+                  aria-pressed={!!obra.urgencia}
+                  title={obra.urgencia ? 'Tirar a marca de urgente' : 'Marcar como urgente'}
+                  aria-label={obra.urgencia ? 'Tirar a marca de urgente' : 'Marcar como urgente'}
+                >
+                  <svg className="w-[17px] h-[17px]" viewBox="0 0 24 24"
+                       fill="none" stroke="currentColor"
+                       strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 4.2 21 19.4H3L12 4.2Z" />
+                    <path d="M12 10v3.6M12 16.4h.01" />
+                  </svg>
+
+                  {/* O visto encosta na borda do disco, no alto à direita: é o
+                      lado onde o triângulo afina, e o único canto com espaço
+                      livre. Embaixo ele cairia sobre a base, que é a parte
+                      larga da figura.
+
+                      Preenchido em rust com o visto em papel, e não o
+                      contrário: a pastilha precisa se separar de um fundo que
+                      também é rosado. */}
+                  {obra.urgencia && (
+                    <span className="absolute -top-px -right-px w-[14px] h-[14px] rounded-full bg-rust text-paper
+                                     inline-flex items-center justify-center ring-2 ring-surface">
+                      <svg className="w-[9px] h-[9px]" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                           strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 12.5l5 5L19 7" />
+                      </svg>
+                    </span>
+                  )}
+                </button>
+              )}
+
+              {/* o título saiu daqui: com três botões ao lado ele só cabia
+                  truncado. Agora abre o corpo, com a largura toda. */}
+              <span className="flex-1" />
 
               {/* Duplicar vive ao lado de Editar porque é a mesma família de
                   ação — e porque quase sempre o passo seguinte é editar a

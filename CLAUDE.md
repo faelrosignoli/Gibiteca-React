@@ -196,11 +196,10 @@ valendo para quem for duplicá-lo por CSS para "mostrar em dois lugares".
 
 ```
 Seus dados       (ou o NOME da pessoa, quando há um)    ← destaque (20px + avatar)
-Tema             com as 4 cores em palitos ao lado
+Tema
 Fila de leitura
 Listas                                                    o dia a dia (16px)
 Estatísticas
-Atividades
 Capas            manutenção: se usa de vez em quando
 Backup
 Ajuda            a saída de quem não achou              ← apoio (14px + ícone)
@@ -208,12 +207,12 @@ Ajuda            a saída de quem não achou              ← apoio (14px + íco
 
 **Houve um grupo e ele foi desfeito.** "Seus dados" abria uma sanfona com
 Perfil, Atividades, Capas e Backup dentro — agrupamento por assunto cujo preço
-era alto demais: quatro das nove portas custavam DOIS cliques e ficavam
-invisíveis até o primeiro. Um menu de nove itens cabe inteiro na tela; esconder
+era alto demais: quatro das portas custavam DOIS cliques e ficavam
+invisíveis até o primeiro. Um menu deste tamanho cabe inteiro na tela; esconder
 metade dele para economizar um espaço que sobra é trocar alcance por arrumação.
 
 **A ordem é por frequência de uso, com as duas pontas marcadas.** Três portes,
-não nove linhas iguais: uma lista achatada obriga a ler os nove rótulos para
+não oito linhas iguais: uma lista achatada obriga a ler os oito rótulos para
 achar o primeiro; com a primeira maior e a última menor, o olho pega as pontas
 antes de ler qualquer palavra. A diferença entre destaque e normal é de UM
 degrau da escala (20 contra 16px) — o suficiente para vir primeiro sem a linha
@@ -550,7 +549,7 @@ Duas correções:
 1. **`resumoDe`**: quando a leva inteira é do mesmo tipo, o título diz o que
    foi feito — `Subiu 110 capas para a nuvem`. Tipos misturados voltam para
    `N alterações na coleção`, e uma mudança só continua sendo o próprio texto.
-2. **A entrada abre sob demanda** (`Entrada` em `Atividades.jsx`): fechada por
+2. **A entrada abre sob demanda** (`Linha` em `FichaAtividades.jsx`): fechada por
    padrão, com `N itens` no rótulo. Entrada sem detalhe não vira botão — não
    há o que abrir.
 
@@ -571,22 +570,327 @@ No celular o rótulo some e sobra só o ícone; sem `min-w-[44px] min-h-[40px]`
 o botão encolhia para 39x27, abaixo do alvo confortável — e errar ali troca o
 modo de exibição sem querer.
 
-### Atividades: linha do tempo lida do repositório
-`components/Atividades.jsx`, no menu ☰. **Não guarda histórico nenhum**: lê os
-commits com `ghCommits` e desenha. A fonte da verdade continua sendo o GitHub.
+### A ficha de atividades (era Atividades, no ☰)
+`components/FichaAtividades.jsx`. Vive em dois lugares: a **prévia aberta no
+rodapé** e o **pop-up completo** que ela abre. **Não guarda histórico nenhum**:
+lê os commits com `ghCommits` e desenha. A fonte da verdade continua sendo o
+GitHub.
 
-O desenho vem do painel de Atividades do Drive, e as razões valem repetir:
+**Por que deixou de ser linha do tempo.** A tela anterior era uma coluna de
+eventos com bolinha e fio — formato que serve para contar uma história, onde o
+que importa é a ordem. Mas ninguém lê um histórico de coleção como história;
+lê-se procurando: *quando foi que entrou isso?*, *o que eu mexi semana
+passada?*, *subi aquelas capas ou não?*
 
-- **o evento é a ação, não o item**: um envio com 5 mudanças é uma entrada só,
-  com as 5 aninhadas embaixo. Por obra, um dia de arrumação enterraria o resto;
-- as mudanças aparecem como fichas indentadas, ligadas por um fio — a relação
-  é mostrada pelo espaço, em vez de repetir a data em cada linha;
-- agrupado por período (Hoje · Ontem · Nos últimos 7 dias · Este ano · ano);
-- **é leitura, não controle**: sem desfazer, sem botão por item. É isso que
-  permite ser denso sem assustar.
+Procurar precisa de **coluna fixa**, não de fluxo. A ficha de empréstimo da
+contracapa de livro de biblioteca já é isso: datas carimbadas à esquerda, o
+movimento à direita, uma linha por vez. O olho desce pela coluna e só entra na
+linha quando a data interessa — o que a bolinha e o fio não permitiam, porque
+ali a data vinha **depois** do texto, em letra miúda. E o app se chama
+Gibiteca: a ficha é o objeto que uma biblioteca tem.
 
-`lerMensagem` aceita as mensagens antigas ("Atualiza coleção — …"): elas viram
-uma entrada sem detalhe, em vez de sumirem do histórico.
+**O que foi mantido da tela antiga**, porque continuava certo:
+
+- **o evento é a ação, não o item**: um envio com 5 mudanças é uma linha só,
+  com as 5 aninhadas. Por obra, um dia de arrumação enterraria o resto;
+- detalhe **fechado por padrão** (110 capas abertas enterravam o histórico);
+- agrupado por período (Hoje · Ontem · Últimos 7 dias · Este ano · ano);
+- **é leitura, não controle**: sem desfazer, sem botão por item.
+
+#### O tipo precisou ser reconstruído na leitura
+
+`compararColecoes` sabe a natureza de cada mudança (`{tipo, texto}`), mas **o
+commit só leva o texto** — a mensagem tem de ser legível por um humano no
+GitHub, e `[leitura] Marcou como lido` não é. O tipo se perde na escrita.
+
+`classificar(texto)` (em `diario.js`) reconstrói o tipo a partir da frase. A
+alternativa — carimbar o tipo na mensagem — foi descartada por dois motivos:
+
+1. **funciona no histórico que já existe.** Carimbando, só os commits futuros
+   seriam organizáveis, e tudo que já está no repositório de quem usa o app
+   ficaria num balaio de "Outro" para sempre;
+2. mantém a mensagem limpa no GitHub, que foi a razão de o diário existir.
+
+Só se sustenta porque as frases são nossas: saem todas de `mudancasInternas` e
+de `RESUMOS`, e o conjunto é fechado. **Mexer num verbo lá sem mexer nas regras
+joga a linha em "Outro" sem nenhum erro aparecer** — por isso existe
+`tools/conferir-movimentos.cjs`, que cobre as 55 frases que o diário sabe
+escrever. Ele já pegou dois furos na primeira execução: `Mudou o país de …`
+(a regra só previa `Mudou a`) e `Subiu para a nuvem a capa de …`, que tem ordem
+de palavras diferente do resumo `Subiu 110 capas para a nuvem`.
+
+```bash
+node tools/conferir-movimentos.cjs
+```
+
+#### Sete movimentos, não quinze tipos
+
+`MOVIMENTOS`: Entrou · Saiu · Estante · Leitura · Capa · Ficha · Valor · Outro.
+
+Os quinze `tipo` do diário são a granularidade de **quem escreve a frase**.
+"Mudou a editora" e "Mudou o país" são coisas diferentes para escrever e a
+mesma coisa para procurar (*mexi na ficha dessa obra*). Quinze filtros não
+organizam nada.
+
+**Entrada de natureza mista não recebe etiqueta.** `movimentoDaEntrada`
+devolve `null` quando a leva tem mais de um movimento, e a linha mostra a
+contagem no lugar — uma leva com capa, leitura e valor junto **não é** nenhum
+dos três, e etiquetar pelo primeiro faria a etiqueta mentir.
+
+#### O filtro
+
+Chips por movimento, com a contagem. **Conta entradas, não mudanças**: o número
+tem de bater com o que o clique vai mostrar, e o clique mostra linhas. "Capa 2"
+num histórico de 110 capas está certo — foram dois momentos em que se mexeu em
+capa.
+
+- **movimento sem nenhuma linha fica visível e apagado**, não some: sumindo, o
+  número de alvos mudaria a cada recorte, e a mão aprende posição antes de
+  rótulo. Mesma regra da cascata do painel de filtros;
+- `aria-pressed`, não `aria-checked`: é interruptor, não opção de grupo;
+- sob filtro a linha mostra **só os detalhes daquele movimento**, e a contagem
+  passa a ser a filtrada;
+- **abre sozinha até 12 detalhes.** Filtrar e depois ter de clicar em cada
+  linha seria pedir o trabalho duas vezes — mas acima de uma dúzia a abertura
+  automática reproduzia o enterramento que o fechado-por-padrão existe para
+  evitar, só que dentro do recorte pedido justamente para enxergar melhor. A
+  leva de 110 continua fechada, com o chevron, e as outras linhas de capa
+  continuam na tela;
+- o filtro **volta para "tudo" ao fechar** o painel: reabrir e achar a ficha
+  recortada por uma escolha de três dias atrás é a tela mentindo.
+
+#### Ela mora no rodapé, não no ☰
+
+**A ficha saiu do menu.** No ☰ ela era uma porta como as outras, e ninguém abre
+"Atividades" sem já estar procurando alguma coisa — quem não sabe que o app
+registra o que você faz nunca vai procurar. O menu passou de nove portas a
+oito.
+
+No rodapé a ficha fica **aberta**, com as últimas cinco linhas escritas. Não
+pede clique nenhum para informar; o clique é só para ver o resto.
+
+**Ficha vazia não fala em nuvem.** Sem nada escrito, a prévia diz "Sua ficha
+está limpa. Por enquanto." e o pop-up, "A ficha está limpa, nenhuma atividade
+foi realizada ainda." Os dois textos valem tanto para quem não conectou quanto
+para quem conectou e ainda não mexeu em nada — do lado de fora é a mesma
+situação, e explicar o mecanismo levanta a dúvida que ele deveria acalmar.
+
+**É um cartão claro sobre a faixa escura porque é um objeto, não uma seção.**
+A ficha de empréstimo é uma coisa colada na contracapa: papel próprio, borda
+própria, um pouco torta (−0,7°), com o recorte de meia-lua do bolso embaixo.
+Uma lista desenhada direto sobre o #212121 seria mais uma parte do rodapé; o
+cartão é algo que foi **posto** ali.
+
+**A tinta volta ao normal dentro dele.** O rodapé inverte `--tinta` para papel,
+então lá dentro `text-ink` é claro e `border-linha` é um fio claro — os dois
+sumiriam num cartão de papel. A classe `.tinta-normal` devolve a rampa ao
+escuro para essa ilha. É o mesmo mecanismo da inversão, usado ao contrário, e
+é o que prova que a variável valeu a pena.
+
+O recorte do bolso usa `var(--ink)` e **não** `bg-ink`: depois da inversão, o
+token `ink` do Tailwind é papel ali dentro. O recorte precisa da cor da faixa,
+que é a variável crua.
+
+**O alvo de clique cobre o cartão inteiro**, como um `<button>` posicionado por
+cima, em vez de o cartão ser um botão. Embrulhando a lista, o nome acessível do
+botão viraria a emenda de cinco frases de histórico — ilegível para quem ouve.
+Assim o nome é uma frase só e o alvo continua sendo o cartão todo.
+
+#### O pop-up é o mesmo cartão, maior
+
+Não é uma tela com outro desenho. Mesmo papel, mesmo cabeçalho em caixa alta
+com a régua grossa embaixo, mesma coluna de datas em mono, mesmas pautas,
+mesmo carimbo na mais recente. **Quem clica no cartão tem de reconhecer o que
+abriu**, e a única maneira de reconhecer é ser a mesma coisa cabendo mais.
+
+Daí `bg-paper` no lugar de `bg-surface` e canto reto: o cartão é uma folha, e
+folha não tem canto redondo. O que a versão grande acrescenta é o que não cabia
+na pequena — o filtro, a etiqueta de movimento em cada linha, o detalhe que
+abre, a quebra de período.
+
+**Duas coisas não vieram junto, e as duas por motivo:**
+
+- **a inclinação.** O cartão do rodapé está torto porque está largado sobre a
+  faixa. Este está sendo lido, de frente: texto longo torto cansa, e o giro
+  brigaria com a rolagem;
+- **o recorte do bolso.** Ele é o vazio por onde o cartão sai do bolso. Fora do
+  bolso não há o que recortar — nem faixa escura atrás para a meia-lua mostrar.
+
+**Os chips do filtro são de TINTA, não de acento.** O cartão só usa duas cores:
+a tinta da escrita e o rust do carimbo. Um chip verde seria a única coisa da
+ficha que não saiu nem da caneta nem do carimbo. Preenchido em tinta, o
+escolhido lê pelo contraste — a mesma razão pela qual o carimbo lê como
+carimbo.
+
+#### O resto do rodapé saiu de cena
+
+À esquerda ficaram só a marca (220px, grande), a frase e o copyright logo
+abaixo dela. À direita, só a ficha. **Três coisas foram embora:**
+
+- **os três números** (obras · séries/boxes · na estante). Já moram no painel
+  de Estatísticas, que existe para isso; aqui eram resumo de resumo e
+  disputavam atenção com a ficha — o rodapé ficava com dois centros;
+- **o fio pontilhado** que atravessava o meio. Ele separava a assinatura da
+  linha de copyright; com o copyright debaixo da frase não há mais duas coisas
+  para separar, e fio que não divide nada é só um risco;
+- **o "Voltar ao topo" escrito**, que virou a meia-lua.
+
+#### A meia-lua do fim da página
+
+Colada na borda de baixo, centrada, só com a seta dentro. **A forma rima com o
+recorte do bolso da ficha, logo acima**: a mesma meia-lua, o mesmo gesto de
+puxar. Ali ela é o vazio por onde o cartão sai; aqui, a aba por onde a página
+volta. Duas metades do mesmo vocabulário — e por isso a segunda não precisa se
+explicar.
+
+Leva `.tinta-normal` pelo mesmo motivo do cartão: é uma peça de papel sobre a
+faixa escura, e sem isso a seta seria clara sobre fundo claro.
+
+**Fica no rodapé, não presa à viewport.** Botão flutuante acompanharia a
+rolagem e brigaria com o "Nova obra", que já mora no canto. Aqui ela é o fim do
+documento: você chega nela, não esbarra nela.
+
+No hover a aba cresce 6px e a seta sobe junto — o botão inteiro faz o gesto que
+a ação faz. O CSS da seta dupla antiga (`.seta-topo`) saiu do index.css junto
+com o botão que a usava.
+
+#### Mesma proporção, e um objeto só
+
+**3:2 nos dois tamanhos.** Antes a prévia era um cartão largo e baixo e o
+pop-up um painel alto; mesmo com o mesmo desenho por dentro, eram duas folhas
+de formatos diferentes — e duas folhas de formatos diferentes nunca são a mesma
+folha.
+
+O número saiu da própria prévia: 380 de largura com cabeçalho, cinco linhas e o
+rodapezinho dão 253 de altura, que é 3:2 com três pixels de erro. Foi só cravar
+o que já estava lá e mandar o pop-up obedecer. **Medido: prévia 380×253
+(1,502), pop-up 840×560 (1,500).**
+
+A largura do pop-up tem **três tetos**: `94vw` para não encostar nas bordas,
+`840px` para não virar uma folha gigante numa tela larga, e `132vh` — que é
+`88vh × 1,5`. O terceiro existe porque limitar a ALTURA por `max-h` quebraria a
+proporção em janela baixa: o cartão ficaria achatado justamente onde a
+semelhança importa. Limitando a largura, a razão se mantém sempre.
+
+No celular a folha ocupa a tela, como todos os painéis da casa: 3:2 em 375px
+daria 235px de altura, pequeno demais para ler. A proporção vale da `sm` para
+cima.
+
+> As duas classes estão escritas por extenso (`aspect-[3/2]` e
+> `sm:aspect-[3/2]`), nunca montadas com `sm:${…}`. O Tailwind varre o
+> CÓDIGO-FONTE atrás de nomes de classe inteiros e não resolve template literal
+> nenhum: interpolada, a variante `sm:` simplesmente não seria gerada.
+
+**A transição é um `layoutId` só.** Quando o pop-up abre, a prévia DESMONTA e o
+framer-motion leva o mesmo retângulo de lá para cá, crescendo. Não são dois
+cartões: é um cartão que mudou de lugar e de tamanho, que é a única forma de a
+tela contar que são a mesma ficha. Por isso a prévia precisa saber que o pop-up
+está aberto (`aberta`, vinda do App pelo Footer) — as duas visíveis ao mesmo
+tempo denunciam que são dois objetos.
+
+O espaço da prévia fica reservado pelo quadro de fora, que mantém a proporção,
+então o rodapé não pula quando ela sai. **A inclinação mora nesse quadro**, e
+não no cartão animado: transform próprio num elemento com `layoutId` briga com
+o transform que o framer-motion usa para animar. O giro é do bolso; a folha que
+viaja está sempre reta.
+
+#### Duas armadilhas de `layoutId`, as duas pagas
+
+**1. `AnimatePresence` em volta da prévia segurava as duas na tela.** Embrulhada
+nele, a prévia ficava montada esperando uma animação de saída que não existe — e
+as duas fichas apareciam juntas, que é exatamente o que a transição existe para
+evitar. Com `layoutId` o desmonte tem de ser seco: o pop-up registra o mesmo id,
+lê a última posição conhecida da prévia e cresce de lá.
+
+**2. O véu e o cartão tiveram de virar IRMÃOS.** Em todo outro pop-up da casa o
+painel mora dentro do véu, e o clique fora fecha por comparação de alvo. Aqui
+não dá: **elemento com `layoutId` dentro de um `AnimatePresence` trava a
+saída**. Ao fechar, o `AnimatePresence` segurava o véu esperando o filho
+terminar; o filho tinha uma animação de layout pendente contra a prévia, que
+acabara de remontar reivindicando o mesmo id; a animação nunca resolvia e **o
+véu ficava no DOM para sempre, invisível e por cima de tudo** — uma camada de
+`z-index: 66` bloqueando a página inteira.
+
+Separados, cada um faz uma coisa só: o véu entra e sai por opacidade dentro do
+`AnimatePresence`; o cartão monta e desmonta seco, fora dele. Funciona nos dois
+sentidos — abrindo, quem nasce é o pop-up e vem da prévia; fechando, quem nasce
+é a prévia e vem do pop-up.
+
+> **Medir isto no painel do Claude engana (mais uma vez).** Com a página em
+> segundo plano o rAF congela, a animação de saída nunca completa e o
+> `AnimatePresence` nunca desmonta — o véu parecia preso. Uma captura de tela
+> força a pintura e o nó some. Conferido contra o pop-up de Tema, que tem o
+> mesmo sintoma e nenhuma relação com esta mudança: era o painel, não o código.
+
+#### A leitura é compartilhada (`lib/ficha.js`)
+
+Dois lugares mostram a mesma ficha, e cada um buscando por conta própria daria
+duas chamadas à API do GitHub por visita — com a segunda aparecendo como
+espera, o pop-up abrindo vazio em cima de uma prévia que já tinha os dados.
+
+`useFicha(cloud, ativo)` resolve com **cache de módulo** (precisa sobreviver à
+desmontagem do pop-up, que é o caso em que serve) e validade de **um minuto** —
+a ficha muda quando você sincroniza, e guardar por muito tempo faria o pop-up
+esconder a alteração recém-feita.
+
+Três armadilhas que custaram correção:
+
+1. **A dependência é a CHAVE do repositório, não o objeto `cloud`.** O objeto é
+   recriado a cada gravação de configuração da nuvem, e com ele na lista do
+   `useEffect` qualquer sincronia disparava uma busca nova do histórico. Era
+   assim no painel antigo.
+2. **O estado nasce `carregando`, não vazio.** Começar parado fazia a prévia
+   afirmar "Ficha nova, nenhum movimento ainda" no primeiro quadro, antes de o
+   efeito rodar — mentira para quem tem histórico. Não ter lido não é o mesmo
+   que não ter nada.
+3. **A busca em voo fica guardada junto do resultado.** Cache de resultado
+   sozinho não cumpre o que promete: dois consumidores que montam no mesmo
+   quadro não acham resultado — a primeira busca ainda não voltou — e cada um
+   dispara a sua. O `StrictMode` faz isso sozinho em desenvolvimento, o que
+   tornou o problema visível: duas chamadas numa carga só. Guardando a
+   promessa, o segundo entra de carona. **Medido: 1 busca por carga.**
+
+`esquecerFicha()` joga o guardado fora, para quem acabar de gravar na nuvem não
+receber a ficha de antes da gravação.
+
+#### Por que não `IntersectionObserver`
+
+A primeira versão da prévia só buscava quando o rodapé entrava na tela, para
+economizar a chamada nas visitas que nunca descem até lá. Saiu por dois
+motivos, e o segundo é o que decide:
+
+1. uma chamada autenticada, assíncrona, contra um limite de 5000 por hora não é
+   economia que pague o risco;
+2. **enquanto o observador não dispara não há como distinguir "ainda não li" de
+   "não há nada"** — e um observador que nunca dispare (aba em segundo plano,
+   página não pintada) deixa a afirmação falsa na tela para sempre. Foi
+   exatamente o que aconteceu ao testar no painel do Claude, onde a página roda
+   sem ser pintada e nada intersecta.
+
+#### O carimbo
+
+Só na entrada **mais recente**. Uma ficha de biblioteca tem muitos carimbos,
+mas aqui ele não registra o movimento — a linha já faz isso. Ele diz **onde
+você está**. Dois carimbos e ele deixa de dizer qualquer coisa.
+
+`rotate` e não `skew`: carimbo de mão sai torto girando, não entortando.
+
+#### Detalhes de layout que custaram uma decisão
+
+- **a quebra de período mora na coluna da data**, não flutuando por cima da
+  lista: assim a coluna continua sendo uma coluna de tempo de cima a baixo, e
+  o olho que desce por ela não sai do lugar para saber onde está;
+- essa coluna é `minmax(88px,auto)`, não `88px` cravado — "Últimos 7 dias"
+  quebrava em duas linhas. O rótulo curto alinha com as datas, o comprido
+  empurra a régua, que tem folga de sobra;
+- **a data em duas linhas**, montada à mão: `toLocaleDateString` em pt-BR
+  devolve "19 de out." — três palavras numa coluna estreita;
+- **todas as etiquetas na mesma tinta.** Oito cores fariam a ficha parecer um
+  gráfico; a organização vem da coluna e do filtro, não de um código de cores
+  que ninguém decora.
+
+`lerMensagem` continua aceitando as mensagens antigas ("Atualiza coleção — …"):
+viram uma linha sem detalhe, classificada como **Outro**, em vez de sumirem.
 
 ### Capas moram no repositório, não dentro da coleção
 **Medido na coleção real:** 3,78 MB dos 3,94 MB eram **80 imagens em base64**
@@ -1050,7 +1354,7 @@ No `index.css`, bloco próprio no fim. Seis gestos, todos dentro do teto de
 | Lista (inativa) | as três linhas entram pela esquerda | `@keyframes entra-linha` |
 | Lixeira | a tampa levanta 18° | grupo próprio, pivô em `12.5% 100%` |
 | MOSS / NOCKOUT | a palavra se entinta da esquerda | duas camadas + `clip-path` |
-| Voltar ao topo | a seta sobe e outra toma o lugar | duas setas em janela de `1em` |
+| Voltar ao topo | a meia-lua cresce e a seta sobe com ela | `height` + `translateY` no `group-hover` |
 | Nova obra | carimbo no CLIQUE | `:active` + easing com ultrapassagem |
 
 **A regra que separa estas das do site que as inspirou: nada roda em laço.**
@@ -1687,10 +1991,11 @@ caixa alta, tela cheia no celular e cartão de 460px no desktop. Dois pop-ups
 abertos do mesmo menu que chegassem de jeitos diferentes fariam o menu parecer
 duas coisas.
 
-**Cada tema é uma FAIXA**, pintada com as cores dele e empilhada sobre as
-outras. Um tema de três cores vira degradê a 135°; um de uma cor vira cor
-cheia. Na horizontal as três faixas do Candy leem como três botões colados;
-na diagonal leem como uma superfície só.
+**Cada tema é uma FAIXA**, pintada com a cor dele e empilhada sobre as outras.
+As quatro são **cor chapada**, sem degradê. O código ainda sabe fazer degradê
+a 135° se uma faixa receber mais de uma cor (`fundo()`, no `Tema.jsx`), mas
+nenhuma recebe — e não deve receber enquanto houver ilustração de hover, pelo
+motivo explicado em *A ilustração de hover*, logo abaixo.
 
 Antes eram duas palavras lado a lado, e a palavra ERA a amostra (duas camadas
 de texto, a de cima recortada por `clip-path`, entintando como pincelada no
@@ -1703,11 +2008,20 @@ Empilhado, e no Backup em coluna pelo mesmo motivo oposto: no Backup são duas
 ações de pesos diferentes e a coluna as afasta; aqui são pares, e a pilha é
 como se lê uma lista de opções.
 
-Os hex das faixas ficam **cravados no componente**, não em token: a faixa do
-Candy tem de ser rosa mesmo com o site no Midnight, senão a lista inteira vira
-a mesma cor e a escolha deixa de ser escolha. A tinta do nome sobre cada faixa
-também é escolhida por contraste — ink sobre o rosa dá 6,15:1, papel sobre o
-midnight dá 16,29:1.
+Os hex das faixas ficam **cravados em `lib/temas.js`**, não em token CSS: a
+faixa do Candy tem de ser menta mesmo com o site no Midnight, senão a lista
+inteira vira a mesma cor e a escolha deixa de ser escolha. É o único lugar do
+projeto onde cor não sai de variável CSS.
+
+| tema | faixa | tinta do nome | contraste |
+|---|---|---|---|
+| Moss | `#4B5D3A` | `#F4F0E6` | 7,04:1 |
+| Nockout | `#FF5000` | `#212121` | 6,47:1 |
+| Candy | `#B5CDC5` | `#212121` | 9,59:1 |
+| Midnight | `#280137` | `#F3F1F6` | 16,29:1 |
+
+Os quatro hex foram **lidos do pixel das ilustrações**, não escolhidos à
+parte. Isso não é capricho: é o que faz a animação de hover funcionar.
 
 **O escolhido leva anel E visto.** O anel usa a tinta do app, não a do tema:
 ele é a voz da interface dizendo "é este", e teria de mudar de cor a cada
@@ -1724,9 +2038,57 @@ curto, então sobra fundo embaixo. É traço do molde, não deste pop-up — o
 Backup faz igual, e mexer num sem mexer no outro quebraria a semelhança que é
 o ponto.
 
+#### A ilustração de hover
+
+Passar o mouse por uma faixa faz um desenho **entrar girando**, com a quina de
+baixo à esquerda presa, até ficar perfeitamente sobreposto à faixa.
+
+**O truque não está no CSS, está no desenho.** O fundo da ilustração é a MESMA
+cor chapada da faixa embaixo. Enquanto ela gira, a cunha que sobra descobre
+exatamente a mesma cor — então não se vê um retângulo girando, vê-se só o
+desenho girando. Com fundos diferentes, a borda da imagem apareceria varrendo
+a faixa, e o efeito inteiro viraria "uma foto entrando torta".
+
+Daí as duas amarras que parecem arbitrárias e não são:
+
+- **Faixa de cor chapada, nunca degradê.** Um degradê embaixo e uma cor
+  chapada na arte não têm como casar: a cunha descobriria uma cor e a arte
+  traria outra.
+- **Mexer no hex de `temas.js` sem refazer a arte quebra o giro.** Os dois
+  valores são o mesmo valor em dois lugares; só um deles é código.
+
+**Medidas:** 1200 × 210 (proporção 40:7, igual à da faixa), WebP **opaco**,
+4,6 a 5,0 KB cada. O ângulo de repouso é `--giro: 8deg`, positivo — a ponta
+direita começa abaixo e SOBE ao entrar, porque entrar subindo lê como algo que
+chega e descendo lê como algo que cai. `transform-origin: 0 100%` é a quina de
+baixo à esquerda, o canto mais longe do desenho: quanto mais longe o eixo,
+mais o desenho viaja para o mesmo ângulo.
+
+**O tamanho do arquivo importa menos que o das medidas.** A primeira entrega
+veio em 5000 × 875: 22 a 32 KB em disco, mas 16,7 MB cada uma depois de
+decodificada, mais de 60 MB para as quatro. Em 1200 × 210 são 1,0 MB cada. Um
+WebP pequeno não é uma imagem pequena.
+
+**`background-image` mora dentro do `@media (hover: hover)`**, não no estilo
+em linha do elemento. O navegador só baixa e decodifica o arquivo que alguma
+regra aplicada de fato pede — então no celular, onde o hover não existe, as
+quatro ilustrações não são baixadas nem decodificadas. (E `hover: hover`
+também evita o estado que fica PRESO depois do toque numa tela sensível, que
+deixaria a arte acesa na última faixa tocada.)
+
+**A área a manter calma** é o terço da esquerda, onde cai o rótulo: no arquivo
+de 1200 × 210, x de 30 a 440 e y de 60 a 150. Fora desse retângulo a arte pode
+encher. As quatro atuais respeitam isso — o desenho vive na ponta direita.
+
+Arquivos: `public/tema-{moss,nockout,candy,midnight}.webp`. O nome entra em
+`temas.js` como `arte`, **sem barra na frente** (o endereço sai de
+`BASE_URL + nome`, e `/arte.webp` viraria `//arte.webp`, outro domínio). O
+campo é opcional: faixa sem `arte` não desenha camada nenhuma, e arquivo que
+deu 404 simplesmente não pinta — fica a cor cheia de sempre.
+
 ### O menu de dados e o pop-up de Backup
 **Um nome por assunto, nos dois lugares.** O item do menu e o título do painel
-que ele abre usam a MESMA palavra: Nuvem · Atividades · Capas · Backup. Antes
+que ele abre usam a MESMA palavra: Nuvem · Capas · Backup. Antes
 "Enviar capas" abria "Capas em massa" e "Nuvem — em dia" abria "Sincronizar
 com o GitHub" — quem clicava chegava numa tela que parecia outra.
 
@@ -3314,11 +3676,12 @@ de quem digitou — é o estado normal de quem já usava o app, ou de um navegad
 novo. Conta de OUTRO e-mail é outra história, e aí o aviso vermelho está certo:
 *"Este navegador tem conta com outro e-mail."*
 
-**O cadastro diz que a coleção está a salvo.** A primeira pergunta de quem vê
-uma tela de cadastro onde antes havia uma estante é "cadê a minha coleção?". O
-aviso responde antes de ser perguntado — e só aparece quando há o que
-tranquilizar: num navegador vazio, "suas 142 obras continuam aqui" seria uma
-frase sobre nada.
+**O cadastro dizia que a coleção estava a salvo — e não diz mais.** O aviso
+("as N obras que já estavam neste navegador continuam aqui") foi retirado na
+limpeza de textos. Era uma frase correta respondendo a uma pergunta que a tela
+levantava: explicar que o cadastro não apaga a estante faz pensar que podia
+apagar. O comportamento continua o mesmo, e está verificado logo abaixo; o que
+saiu foi só a legenda.
 
 ### Por que a coleção sobrevive
 
@@ -3330,3 +3693,219 @@ Vale repetir porque o contrário seria catastrófico e silencioso — e porque o
 caminho ao lado faz exatamente isso: `apagarConta` passa pelo `applyData` com a
 coleção vazia. Os dois mexem nas mesmas três chaves; só um deles também zera a
 estante.
+
+---
+
+## A ficha da obra virou o lugar de editar a relação
+
+Situação e Anotação **saíram do editor** e passaram a morar na ficha
+(`DetailSheet.jsx`), editáveis ali mesmo.
+
+A divisão que isso cria vale mais que a mudança de lugar:
+
+> O editor descreve a OBRA. A ficha descreve a sua RELAÇÃO com ela.
+
+Título, autoria, editora, país e tipo existiriam igual se a obra não fosse
+sua. Status, urgência, leitura, nota, valor pago e anotação só existem porque
+ela é. E são justamente os que mudam toda semana, enquanto o resto nunca muda.
+Abrir um formulário de doze campos para marcar "li" era pedir o gesto grande
+para a mudança pequena — e logo para a que acontece mais.
+
+**Salva sozinho, sem botão.** Não há o que confirmar: cada controle é uma
+decisão completa em si, e um "Salvar" aqui só serviria para alguém esquecer de
+apertar. **A anotação é a exceção** — guarda no `blur`, não a cada tecla.
+Escrevendo direto no store, cada letra viraria uma gravação em disco e um
+agendamento de envio para a nuvem.
+
+**As normalizações são as MESMAS do editor, de propósito** (`gravar()`, em
+`Situacao`): obra que não é sua não tem valor pago nem nota; obra que é sua não
+é "urgente", porque urgência é a pressa de comprar. Sem isso, a ficha deixaria
+para trás combinações que o editor nunca produz, e os dois caminhos passariam a
+gerar obras diferentes a partir da mesma escolha.
+
+**Para série e box, nada disso aparece.** Ali status, leitura, nota e valor são
+de cada volume, e a lista de volumes logo abaixo é onde eles moram. Uma "nota
+da série" seria uma média disfarçada de escolha.
+
+**A ficha precisa reler a obra do store a cada render:**
+
+```js
+const obra = (obraAberta && obras.find(o => o.id === obraAberta.id)) || obraAberta
+```
+
+Sem isso ela mostra o retrato tirado na hora de abrir: a edição grava certo e a
+tela não reage. É o tipo de bug que parece "não salvou".
+
+### Os controles de formulário saíram para `Campos.jsx`
+
+`Switch`, `CheckTile`, `lbl` e `box` moravam dentro do `Editor.jsx` enquanto o
+editor era o único lugar onde se escrevia sobre uma obra. Deixou de ser. Dois
+arquivos usando controles duplicados é o tipo de coisa que diverge sem ninguém
+perceber: um ganha um estado de foco, o outro não, e a mesma pergunta passa a
+ter duas caras dependendo da porta por onde se entrou.
+
+### Lido e a fila dividem a linha, e um substitui o outro
+
+`Lido` e `Salvar na fila` ficam lado a lado. **Ao marcar Lido, o botão da fila
+dá lugar às estrelas.** Os três nunca são úteis ao mesmo tempo: fila é o que se
+vai ler, nota é o que já se leu. Mostrar os dois obrigaria a desenhar a
+pergunta "qual destes se aplica?" que a própria marcação já responde.
+
+Dar nota ao que não se leu é pergunta sem resposta possível — por isso as
+estrelas não existem antes do visto, e desmarcar Lido zera a nota.
+
+**São TRÊS na mesma linha**, com o valor pago: quanto custou, já leu, e o que
+falta fazer com isso. São as três perguntas que se fazem de um gibi que já está
+na estante, e empilhadas viravam três blocos para um assunto só.
+
+**O campo de valor tem 100px fixos.** Em largura inteira ele era o elemento
+mais pesado da ficha para guardar "R$ 29,90" — oito caracteres ocupando 409.
+Campo de tamanho fixo também diz, só pela forma, que ali cabe pouco.
+
+**`items-end`, não `items-center`:** o campo de valor tem rótulo em cima e os
+outros dois não, então alinhar pelo centro deixaria o "Lido" flutuando meio
+dedo acima da linha de base dos controles.
+
+**A vaga é `flex-1`, e por isso o "Lido" não anda ao trocar de ocupante.** Ele
+vem ANTES do elemento elástico, e quem absorve a diferença é sempre quem vem
+depois. (Antes do campo de valor entrar na linha, isso exigia uma largura fixa
+de 210px na vaga; com três elementos, o elástico no último resolve de graça.)
+
+Medido nos dois estados, desktop: campo 100@831, "Lido" 85@941, vaga 214@1036,
+altura 58 — **idênticos** antes e depois de marcar Lido.
+
+**`min-w-[200px]` + `flex-wrap` em vez de ponto de quebra por tela.** Abaixo de
+uns 405px de linha não há como pôr os três lado a lado sem espremer "Salvar na
+fila" até sumir. Escolher o ponto por tamanho de tela erraria, porque a ficha é
+larga no desktop e estreita no celular com a MESMA janela — ela é um painel de
+460px num caso e tela cheia no outro. A vaga declara a largura mínima de que
+precisa e desce sozinha quando não cabe: no celular, valor e "Lido" ficam na
+primeira linha e a vaga ocupa a segunda inteira (325px).
+
+> **Medir isto logo depois de trocar o tamanho da janela engana.** Sem recarregar,
+> a ficha fica com a geometria do tamanho anterior e a vaga mede 368px numa tela
+> de 375 — que parece transbordamento e não é. Recarregando, dá 325 e
+> `scrollWidth === innerWidth`.
+
+#### A caixa de nota
+
+As estrelas ganharam moldura e o nome "Nota" (`CaixaNota`). Soltas, não liam
+como um campo: liam como um enfeite que apareceu — o "Lido" tem contorno, o
+botão da fila tem contorno, e no meio deles a nota era a única coisa flutuando.
+A moldura põe os dois ocupantes da vaga na mesma forma, que é o que faz um
+parecer ter dado lugar ao outro.
+
+**O nome vai DENTRO da caixa**, e não como rótulo em cima ao jeito de "Valor
+pago": um rótulo acima cresceria a linha para cima e empurraria o "Lido" —
+justamente o que a largura fixa existe para evitar.
+
+Estrelas de 20px em vez de 24, para caber o rótulo e o ×; o alvo de toque
+continua de 42px, que é a altura da caixa. Conteúdo com os vãos: 178px dentro
+de 192 úteis, com as cinco estrelas e o ×. É apertado de propósito e está
+medido — mexer no rótulo ou no tamanho das estrelas exige medir de novo, e a
+conta tem de fechar contra o `min-w` da vaga, não contra a largura do desktop.
+
+#### Máscara de dinheiro só existe em campo controlado
+
+O campo de valor pago nasceu aqui com `defaultValue` + `onBlur`, para não
+gravar no disco a cada tecla. Com isso **a máscara nunca rodou**: `defaultValue`
+é lido uma vez, na montagem, e depois o React não toca mais no campo. Digitava-se
+`2990` e ficava `2990` na tela, sem virar `R$ 29,90` nunca. O Editor sempre
+funcionou porque lá o campo é controlado (`value` + `onChange`).
+
+A solução é um **rascunho local**: o campo é controlado por um `useState`
+próprio, cada tecla reformata na tela, e só o `blur` grava no store. As duas
+coisas que pareciam incompatíveis — formatar a cada tecla e gravar uma vez só —
+eram incompatíveis apenas enquanto o único estado era o do store.
+
+O `useEffect` que sincroniza com o valor de fora existe porque trocar o status
+para "Quero" zera `valorPago` (ver `gravar`); sem ele, o campo voltaria a
+exibir o rascunho antigo quando a obra voltasse para "Tenho". **Só sincroniza
+com o campo sem foco** — sincronizar durante a digitação faria o cursor saltar.
+
+Verificado com digitação real: `2990` → `R$ 0,02`, `R$ 0,29`, `R$ 2,99`,
+`R$ 29,90`, e `45,50` no store depois do clique fora, com o painel "Investido"
+do topo acompanhando.
+
+> `inp.blur()` por script NÃO dispara o `onBlur` do React neste painel. Num
+> teste automatizado isso lê como "não gravou". Com clique de verdade, grava.
+
+**O "limpar" virou um ×.** `EstrelasInput` ganhou a prop `limpar` (padrão
+`true`, então Editor e Fila não mudaram); a ficha passa `false` e desenha o
+próprio botão, que ocupa 18px em vez de 44. Sem ele não haveria como voltar a
+zero: clicar na estrela marcada vai para a metade dela, e da metade volta para
+a inteira — zero é inalcançável pelas estrelas.
+
+### O cabeçalho da ficha: estado à esquerda, ação à direita
+
+**Esquerda:** fixar e urgente. São ESTADOS da obra — ela é o destaque da
+grade, ela é urgente.
+**Direita:** duplicar, Editar, fechar. São AÇÕES sobre a ficha.
+
+A divisão se lê sem legenda, e nenhum botão que liga e desliga fica encostado
+num que dispara e acaba.
+
+**Os dois da esquerda têm contorno permanente.** Botão que acende precisa de
+moldura já apagado: sem ela, o estado ligado não parece ligado, parece um botão
+que surgiu do nada onde não havia nada.
+
+> **Armadilha:** `.neo-icon` traz `border-0`. Pedir só a COR da borda
+> (`!border-rust`) pinta uma linha de zero pixel e nenhum contorno aparece. O
+> `!border` tem de ser explícito.
+
+**Urgente é só ícone, e vermelho nos dois estados.** Era uma caixa de marcação
+de largura inteira no corpo para uma coisa que é sim ou não. Urgência é a única
+coisa da tela que usa rust, então a cor identifica o botão antes de dizer se
+ele está aceso. Ligado = fundo `tinta-rust` (`#f0e2da`) e um VISTO de 14px
+encostado no canto superior direito, com `ring-2 ring-surface`. O triângulo não
+muda: quem carrega o estado é o par fundo+visto, e o visto é o que diz "está
+marcado" para quem não lê a diferença entre um branco e um rosa muito claro.
+Forma além de cor, como no resto do app. O canto é o de cima à direita porque é
+onde o triângulo afina; embaixo o visto cairia sobre a base, que é a parte
+larga da figura.
+
+**Urgente só aparece em obra avulsa que você ainda NÃO tem** — urgência é a
+pressa de conseguir, e o que já está na estante não tem pressa nenhuma. Em
+série, a pressa é de cada volume.
+
+**Fixado pinta a faixa inteira em `moss`** (o acento do tema da vez, então
+acompanha o tema sozinho); solto fica com o contorno `contorno` e fundo
+transparente.
+
+### O link do Guia dos Quadrinhos encolheu
+
+Era um botão de largura inteira competindo com o conteúdo da ficha. Virou texto
+de apoio alinhado à direita (`text-apoio text-ink-faint`), com uma setinha de
+saída. Continua sendo o mesmo atalho de sempre — **nunca raspagem**, ver a
+seção própria.
+
+---
+
+## Limpeza de textos
+
+Saíram da interface, sem substituto:
+
+- *"Sem senha: mandamos um código para o seu e-mail."*
+- *"Depois mandamos um código para confirmar o e-mail."*
+- *"As N obras que já estavam neste navegador continuam aqui — a conta é nova,
+  a coleção não. Criar a conta não mexe nela."*
+- *"A escolha vale na hora e fica guardada neste navegador."*
+
+Trocados:
+
+| antes | agora |
+|---|---|
+| Serve para o filtro de conteúdo adulto. Não aparece para ninguém. | Essa informação não será compartilhada. |
+| Nada por aqui. Sua coleção está vazia neste preview. Clique em Backup (no topo) e carregue seu gibiteca-dados.json pra ver tudo aqui. | Sua coleção está vazia! Adicione uma nova obra por aqui, para organizarmos tudo. |
+| voce@exemplo.com | nome@exemplo.com |
+
+O fio comum: **explicar o mecanismo levanta a dúvida que ele deveria acalmar.**
+Dizer que criar a conta não apaga a coleção faz pensar que podia apagar; dizer
+que a data de nascimento "não aparece para ninguém" faz pensar em quem poderia
+vê-la. A versão curta afirma, a longa se defende.
+
+O vazio da coleção ficou com **dois títulos diferentes** (`Collection.jsx`), e
+isso é regra, não detalhe: estante vazia é um convite — não há o que fazer além
+de começar. Filtro sem resultado é um beco — a coleção existe, o recorte é que
+não achou nada, e o que se faz é mexer no recorte. Um título só para os dois
+mandaria a mesma pessoa fazer coisas opostas.

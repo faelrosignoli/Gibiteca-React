@@ -15,13 +15,27 @@ export default {
         // Uma tinta só, quatro papéis, tudo por opacidade — como o United
         // Carriers faz. Vantagem sobre cores sólidas: o texto continua legível
         // sobre qualquer superfície, inclusive sobre uma capa colorida.
+        /* A TINTA SAI DE `--tinta`, e por isso a rampa inteira pode VIRAR DO
+           AVESSO num contexto só. Era `rgba(33,33,33,α)` cravado: sobre uma
+           superfície escura — o rodapé — os cinco degraus sumiam de uma vez, e
+           a única saída seria reescrever cada classe no componente.
+
+           Com a variável, o contexto escuro declara `--tinta: var(--paper)` e
+           os cinco degraus se invertem juntos, mantendo as MESMAS proporções
+           entre eles. Não é um tema escuro: é a mesma rampa, pela outra ponta.
+
+           O valor padrão vive no `:root` do index.css. Fora do rodapé nada
+           muda — conferido degrau a degrau. */
         ink: {
-          DEFAULT: 'rgba(33,33,33,1)',      // texto forte
-          soft:    'rgba(33,33,33,.78)',    // subtítulo
-          faint:   'rgba(33,33,33,.56)',    // apoio
-          mute:    'rgba(33,33,33,.38)',    // desabilitado
-          sussurro:'rgba(33,33,33,.10)',    // marca-d'água: lê como textura, não como texto
-          2:       '#2c2c2c',               // hover de superfície escura
+          /* `<alpha-value>` só no cheio: é o único que recebe modificador de
+             opacidade no projeto (`ring-ink/30`, `ring-ink/40`). Os outros já
+             carregam o seu, e dois alfas na mesma cor não se somam. */
+          DEFAULT: 'rgb(var(--tinta) / <alpha-value>)',   // texto forte
+          soft:    'rgb(var(--tinta) / .78)',   // subtítulo
+          faint:   'rgb(var(--tinta) / .56)',   // apoio
+          mute:    'rgb(var(--tinta) / .38)',   // desabilitado
+          sussurro:'rgb(var(--tinta) / .10)',   // marca-d'água: lê como textura, não como texto
+          2:       '#2c2c2c',                   // hover de superfície escura
         },
         /* O ACENTO é temável: os valores moram em variáveis no index.css, e
            trocar o tema repinta os ~100 usos de uma vez. Canais separados por
@@ -54,13 +68,17 @@ export default {
         // ---- véus de tinta, nomeados por PAPEL ----
         // Antes eram 12 opacidades avulsas espalhadas pelos componentes.
         // O componente pede a função, não o tom.
-        linha:     'rgba(33,33,33,.08)',    // fio de 1px, separação sutil
-        separador: 'rgba(33,33,33,.12)',    // divisória com presença
+        /* Os véus seguem a mesma `--tinta`: um fio escuro sobre fundo escuro
+           não é um fio. Invertem junto com o texto, no mesmo contexto. */
+        linha:     'rgb(var(--tinta) / var(--a-linha))',     // fio de 1px, separação sutil
+        separador: 'rgb(var(--tinta) / var(--a-separador))', // divisória com presença
         // Contorno de CAMPO. Separador é véu de divisória: num formulário
         // inteiro de caixas ele some, e a tela vira creme sobre creme. Aqui o
         // fio precisa dizer onde o campo começa e onde termina.
-        contorno:  'rgba(33,33,33,.24)',    // borda de input, botão, seletor
-        toque:     'rgba(33,33,33,.055)',   // fundo de hover
+        contorno:  'rgb(var(--tinta) / var(--a-contorno))',  // borda de input, botão, seletor
+        toque:     'rgb(var(--tinta) / var(--a-toque))',     // fundo de hover
+        /* O véu NÃO segue a tinta: ele escurece a tela atrás de um pop-up, e
+           tem de ser escuro em qualquer contexto. Invertido, clarearia. */
         veu:       'rgba(33,33,33,.5)',     // backdrop de modal
 
         // ---- tintas pálidas de estado ----

@@ -48,7 +48,11 @@ export default function Estrelas({ n, tamanho = 'w-4 h-4', className = '' }) {
 }
 
 /* edição — clicar na mesma estrela alterna entre inteira e metade */
-export function EstrelasInput({ value = 0, onChange, tamanho = 'w-6 h-6' }) {
+/* `limpar` existe porque não dá para chegar a zero clicando nas estrelas: o
+   clique na estrela já marcada vai para a metade dela, e da metade volta para
+   a inteira. Quem desenha o controle dentro de uma caixa estreita desliga o
+   atalho e oferece outro caminho para zerar — ver a caixa de nota da ficha. */
+export function EstrelasInput({ value = 0, onChange, tamanho = 'w-6 h-6', limpar = true }) {
   return (
     <div className="inline-flex items-center gap-1">
       {[1, 2, 3, 4, 5].map(i => (
@@ -61,7 +65,7 @@ export function EstrelasInput({ value = 0, onChange, tamanho = 'w-6 h-6' }) {
           <Estrela cheio={quanto(value, i)} tamanho={tamanho} />
         </button>
       ))}
-      {value > 0 && (
+      {limpar && value > 0 && (
         <button type="button" onClick={() => onChange(0)} className="ml-2 text-apoio text-ink-faint underline">
           limpar
         </button>
