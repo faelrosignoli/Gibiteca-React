@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1792900836100,
- "updated": "2026-10-25T04:00:36.100Z",
+ "atualizadoEm": 1792900838860,
+ "updated": "2026-10-25T04:00:38.860Z",
  "obras": [
   {
    "id": 1,
@@ -2625,8 +2625,8 @@
    "status": "biblioteca",
    "urgencia": false,
    "valorPago": 44.9,
-   "lido": true,
-   "nota": 5
+   "lido": false,
+   "nota": 0
   },
   {
    "id": 161,
