@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793052155533,
- "updated": "2026-10-26T22:02:35.533Z",
+ "atualizadoEm": 1793052158644,
+ "updated": "2026-10-26T22:02:38.644Z",
  "obras": [
   {
    "id": 1,
@@ -9514,7 +9514,13 @@
    "id": 521,
    "nome": "Caravaggio",
    "tipo": "serie",
-   "imagem": null,
+   "origem": "nacional",
+   "editora": "Veneta",
+   "pais": "Itália",
+   "adulto": true,
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
    "volumes": [
     {
      "nome": "Caravaggio — Vol. 1",
@@ -9539,9 +9545,7 @@
      "nota": 0
     }
    ],
-   "origem": "nacional",
-   "editora": "Veneta",
-   "pais": "Itália",
+   "imagem": null,
    "roteirista": "",
    "desenhista": "",
    "status": "wishlist",
