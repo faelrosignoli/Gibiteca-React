@@ -8,14 +8,14 @@ import { useStore } from '../lib/store.jsx'
 import { linkDoGuia } from '../lib/catalogo.js'
 import { Switch, CheckTile, lbl, box } from './Campos.jsx'
 import { EstrelasInput } from './Estrelas.jsx'
-import { coverOf, tipoOf, edOf, edicaoDe, isImp, authorsOf, paisesOf, unitsForStatus, avgNota, unitsOf, ownedCount, sumValor, fmtBRL, statusMatch, initials, classeTinta, volumesSemCapa, naFila, podeEnfileirar , moneyFormat, moneyToNumber } from '../lib/helpers.js'
+import { coverOf, tipoOf, edOf, edicaoDe, isImp, authorsOf, capaVelada, unitsForStatus, unitsOf, ownedCount, initials, classeTinta, volumesSemCapa, naFila, podeEnfileirar, moneyFormat, moneyToNumber } from '../lib/helpers.js'
 
 /* ------------------------------------------------------------------
    SITUAÇÃO E ANOTAÇÃO, EDITÁVEIS AQUI MESMO
 
    Estavam dentro do editor, numa seção chamada "Situação". Saíram de lá
    porque não são da mesma natureza do resto do editor: título, autoria,
-   editora e país descrevem a OBRA — existiriam igual se ela não fosse sua.
+   editora e origem descrevem a OBRA — existiriam igual se ela não fosse sua.
    Status, urgência, leitura, nota e anotação descrevem a sua RELAÇÃO com
    ela, e mudam toda semana enquanto o resto nunca muda.
 
@@ -159,14 +159,132 @@ function Situacao({ obra }) {
   )
 }
 
-function Numero({ rotulo, valor, sub, capitalizar }) {
+/* A CAPA DA FICHA — a única que revela.
+ *
+ * No cartão e na lista a capa de obra +18 fica velada e pronto: ali não há
+ * como segurar nada, e revelar no hover acenderia capa adulta a cada passada
+ * de mouse numa grade inteira.
+ *
+ * Aqui é diferente porque aqui já houve uma escolha: você abriu ESTA obra. O
+ * gesto de segurar é o que separa "quero ver" de "esbarrei" — um toque
+ * acidental não revela, e soltar devolve o véu sozinho, sem precisar desfazer
+ * nada. É o mesmo princípio do "segure para falar": a ação dura o tempo da
+ * intenção.
+ *
+ * ---- O SELO ----
+ *
+ * Disco com borda em rust, na frente da capa. Ele é a única coisa desta tela
+ * que usa rust além da urgência, e pode: as duas são avisos, e nunca aparecem
+ * no mesmo canto. Sai junto com o véu — enquanto a capa está revelada, o selo
+ * já disse o que tinha a dizer, e cobrir a arte que a pessoa pediu para ver
+ * seria desfazer o próprio gesto. O `+18` da linha de selos continua lá.
+ *
+ * ---- TECLADO ----
+ *
+ * `onKeyDown`/`onKeyUp` com Enter e Espaço espelham o segurar. Sem isso a
+ * revelação seria exclusiva de quem usa ponteiro — e a capa é `<button>`
+ * justamente para estar no caminho do foco.
+ *
+ * `onPointerLeave` e `onPointerCancel` junto do `onPointerUp`: o dedo que
+ * escorrega para fora e a chamada que interrompe o toque precisam devolver o
+ * véu também, senão ele fica preso aberto.
+ */
+function CapaDaFicha({ obra, src }) {
+  const { verAdulto } = useStore()
+  const [revelada, setRevelada] = useState(false)
+  const velar = capaVelada(obra, verAdulto)
+
+  /* Trocando de obra, o véu volta: a decisão de revelar foi sobre AQUELA capa.
+     Sem isto, abrir uma obra adulta logo depois de revelar outra já a mostraria
+     aberta. */
+  useEffect(() => { setRevelada(false) }, [obra.id])
+
+  const caixa = 'w-24 sm:w-28 shrink-0 self-start aspect-square relative flex items-center justify-center overflow-hidden rounded-pequeno'
+
+  const miolo = src
+    ? <img src={src} alt=""
+        className={`absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno
+          shadow-[0_18px_30px_-18px_rgba(33,33,33,.55)]
+          ${velar ? (revelada ? 'capa-revelada' : 'capa-velada') : ''}`} />
+    : <div className={`w-full h-full flex items-center justify-center text-sobre-tinta ${classeTinta(edOf(obra) || obra.nome)}`}>
+        <span className="font-display font-semibold text-titulo leading-none">{initials(obra.nome)}</span>
+      </div>
+
+  if (!velar) return <div className={caixa}>{miolo}</div>
+
+  const solta = () => setRevelada(false)
+
   return (
-    <div className="bg-surface px-3.5 py-3">
-      <dt className="font-rotulo text-rotulo uppercase text-ink-faint">{rotulo}</dt>
-      <dd className="mt-1.5 flex items-baseline gap-1.5 min-w-0">
-        <span className={`font-mono text-secao text-ink tabular-nums truncate ${capitalizar ? 'capitalize' : ''}`}>{valor}</span>
-        {sub ? <span className="text-apoio text-ink-faint shrink-0">{sub}</span> : null}
-      </dd>
+    <button
+      type="button"
+      className={`${caixa} cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ink/40 focus-visible:ring-offset-2 focus-visible:ring-offset-surface`}
+      aria-label={revelada ? 'Soltando, a capa volta a ficar embaçada' : 'Segure para ver a capa — conteúdo para maiores de 18'}
+      title="Segure para ver a capa"
+      onPointerDown={() => setRevelada(true)}
+      onPointerUp={solta}
+      onPointerLeave={solta}
+      onPointerCancel={solta}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setRevelada(true) } }}
+      onKeyUp={e => { if (e.key === 'Enter' || e.key === ' ') solta() }}
+      onBlur={solta}
+    >
+      {miolo}
+      <span
+        aria-hidden="true"
+        className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200
+          ${revelada ? 'opacity-0' : 'opacity-100'}`}
+      >
+        <span className="inline-flex items-center justify-center w-11 h-11 rounded-full
+                         border-2 border-rust bg-surface/85 text-rust
+                         font-rotulo text-rotulo font-bold tracking-tight">
+          +18
+        </span>
+      </span>
+    </button>
+  )
+}
+
+/* A AUTORIA, com os dois primeiros à vista e o resto atrás de um "+N".
+ *
+ * Uma obra de cinco autores enchia três linhas logo abaixo do título e
+ * empurrava tudo o mais para fora da tela — e ninguém abre uma ficha para
+ * conferir o quinto nome da ficha técnica. Os dois primeiros respondem "de
+ * quem é isto?"; o resto é consulta, e consulta pede um clique.
+ *
+ * DOIS, e não três ou quatro: é quase sempre o roteirista e o desenhista, que
+ * é a dupla que nomeia um quadrinho. O corte cai exatamente onde a informação
+ * deixa de ser identificação e passa a ser elenco.
+ *
+ * O "+N" vira "−" ao abrir, e o resto dos nomes entra DENTRO do mesmo span da
+ * lista — não como irmão dele. Separados, o vão do `flex` abria um buraco
+ * antes da vírgula e a frase lia "Fulano, Beltrano , Sicrano".
+ */
+function Autores({ obra }) {
+  const todos = authorsOf(obra)
+  const [aberto, setAberto] = useState(false)
+  if (!todos.length) return null
+
+  const visiveis = todos.slice(0, 2)
+  const resto = todos.slice(2)
+
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-corpo text-ink-soft">
+      <span className="min-w-0">
+        {visiveis.join(', ')}
+        {aberto && resto.length > 0 && `, ${resto.join(', ')}`}
+      </span>
+      {resto.length > 0 && (
+        <button
+          type="button"
+          onClick={() => setAberto(a => !a)}
+          aria-expanded={aberto}
+          title={aberto ? 'Mostrar menos' : `Ver todos os ${todos.length} autores`}
+          className="shrink-0 rounded-full border border-contorno px-2 py-px text-rotulo font-rotulo
+                     text-ink-faint hover:text-ink hover:bg-toque transition-colors"
+        >
+          {aberto ? '−' : `+${resto.length}`}
+        </button>
+      )}
     </div>
   )
 }
@@ -513,79 +631,112 @@ export default function DetailSheet({ obra: obraAberta, onClose, onEdit, onDupli
             </div>
             <div className="flex-1 overflow-auto">
 
-              {/* ---- título, com a largura inteira para quebrar ---- */}
-              <div className="px-5 pt-5">
-                {edOf(obra) && (
-                  <div className="font-rotulo text-rotulo uppercase text-acento-texto">{edOf(obra)}</div>
-                )}
-                <h2 className="mt-2 font-display text-titulo text-ink break-words">{obra.nome}</h2>
-              </div>
+              {/* ---- CAPA E IDENTIDADE, lado a lado ----
+                  Antes o título ocupava uma faixa própria e a capa dividia a
+                  linha seguinte com uma grade de quatro números. A grade saiu
+                  (ver abaixo) e, sem ela, a capa ficaria sozinha ao lado de um
+                  vazio — então o título desceu para o lado dela, que é onde ele
+                  sempre quis estar: capa e nome são a mesma informação dita de
+                  dois jeitos, e lê-las juntas é mais rápido que lê-las em
+                  sequência.
 
-              {/* ---- capa quadrada + números da obra ---- */}
-              <div className="flex gap-4 px-5 pt-4 pb-5">
-                {/* caixa QUADRADA, como na galeria. A capa fica contida dentro,
-                    sem recorte; o placeholder preenche o quadrado. */}
-                <div className="w-24 sm:w-28 shrink-0 self-start aspect-square relative flex items-center justify-center">
-                  {coverOf(obra, filters.status)
-                    ? <img src={coverOf(obra, filters.status)} alt="" className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_18px_30px_-18px_rgba(33,33,33,.55)]" />
-                    : <div className={`w-full h-full flex items-center justify-center text-sobre-tinta ${classeTinta(edOf(obra) || obra.nome)}`}>
-                        <span className="font-display font-semibold text-titulo leading-none">{initials(obra.nome)}</span>
-                      </div>}
-                </div>
+                  A capa continua em caixa QUADRADA, como na galeria: a imagem
+                  fica contida dentro, sem recorte, e o placeholder preenche. */}
+              <div className="flex gap-4 px-5 pt-5 pb-4">
+                <CapaDaFicha obra={obra} src={coverOf(obra, filters.status)} />
 
-                {/* números com régua, nunca crus */}
-                <dl className="flex-1 min-w-0 grid grid-cols-2 gap-px bg-linha rounded-medio overflow-hidden border border-linha self-start">
-                  <Numero rotulo="Status" valor={statusMatch(obra, 'biblioteca') ? 'Tenho' : 'Quero'} />
-                  {multi
-                    ? <Numero rotulo="Na estante" valor={ownedCount(obra)} sub={`de ${unidades}`} />
-                    : <Numero rotulo="Tipo" valor={tipoOf(obra)} capitalizar />}
-                  <Numero rotulo="Nota" valor={avgNota(obra) > 0 ? avgNota(obra).toFixed(1).replace('.', ',') : '—'} sub={avgNota(obra) > 0 ? 'de 5' : null} />
-                  <Numero rotulo="Investido" valor={sumValor(obra) > 0 ? fmtBRL(sumValor(obra)) : '—'} />
-                </dl>
-              </div>
-
-              {/* ---- ficha técnica: rótulo mono à esquerda, valor à direita ---- */}
-              <div className="px-5 pb-5">
-                <dl className="rounded-medio border border-linha overflow-hidden">
-                  {[
-                    ['Tipo', tipoOf(obra)],
-                    ['Edição', edicaoDe(obra)],
-                    ['Origem', isImp(obra) ? 'Importado' : 'Nacional'],
-                    ['País', paisesOf(obra).join(', ')],
-                    ['Autores', authorsOf(obra).join(', ')],
-                    multi ? ['Volumes', `${ownedCount(obra)} de ${unidades}`] : null,
-                  ].filter(l => l && l[1]).map(([k, v], i) => (
-                    <div key={k} className={`flex items-baseline gap-4 px-4 py-2.5 ${i ? 'border-t border-linha' : ''}`}>
-                      <dt className="font-rotulo text-rotulo uppercase text-ink-faint w-[86px] shrink-0">{k}</dt>
-                      <dd className={`text-corpo text-ink min-w-0 ${k === 'Tipo' ? 'capitalize' : ''}`}>{v}</dd>
-                    </div>
-                  ))}
-                </dl>
-                {/* Consultar a ficha da obra onde a edição brasileira está
-                    certa. Link, não consulta: o Guia não tem API.
-
-                    DISCRETO, e não um botão de largura inteira. Ocupando a
-                    linha toda logo abaixo da ficha, ele lia como a ação
-                    principal da tela — e a ação principal daqui é o que você
-                    faz com a SUA obra, não sair do app. Encolhido e alinhado
-                    à direita, continua ao alcance de quem procura por ele e
-                    para de disputar com o resto.
-
-                    O rótulo perdeu o "Ver no": a seta já diz que leva para
-                    fora, e o nome do destino basta. */}
-                <div className="flex justify-end mt-2">
-                  <a href={linkDoGuia(obra.nome)} target="_blank" rel="noopener noreferrer"
-                     title="Abrir a ficha desta obra no Guia dos Quadrinhos"
-                     className="inline-flex items-center gap-1 text-apoio text-ink-faint hover:text-acento-texto
-                                underline underline-offset-2 decoration-linha hover:decoration-current transition-colors">
-                    Guia dos Quadrinhos
-                    <svg className="w-3 h-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                         strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M7 17 17 7M9 7h8v8" />
-                    </svg>
-                  </a>
+                <div className="min-w-0 flex-1">
+                  {edOf(obra) && (
+                    <div className="font-rotulo text-rotulo uppercase text-acento-texto">{edOf(obra)}</div>
+                  )}
+                  <h2 className="mt-1.5 font-display text-secao sm:text-titulo text-ink leading-tight break-words">{obra.nome}</h2>
+                  <Autores key={obra.id} obra={obra} />
                 </div>
               </div>
+
+              {/* ---- OS SELOS, no lugar da ficha técnica ----
+                  Edição e origem eram linhas de uma lista
+                  rotulada — quatro rótulos para quatro palavras. Viram selos
+                  porque são ETIQUETAS: valores curtos de um conjunto fechado,
+                  que se reconhecem pela forma antes de serem lidos. E é a mesma
+                  linguagem do cartão da galeria, então quem já viu a obra na
+                  grade reencontra aqui os mesmos sinais.
+
+                  O status entra junto, e não mais numa célula de painel: ele é
+                  da mesma natureza dos outros: um fato curto sobre a obra. */}
+              <div className="flex flex-wrap gap-1.5 px-5 pb-5">
+                {/* O STATUS E O TIPO SAÍRAM DAQUI.
+
+                    O status porque o seletor Quero/Tenho está logo abaixo, e
+                    um selo acima dele era a mesma pergunta respondida duas
+                    vezes na mesma tela — o eco que esta ficha veio eliminar. O
+                    seletor ganha: ele não só informa, deixa mudar. Em série e
+                    box, onde não há seletor, quem responde é a seção de
+                    Volumes, com o número exato ("2 de 3") em vez de um sim ou
+                    não que seria sempre impreciso.
+
+                    O tipo porque "Avulso" é o caso comum e dizer o óbvio é
+                    ruído: uma obra sem lista de volumes é avulsa, e uma com
+                    lista é série ou box — a própria seção de Volumes mostra
+                    isso melhor do que a palavra. */}
+                {/* +18 VEM PRIMEIRO, e preenchido em tinta cheia: é o único
+                    selo desta linha que muda o que se pode fazer com a obra, e
+                    não só o que ela é. Preto com tinta clara é a cor que a
+                    classificação brasileira usa para o 18 na capa — quem
+                    cadastrou olhando para a capa reencontra o mesmo sinal.
+
+                    Não usa rust de propósito: nesta tela o rust é da urgência,
+                    e duas coisas diferentes na mesma cor deixam as duas mais
+                    fracas. */}
+                {obra.adulto && <span className="pill bg-ink text-paper">+18</span>}
+                {edicaoDe(obra) && <span className="pill pill-edicao">{edicaoDe(obra)}</span>}
+                {/* "EDIÇÃO" NA FRENTE porque sozinhas as palavras eram ambíguas:
+                    "Importado" ao lado do nome de um quadrinho lê como se a OBRA
+                    fosse estrangeira, quando o que é importado é esta edição —
+                    um Batman publicado pela Panini é obra estrangeira e edição
+                    nacional. Com o substantivo na frente, o selo diz de que
+                    está falando.
+
+                    "Importada", no feminino: concorda com edição. */}
+                {isImp(obra)
+                  ? <span className="pill pill-imp">Edição importada</span>
+                  : <span className="pill bg-toque text-ink-soft">Edição nacional</span>}
+
+                {/* O LINK DO GUIA FECHA ESTA LINHA, empurrado para a direita.
+                    Tinha um bloco próprio logo abaixo e, sem a lista rotulada
+                    que ele acompanhava, ficou boiando entre dois espaços em
+                    branco. Ele é "mais sobre esta obra, em outro lugar" — da
+                    mesma natureza dos selos, que é o que a obra É. Na mesma
+                    linha, some um bloco inteiro de altura.
+
+                    Link, e não botão: o Guia não tem API, é só um atalho. E
+                    discreto de propósito — a ação principal desta tela é o que
+                    você faz com a SUA obra, não sair do app. */}
+                <a href={linkDoGuia(obra.nome)} target="_blank" rel="noopener noreferrer"
+                   title="Abrir a ficha desta obra no Guia dos Quadrinhos"
+                   className="ml-auto self-center inline-flex items-center gap-1 text-apoio text-ink-faint
+                              hover:text-acento-texto underline underline-offset-2 decoration-linha
+                              hover:decoration-current transition-colors">
+                  Guia dos Quadrinhos
+                  <svg className="w-3 h-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M7 17 17 7M9 7h8v8" />
+                  </svg>
+                </a>
+              </div>
+
+              {/* A LISTA ROTULADA SAIU DAQUI.
+
+                  Ela trazia Tipo, Edição, Origem, País, Autores e Volumes —
+                  e cinco desses seis já estavam ditos noutro lugar da mesma
+                  tela: tipo e volumes na grade de números logo acima, autores
+                  em lugar nenhum de destaque, origem numa linha de uma
+                  palavra. O país saiu do app inteiro. Agora o que sobrou virou
+                  selo, a autoria subiu
+                  para debaixo do título (onde se procura por ela) e os volumes
+                  têm a seção própria, lá embaixo, que sempre tiveram.
+
+                  O link do Guia subiu para a linha dos selos. */}
 
               {/* `key` na obra: trocando de obra, o componente é outro e o
                   rascunho local da anotação nasce com o texto certo. Sem ela,

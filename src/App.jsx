@@ -22,11 +22,13 @@ import Cloud from './components/Cloud.jsx'
 import BulkCovers from './components/BulkCovers.jsx'
 import AvisoSemEspaco from './components/AvisoSemEspaco.jsx'
 import FichaAtividades from './components/FichaAtividades.jsx'
+import Configuracoes from './components/Configuracoes.jsx'
 import Ajuda from './components/Ajuda.jsx'
 import { baixarBackup } from './lib/backup.js'
 
 export default function App() {
-  const { filters, cloud: cloudCfg, obras, editoras, duplicarObra, desmembrarObra, fila, listas, conta, sessao } = useStore()
+  const { filters, cloud: cloudCfg, obras, editoras, duplicarObra, desmembrarObra, fila, listas, conta, sessao,
+          recemCadastrado, limparRecemCadastrado } = useStore()
 
   /* O PORTÃO: entrou ou não entrou.
    *
@@ -65,9 +67,28 @@ export default function App() {
   const [cloud, setCloud] = useState(false)
   const [bulk, setBulk] = useState(false)
   const [movimentacao, setMovimentacao] = useState(false)
+  const [config, setConfig] = useState(false)
   const [ajuda, setAjuda] = useState(false)
   const [backup, setBackup] = useState(false)
   const [temaAberto, setTemaAberto] = useState(false)
+
+  /* O TEMA ABRE SOZINHO AO FIM DO CADASTRO.
+   *
+   * É a primeira coisa que se pode escolher nesta casa, e a única que muda a
+   * cara do app inteiro — mostrá-la de saída transforma o primeiro segundo de
+   * quem chegou, que seria uma estante vazia, numa escolha.
+   *
+   * Só no CADASTRO, não no login: quem volta já escolheu o tema dele, e
+   * reabrir a cada entrada seria pedir a mesma decisão para sempre.
+   *
+   * A marca é consumida na hora, e vive só em memória — recarregar a página
+   * não é cadastrar de novo. O `limpar` roda ANTES de abrir para o efeito não
+   * reentrar se o React remontar. */
+  useEffect(() => {
+    if (!recemCadastrado) return
+    limparRecemCadastrado()
+    setTemaAberto(true)
+  }, [recemCadastrado, limparRecemCadastrado])
   const [filaAberta, setFilaAberta] = useState(false)
   const [listasAbertas, setListasAbertas] = useState(false)
   const [toast, setToast] = useState('')
@@ -80,7 +101,7 @@ export default function App() {
   const ligado = (v) => (Array.isArray(v) ? v.length > 0 : !!v)
   const filterCount =
     (f.status !== 'todos' ? 1 : 0) + (f.leitura !== 'todos' ? 1 : 0) +
-    ['tipo', 'tipoEdicao', 'editora', 'pais', 'autor', 'importado', 'urgencia']
+    ['tipo', 'tipoEdicao', 'editora', 'autor', 'nota', 'importado', 'urgencia']
       .reduce((n, k) => n + (ligado(f[k]) ? 1 : 0), 0)
 
   const openEditor = (obra) => { setDetail(null); setEditor(obra || {}) }
@@ -151,7 +172,7 @@ export default function App() {
       {/* sem embrulho: o sticky e o espaçamento moram na própria barra agora */}
       <Header
           onCloud={() => setCloud(true)}
-          onBulk={openBulk}
+          onConfig={() => setConfig(true)}
           onAjuda={() => setAjuda(true)}
           onBackup={() => setBackup(true)}
           onTema={() => setTemaAberto(true)}
@@ -189,6 +210,10 @@ export default function App() {
       <SearchOverlay open={search} onClose={() => setSearch(false)} />
       <Stats open={stats} onClose={() => setStats(false)} />
       <FichaAtividades open={movimentacao} onClose={() => setMovimentacao(false)} />
+      <Configuracoes
+        open={config} onClose={() => setConfig(false)}
+        onBulk={openBulk} onBackup={() => setBackup(true)} onNotice={say}
+      />
       <Ajuda open={ajuda} onClose={() => setAjuda(false)} onNotice={say} />
 
       <Cloud open={cloud} onClose={() => setCloud(false)} onNotice={say} />

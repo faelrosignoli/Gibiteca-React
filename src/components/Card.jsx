@@ -7,7 +7,7 @@ import Selos from './Selos.jsx'
 const SO_DESKTOP = 'hidden sm:inline-flex'
 import { MOLA_TOQUE } from '../lib/motion.js'
 import {
-  coverOf, unidadeVitrine, urgenteNaVitrine, tipoOf, edOf, edicaoDe, ownedCount, unitsOf, avgNota,
+  coverOf, unidadeVitrine, urgenteNaVitrine, capaVelada, tipoOf, edOf, edicaoDe, ownedCount, unitsOf, avgNota,
   anyUrg, statusMatch, initials, classeTinta, isImp,
 } from '../lib/helpers.js'
 
@@ -53,8 +53,12 @@ function TypeBadge({ t, count }) {
 export default function Card({ obra, index = 0, onOpen, feature = false, animarEntrada = true }) {
   // com o filtro em "Tenho"/"Quero", a capa vem do volume que combina — mas o
   // título continua sendo o da série: é por ela que a obra é reconhecida
-  const { filters } = useStore()
+  const { filters, verAdulto } = useStore()
   const cover = coverOf(obra, filters.status)
+  /* NO CARTÃO O VÉU NÃO SAI NUNCA: não há como segurar a capa aqui, e uma
+     grade que revelasse no hover acenderia capa adulta a cada passada de
+     mouse. Quem quiser ver abre a ficha, ou liga o ajuste. */
+  const velada = capaVelada(obra, verAdulto)
   const vitrine = unidadeVitrine(obra, filters.status)
   const volDaVez = vitrine ? (vitrine.nome || '').trim() : ''
   const t = tipoOf(obra)
@@ -114,14 +118,14 @@ export default function Card({ obra, index = 0, onOpen, feature = false, animarE
         {/* capa — caixa QUADRADA fixa, para todas as linhas alinharem.
             A capa fica contida dentro dela: formato natural, sem recorte
             (a regra do projeto permite "altura fixa + w-auto"). */}
-        <div className={`relative flex items-center justify-center aspect-square`}>
+        <div className={`relative flex items-center justify-center aspect-square overflow-hidden`}>
           {cover ? (
             /* absolute + inset-0 + m-auto: so assim o max-h-full tem uma
                altura definida para resolver contra, senao a capa alta estica
                a caixa e desalinha a linha inteira */
             <img
               src={cover} alt="" loading="lazy"
- className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_18px_30px_-18px_rgba(33,33,33,.55)]"
+ className={`absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_18px_30px_-18px_rgba(33,33,33,.55)] ${velada ? 'capa-velada' : ''}`}
             />
           ) : (
             <div className={`w-full h-full rounded-medio p-3 sm:p-3.5 flex flex-col text-sobre-tinta shadow-[0_18px_30px_-18px_rgba(33,33,33,.55)] ${classeTinta(edOf(obra) || obra.nome)} ${feature ? 'lg:min-h-[260px]' : ''}`}>

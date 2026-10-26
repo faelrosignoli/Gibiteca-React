@@ -5,7 +5,7 @@ import {
   deveDispensar, usaMovimentoReduzido,
 } from '../lib/motion.js'
 import { useStore } from '../lib/store.jsx'
-import { chaveFila, filaResolvida, capaDaFila, autorDaFila, podeEnfileirar, edOf, edicaoDe, isImp, initials, classeTinta } from '../lib/helpers.js'
+import { chaveFila, filaResolvida, capaDaFila, autorDaFila, podeEnfileirar, capaVelada, edOf, edicaoDe, isImp, initials, classeTinta } from '../lib/helpers.js'
 import { EstrelasInput } from './Estrelas.jsx'
 
 /* A FILA DE LEITURA.
@@ -90,7 +90,11 @@ function PopupNota({ alvo, onFechar, onConfirmar }) {
 function Linha({ item, aoLer, aoTirar, aoEditar }) {
   const arrasto = useDragControls()
   const reduzido = usaMovimentoReduzido()
+  const { verAdulto } = useStore()
   const capa = capaDaFila(item)
+  /* O véu olha a OBRA, não a unidade: a marca de +18 é da obra inteira, e um
+     volume solto na fila herda a decisão dela. */
+  const velada = capaVelada(item.obra, verAdulto)
   const autor = autorDaFila(item)
   const editora = edOf(item.obra)
   const edicao = edicaoDe(item.obra)
@@ -143,7 +147,7 @@ function Linha({ item, aoLer, aoTirar, aoEditar }) {
             faixas vazias. Aqui o desenho ocupa a caixa inteira. */}
         <div className="w-[52px] h-[70px] shrink-0 relative flex items-center justify-center">
           {capa
-            ? <img src={capa} alt="" loading="lazy" className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_8px_16px_-9px_rgba(33,33,33,.55)]" />
+            ? <img src={capa} alt="" loading="lazy" className={`absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_8px_16px_-9px_rgba(33,33,33,.55)] ${velada ? 'capa-velada' : ''}`} />
             : <div className={'w-full h-full rounded-pequeno flex items-center justify-center ' + classeTinta(editora || item.titulo)}>
                 <span className="font-display font-semibold text-obra leading-none text-sobre-tinta">{initials(item.titulo)}</span>
               </div>}

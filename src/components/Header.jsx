@@ -84,7 +84,7 @@ function useRolado() {
  * `1fr auto 1fr`, e é ela que centra o logo — tirando as laterais, o centro
  * deixaria de ser o centro e o logo escorregaria para a esquerda.
  */
-export default function Header({ onCloud, onBulk, onAjuda, onBackup, onTema, onFila, onListas, onFilters, onStats, onSearch, filterCount, aberturaNoAr = false, soMarca = false }) {
+export default function Header({ onCloud, onConfig, onAjuda, onTema, onFila, onListas, onFilters, onStats, onSearch, filterCount, aberturaNoAr = false, soMarca = false }) {
   const { obras, editoras, loadBackup, sync, view, setView, filters, perfil } = useStore()
   const aoInicio = useVoltarAoInicio()
   const rolado = useRolado()
@@ -206,8 +206,7 @@ export default function Header({ onCloud, onBulk, onAjuda, onBackup, onTema, onF
       onFila={() => { fechar(); onFila?.() }}
       onListas={() => { fechar(); onListas?.() }}
       onStats={() => { fechar(); onStats?.() }}
-      onBulk={() => { fechar(); onBulk?.() }}
-      onBackup={() => { fechar(); onBackup?.() }}
+      onConfig={() => { fechar(); onConfig?.() }}
       onAjuda={() => { fechar(); onAjuda?.() }}
     />
   )
@@ -381,7 +380,7 @@ export default function Header({ onCloud, onBulk, onAjuda, onBackup, onTema, onF
 }
 
 /* ---------------------------------------------------------------
-   O CONTEÚDO DO MENU — oito portas, uma lista, sem gaveta.
+   O CONTEÚDO DO MENU — sete portas, uma lista, sem gaveta.
 
    ANTES HAVIA UM GRUPO: "Seus dados" abria uma sanfona com Perfil,
    Atividades, Capas e Backup dentro. A ideia era agrupar por assunto, e o
@@ -404,7 +403,7 @@ export default function Header({ onCloud, onBulk, onAjuda, onBackup, onTema, onF
      Ajuda           a saída de quem não achou — em apoio
 
    TRÊS PORTES, e não nove linhas iguais. Uma lista achatada obriga a ler os
-   oito rótulos para achar o primeiro; com a primeira linha maior e a última
+   sete rótulos para achar o primeiro; com a primeira linha maior e a última
    menor, o olho pega as pontas antes de ler qualquer palavra. Perfil é o que
    a maioria abre, Ajuda é o que quase ninguém abre — e o tamanho diz isso
    sem precisar de uma régua, de um título de seção ou de uma gaveta.
@@ -434,7 +433,7 @@ const PORTE = {
 }
 
 
-function ConteudoMenu({ sync, foto, nome, onPerfil, onTema, onFila, onListas, onStats, onBulk, onBackup, onAjuda }) {
+function ConteudoMenu({ sync, foto, nome, onPerfil, onTema, onFila, onListas, onStats, onConfig, onAjuda }) {
   return (
     /* O fio do ÚLTIMO item sai. Cada linha carrega uma régua embaixo para
        separá-la da seguinte — e a última não tem seguinte. No celular a sobra
@@ -502,11 +501,12 @@ function ConteudoMenu({ sync, foto, nome, onPerfil, onTema, onFila, onListas, on
            Saíram de dentro da gaveta "Seus dados" e viraram linhas como as
            outras. São menos usadas que a fila e as listas, e por isso vêm
            depois — mas "menos usada" não é motivo para ficar escondida. */}
-      <button role="menuitem" onClick={onBulk} className={`${BASE_LINHA} ${PORTE.normal}`}>
-        Capas
-      </button>
-      <button role="menuitem" onClick={onBackup} className={`${BASE_LINHA} ${PORTE.normal}`}>
-        Backup
+      {/* CAPAS E BACKUP ENTRARAM AQUI DENTRO.
+           Eram portas de primeiro nível ao lado de Fila, Listas e
+           Estatísticas — e não são da mesma família: aquelas são jeitos de
+           OLHAR a coleção, estas duas são manutenção do aplicativo. */}
+      <button role="menuitem" onClick={onConfig} className={`${BASE_LINHA} ${PORTE.normal}`}>
+        Configurações
       </button>
 
       {/* ---- AJUDA ----

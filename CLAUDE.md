@@ -200,8 +200,7 @@ Tema
 Fila de leitura
 Listas                                                    o dia a dia (16px)
 Estatísticas
-Capas            manutenção: se usa de vez em quando
-Backup
+Configurações    manutenção: se usa de vez em quando
 Ajuda            a saída de quem não achou              ← apoio (14px + ícone)
 ```
 
@@ -212,7 +211,7 @@ invisíveis até o primeiro. Um menu deste tamanho cabe inteiro na tela; esconde
 metade dele para economizar um espaço que sobra é trocar alcance por arrumação.
 
 **A ordem é por frequência de uso, com as duas pontas marcadas.** Três portes,
-não oito linhas iguais: uma lista achatada obriga a ler os oito rótulos para
+não sete linhas iguais: uma lista achatada obriga a ler os sete rótulos para
 achar o primeiro; com a primeira maior e a última menor, o olho pega as pontas
 antes de ler qualquer palavra. A diferença entre destaque e normal é de UM
 degrau da escala (20 contra 16px) — o suficiente para vir primeiro sem a linha
@@ -1455,16 +1454,46 @@ desfazer, porque ela só aparece quando um componente estoura no render. O
 "Detalhe técnico" dessa tela forçada diz em voz alta que nada quebrou, para
 ninguém se assustar ao cair ali por um link.
 
-### País usa o campo de etiquetas
-O campo de **País de origem** é o MESMO `Pessoas` de Autor e Artista. Era
-texto livre com o aviso "Use / p/ separar": a barra é detalhe de
-armazenamento, e o campo obrigava a pessoa a conhecê-la para cadastrar dois
-países. Com etiquetas, cada país vira item que se vê e se apaga sozinho.
+### O país saiu do app
+Havia um campo **País de origem** no editor, um filtro por país, uma
+ordenação por país, um gráfico "Por país" nas estatísticas e um selo na
+ficha. **Todos saíram.**
 
-**Nada a migrar.** `Pessoas` devolve a mesma string unida por " / " que o
-`paisesOf` já lia — os dois usam o mesmo `splitLista`. Conferido ponta a
-ponta: cadastrando Brasil e Argentina, o `localStorage` gravou
-`"Brasil / Argentina"`.
+O motivo: o país pedia um dado que quase nunca mudava a decisão de ninguém e
+que **se confundia com a origem da edição**, logo ao lado. Um mangá é japonês
+e sai em edição nacional; as duas respostas na mesma tela faziam pensar que
+uma estava errada.
+
+O que foi tirado, arquivo por arquivo:
+
+| onde | o quê |
+|---|---|
+| `Editor.jsx` | o campo e a lista de sugestões |
+| `DetailSheet.jsx` | os selos de país |
+| `FiltersDrawer.jsx` | o filtro e a opção de ordenar |
+| `Stats.jsx` | o gráfico "Por país" |
+| `helpers.js` | `paisesOf`, o ramo do filtro, o caso da ordenação e o país na busca |
+| `store.jsx` / `App.jsx` | `pais` da lista de filtros |
+
+#### O dado NÃO foi apagado
+
+O `pais` continua gravado em cada obra, e o editor continua carregando e
+devolvendo o valor **sem mostrar campo nenhum**. Tirá-lo do `save` faria a
+primeira edição de cada obra antiga apagar, em silêncio, um dado que ninguém
+pediu para apagar. Invisível não é o mesmo que morto — e se um dia o país
+voltar, ele está lá. Conferido: salvando "Cidade de Vidro" pelo editor, o
+`localStorage` manteve `pais: "Estados Unidos"`.
+
+**O `diario.js` também ficou intacto de propósito.** Ele ainda sabe escrever
+e classificar "Mudou o país de …" — não porque isso vá acontecer de novo, mas
+porque o histórico JÁ GRAVADO no repositório tem essas linhas, e tirar a
+regra jogaria todas elas em "Outro".
+
+> **Uma armadilha que o build não pega.** Apagar o `const byPais = {}` e
+> esquecer o `topPais: top(byPais)` três linhas abaixo compila sem reclamar —
+> é JavaScript válido — e explode em `ReferenceError` na hora de abrir as
+> Estatísticas. Depois de remover um campo transversal, vale procurar o nome
+> dele no arquivo inteiro, não só onde a remoção pareceu acabar.
 
 
 
@@ -2111,6 +2140,48 @@ no CSS, e aí não importa de onde a folha é servida.
 > `Divisoria`, `Welcome` e `Salvaguarda` usam o caminho em `src`/`srcSet` de
 > `<img>`, que resolve contra o DOCUMENTO. A armadilha é exclusiva de caminho
 > relativo que atravessa uma variável CSS até uma regra de folha.
+##### No toque, a arte é do tema ESCOLHIDO
+
+O `@media (hover: hover)` resolvia o estado preso do toque — mas ao preço de
+**no celular não acontecer nada**. A ilustração simplesmente não existia lá.
+
+Liberar o `:hover` para touch não serve: num aparelho de toque ele é o estado
+que fica preso DEPOIS do toque, e a arte acenderia na última faixa tocada por
+acaso, não por escolha. Então o gatilho deixa de ser o ponteiro e passa a ser
+o **estado**:
+
+```css
+@media (hover: none) {
+  .grupo-faixa[aria-checked='true'] .faixa-arte {
+    background-image: var(--arte); opacity: 1; transform: rotate(0deg);
+  }
+}
+```
+
+Três coisas boas saem daí:
+
+- **é determinístico** — há sempre exatamente uma ilustração na tela, a do
+  tema atual, e ela diz "este é o seu";
+- **a animação continua existindo**, no momento em que tem mais a dizer: ao
+  TROCAR de tema, a arte de quem sai gira de volta e some enquanto a de quem
+  entra gira para o lugar. A transição já estava em `.faixa-arte`; a regra só
+  liga o estado final;
+- **baixa menos que o desktop.** O `background-image` só se aplica à faixa
+  escolhida, então o celular busca UMA ilustração, não quatro.
+
+O seletor usa o `aria-checked` que o `role="radio"` do botão já carrega — não
+foi preciso inventar classe nenhuma, e a regra descreve o que a tela já diz a
+quem ouve.
+
+**Medido nos dois lados.** No celular emulado: `hover: none` casa,
+`pointer: coarse` casa, só a faixa escolhida tem imagem e opacidade 1, as
+outras três em zero e giradas 8°. No desktop, com o ponteiro longe das faixas,
+as QUATRO ficam em zero — a regra de toque não vaza.
+
+> Cuidado ao medir a transição: no painel do Claude a página não pinta, o rAF
+> congela e o `getComputedStyle` devolve o valor final já no primeiro quadro.
+> Parece um salto instantâneo e não é — conferir `transitionDuration`
+> (0,42s) em vez de amostrar a opacidade no meio.
 **A área a manter calma** é o terço da esquerda, onde cai o rótulo: no arquivo
 de 1200 × 210, x de 30 a 440 e y de 60 a 150. Fora desse retângulo a arte pode
 encher. As quatro atuais respeitam isso — o desenho vive na ponta direita.
@@ -3370,6 +3441,97 @@ uma pastilha repetia o que a pastilha acesa já dizia, e dois sinais para um
 estado é um a mais. Ganharam os mesmos símbolos que os cartões usam (globo e
 triângulo), que é o que permite ligar o filtro à obra filtrada sem legenda.
 
+### Conteúdo adulto: o campo existe, o filtro ainda não
+
+`obra.adulto` é um booleano, editado por um `Switch` de duas faces
+(**Livre** / **+18**) no editor, ao lado da editora. **Essa vizinhança não é
+acaso:** as duas são decisões da EDIÇÃO, não da história — a mesma obra sai
+livre numa editora e +18 noutra. Ocupa a metade que o campo de país deixou
+vaga.
+
+**`Switch` e não caixa de marcação.** Marcar nada e marcar "Livre" são
+estados diferentes para quem cadastra: um é "não pensei nisso", o outro é
+"pensei e é livre". Com duas faces explícitas, o padrão é uma resposta e não
+um esquecimento.
+
+**"+18" e não "Adulto":** é o símbolo que a classificação brasileira usa na
+capa, e quem cadastra está olhando para a capa.
+
+Na ficha vira o primeiro selo da linha, **em tinta cheia com texto claro** —
+o preto do 18 da classificação. É o único selo daquela linha que muda o que
+se pode FAZER com a obra, e não só o que ela é. Não usa rust de propósito:
+ali o rust é da urgência, e duas coisas diferentes na mesma cor deixam as
+duas mais fracas.
+
+#### O que falta, e já está prometido por escrito
+
+Os Termos (`lib/termos.js`), a Ajuda (`lib/ajuda.js`) e a tela de cadastro
+já descrevem um filtro que **não existe em código**:
+
+> "Parte do acervo é destinada a maiores de 18 anos e fica oculta por
+> padrão. Para vê-la é preciso ter informado a data de nascimento, ter 18
+> anos ou mais e ligar a opção. Quem tem menos não consegue ligar."
+
+O que existe hoje: `maiorDeIdade(nascimento)` e `idadeEm()` em `lib/conta.js`,
+e a data de nascimento guardada na conta. O que falta para cumprir o texto:
+
+1. um ajuste no perfil (`perfil.mostrarAdulto`), **desligado por padrão** e
+   que só pode ser ligado por quem tem 18+ — a Ajuda promete exatamente isso;
+2. um ramo no `passes` escondendo `o.adulto` quando o ajuste está desligado;
+3. decidir o que a ocultação faz com os números — estatísticas, contadores e
+   o "Ver N obras" do filtro passam a contar menos do que a coleção tem, e
+   isso precisa ser dito em algum lugar ou vira bug aparente.
+
+**Enquanto o filtro não existir, marcar +18 não esconde nada** — só carimba
+a obra. É melhor assim do que um filtro pela metade, mas é uma promessa em
+aberto nos documentos que o app já publica.
+### O filtro de nota
+
+Ao lado de Edição, fechando a grade de duas colunas do Afunilar. Filtra por
+`avgNota`, que numa série é a média dos volumes — a mesma conta que a ficha e o
+cartão já mostram, então o filtro não inventa um número próprio.
+
+**São ESTRELAS, não uma lista suspensa.** A primeira versão era um `Selecao`
+com "★ 4,5" escrito. Mas a nota já tem uma forma nesta casa: o cartão, a ficha
+e o editor mostram estrelas, e só no filtro ela viraria uma palavra. Escolher a
+nota com o mesmo gesto com que se dá a nota é o que torna o controle
+reconhecível antes de ser lido.
+
+É o **mesmo `EstrelasInput`** do editor e da ficha, de propósito — clicar na
+estrela marcada vira meia estrela, que é como as notas quebradas existem no
+app. Um controle novo teria de reaprender essa regra e um dia divergir dela.
+
+- **zero não é escolhível**, e é isso que deixa o campo vazio significar "sem
+  filtro" sem ambiguidade. Para sair de uma nota escolhida há o ×, que só
+  acende quando há o que limpar — mas **ocupa lugar fixo mesmo apagado**, senão
+  empurraria as estrelas de lado a cada escolha;
+- **a nota é EXATA**: quatro estrelas mostra o que tem quatro, não "quatro ou
+  mais". Com meia estrela na escala, "ou mais" sempre obriga a decidir se 4
+  inclui 4,5; exato não precisa decidir nada. Para virar "ou mais", trocar
+  `!==` por `<` no `passes`.
+
+O que a mudança para estrelas custou: a lista suspensa só oferecia as notas que
+EXISTEM na coleção, como fazem editora e autor. As estrelas oferecem as dez
+sempre, então dá para escolher uma nota que ninguém tem — e aí o rodapé diz
+"Nada encontrado", que é resposta honesta e imediata. Foi a troca: o gesto
+certo em lugar da cascata.
+
+#### Por que ele ficou no Afunilar, e não nas Condições
+
+Pela régua deste painel, a nota pertenceria às **Condições**: ela fala de
+VOCÊ, não da obra — autor, editora e edição existiriam igual se a obra não
+fosse sua; a nota só existe porque é.
+
+Mas as Condições são todas sim-ou-não (pares ligados e interruptores), e a nota
+é uma escala. **Ficou onde a FORMA do controle manda**, encostada na fronteira
+— última do Afunilar, colada nas Condições.
+
+**Medido** numa coleção de 7 obras com notas 5, 4,5, 4, 3 e duas sem nota: sem
+filtro 7; ★5 → 1; ★4 → 1; ★3,5 (clicando a quarta estrela duas vezes) → "Nada
+encontrado"; ★4,5 → 2, sendo a segunda a série, que entra pela média dos
+volumes. O × devolve as 7 e volta a ficar apagado.
+
+
 ### Uma armadilha de teste que parece bug
 
 Clicar em dois chips no mesmo tique dá resultado errado quando o primeiro
@@ -3731,6 +3893,106 @@ estante.
 
 ---
 
+### A ficha da obra perdeu o eco
+
+A tela tinha um painel de quatro números no topo (Status · Tipo/Na estante ·
+Nota · Investido) e, abaixo, os controles que editavam esses mesmos valores.
+**Cinco fatos apareciam duas vezes**, e o tipo três:
+
+| fato | painel | lista rotulada | Situação |
+|---|---|---|---|
+| Status | ✅ | — | ✅ switch |
+| Tipo | ✅ | ✅ | — |
+| Nota | ✅ | — | ✅ estrelas |
+| Investido | ✅ | — | ✅ campo |
+| Volumes | ✅ | ✅ | ✅ seção própria |
+
+**O preço truncado era sintoma disso.** "R$ 67,45" aparecia como "R$ 67,…"
+porque estava sendo espremido numa célula de meia largura com `truncate` — uma
+célula que só existia para ecoar o campo que ficava 300px abaixo. Dando a ele
+uma linha, o problema sumiu sozinho; não foi preciso mexer em largura nenhuma.
+
+**O painel saiu inteiro.** Cada fato passou a aparecer uma vez, no lugar onde
+se mexe nele. Quem só lê virou selo.
+
+#### O que mudou de lugar
+
+- **capa e título ficaram lado a lado.** Sem a grade, a capa ficaria sozinha ao
+  lado de um vazio. Capa e nome são a mesma informação dita de dois jeitos, e
+  lê-las juntas é mais rápido que lê-las em sequência;
+- **edição, origem e país viraram selos** (`.pill`, a mesma linguagem do
+  cartão da galeria). Eram linhas de uma lista rotulada — um rótulo para uma
+  palavra. São etiquetas: valores curtos de conjunto fechado, que se
+  reconhecem pela forma antes de serem lidos;
+- **a autoria subiu para debaixo do título**, que é onde se procura por ela;
+- **o link do Guia fechou a linha dos selos**, empurrado para a direita. Tinha
+  bloco próprio e, sem a lista que ele acompanhava, ficou boiando entre dois
+  espaços em branco. Ele é "mais sobre esta obra, em outro lugar" — da mesma
+  natureza dos selos.
+
+#### "Nacional · Brasil" era a mesma coisa duas vezes
+
+O país só aparece quando **acrescenta**: numa edição importada, ou quando não é
+o Brasil — um mangá nacional vindo do Japão mostra `NACIONAL` e `JAPÃO`, uma
+graphic novel brasileira mostra só `NACIONAL`.
+
+#### "Edição nacional", não "Nacional"
+
+Sozinhas, as palavras eram ambíguas: "Importado" ao lado do nome de um
+quadrinho lê como se a OBRA fosse estrangeira, quando o que é importado é
+esta EDIÇÃO — um Batman publicado pela Panini é obra estrangeira e edição
+nacional. Com o substantivo na frente, o selo diz de que está falando.
+
+"Importada" no feminino, concordando com edição.
+#### O status e o tipo não viraram selo nenhum
+
+Chegaram a virar, e saíram na rodada seguinte — pelo motivo que criou esta
+tela.
+
+**O status** porque o seletor Quero/Tenho está logo abaixo: um selo acima dele
+era a mesma pergunta respondida duas vezes na mesma tela. O seletor ganha, e
+não por sorteio — ele não só informa, deixa mudar. Em série e box, onde não há
+seletor, quem responde é a seção de Volumes, com o número exato ("2 de 3") em
+vez de um sim ou não que seria sempre impreciso.
+
+**O tipo** porque "Avulso" é o caso comum, e dizer o óbvio é ruído. Uma obra
+sem lista de volumes é avulsa; uma com lista é série ou box — e a própria
+seção de Volumes mostra isso melhor do que a palavra faria.
+
+Sobrou uma linha de selos curta e honesta: edição quando existe, origem, e o
+país quando ele acrescenta. Numa graphic novel brasileira é um selo só.
+
+#### A autoria com transbordo
+
+Dois nomes à vista, o resto atrás de um `+N` que vira `−`. Uma obra de cinco
+autores enchia três linhas logo abaixo do título e empurrava o resto para fora
+da tela — e ninguém abre uma ficha para conferir o quinto nome.
+
+**Dois, e não três ou quatro:** é quase sempre o roteirista e o desenhista, a
+dupla que nomeia um quadrinho. O corte cai exatamente onde a informação deixa
+de ser identificação e passa a ser elenco.
+
+Os nomes extras entram **dentro do mesmo `<span>`** da lista, não como irmão
+dele: separados, o `gap` do flex abria um buraco antes da vírgula e a frase lia
+"Fulano, Beltrano , Sicrano".
+
+#### Uma armadilha de `text-transform`
+
+O selo do tipo saía em caixa mista no meio de selos em caixa alta: `.pill` já
+traz `uppercase`, e um `capitalize` junto escreve a MESMA propriedade — quem
+ganha é a última regra do CSS, não a ordem das classes no elemento. A correção
+é não pôr a segunda.
+
+#### Medido
+
+Com a obra mais difícil da coleção de teste (5 autores, importada, lida, com
+nota), **a ficha inteira cabe numa tela de celular sem rolar**: 514px de
+conteúdo em 514px de altura visível. Antes, só o cabeçalho e a lista rotulada
+já passavam disso.
+
+`avgNota`, `sumValor`, `fmtBRL` e o componente `Numero` saíram junto com o
+painel — não sobrou nada deles no arquivo.
+
 ## A ficha da obra virou o lugar de editar a relação
 
 Situação e Anotação **saíram do editor** e passaram a morar na ficha
@@ -3944,3 +4206,177 @@ isso é regra, não detalhe: estante vazia é um convite — não há o que faze
 de começar. Filtro sem resultado é um beco — a coleção existe, o recorte é que
 não achou nada, e o que se faz é mexer no recorte. Um título só para os dois
 mandaria a mesma pessoa fazer coisas opostas.
+
+---
+
+## Configurações, e o véu do conteúdo adulto
+
+### O menu perdeu duas portas e ganhou uma
+
+Capas e Backup saíram do ☰ e entraram em **Configurações**. Não são da mesma
+família das outras: Fila, Listas e Estatísticas são jeitos de **olhar** a
+coleção; Capas e Backup são **manutenção do aplicativo**. Um menu que mistura
+"ver minhas listas" com "exportar o arquivo" obriga a ler todos os rótulos
+toda vez.
+
+Dentro de Configurações elas reencontram os companheiros naturais: o ajuste de
+conteúdo, os documentos, a versão e a limpeza. Tudo sobre o APP, nada sobre o
+acervo. O menu foi de oito portas a sete.
+
+**O molde é o mesmo** do Tema e do Backup — mesma moldura, mesma entrada,
+mesmo título em caixa alta. E a lista interna tem **uma forma só** para coisas
+de naturezas diferentes (um botão que abre outra tela, um interruptor, um dado
+que só se lê): é o que deixa a lista ser varrida de cima a baixo sem o olho ter
+de reaprender onde olhar a cada linha.
+
+- **Capas e Backup fecham este pop-up e abrem o deles.** Empilhar painel sobre
+  painel faria duas camadas de véu e dois × no mesmo canto;
+- **os documentos abrem POR CIMA**, sem fechar: são leitura de apoio, e quem
+  os abre daqui quer voltar para cá;
+- **a versão sai do `package.json`** em tempo de build (`__VERSAO__`, definido
+  no `vite.config.js`), e não cravada no componente: número de versão escrito à
+  mão é número de versão que um dia mente.
+
+### A trava de idade
+
+Os Termos e a Ajuda já prometiam: só quem informou a data de nascimento e
+tem 18 anos ou mais consegue ligar o ajuste. Agora o código cumpre.
+
+**A trava NÃO mora na tela do interruptor.** O store expõe dois valores:
+
+| valor | o que é |
+|---|---|
+| `verAdulto` | `perfil.mostrarAdulto && maiorDeIdade(conta.nascimento)` — o que TODO desenho de capa pergunta |
+| `podeAdulto` | só a idade — o que a tela usa para travar o botão |
+
+Se cada tela olhasse `perfil.mostrarAdulto` direto, a trava valeria só no
+botão: **bastaria restaurar um backup de conta adulta numa conta de menor**
+para o ajuste chegar ligado e o véu sair. Com a conta entrando na conta, o
+dado sozinho nunca basta.
+
+Medido exatamente nesse caso: dado gravado `mostrarAdulto: true`, conta de 14
+anos — o interruptor aparece **desmarcado e impedido**, clicar não faz nada, e
+**a capa continua velada**. Sem data de nascimento, o mesmo, com outra frase.
+Com conta adulta, tudo destravado e nenhuma capa velada.
+
+**A frase do impedimento ficou**, ao contrário das legendas que saíram do
+painel: ela não repete o rótulo, diz por que o interruptor não obedece.
+Interruptor morto sem explicação é a tela escondendo o motivo justamente de
+quem mais precisa dele.
+
+> `criarConta` monta o perfil do zero e **perdia o `mostrarAdulto`**. O campo
+> nasceria `undefined` — falsy, então o véu até ficaria no lugar certo, mas o
+> perfil sairia sem a forma que o resto do app espera. Agora vai explícito.
+
+### O Tema abre sozinho ao fim do cadastro
+
+É a primeira coisa que se pode escolher nesta casa, e a única que muda a cara
+do app inteiro — mostrá-la de saída transforma o primeiro segundo de quem
+chegou, que seria uma estante vazia, numa escolha.
+
+**Só no cadastro, não no login:** quem volta já escolheu o tema dele, e
+reabrir a cada entrada seria pedir a mesma decisão para sempre.
+
+O sinal é um `recemCadastrado` que o `criarConta` levanta e o App consome uma
+vez, apagando a marca ANTES de abrir — para o efeito não reentrar se o React
+remontar. **Vive só em memória**, de propósito: recarregar a página não é
+cadastrar de novo, e um flag guardado reabriria o Tema para sempre.
+
+Medido no fluxo real (cadastro → código → entrada): o Tema abre. Recarregando
+em seguida, com a sessão viva, **não abre**.
+### As linhas de apoio saíram
+
+Cada item de Configurações tinha uma frase explicando o óbvio por baixo do
+rótulo — "Salvar ou restaurar a coleção num arquivo" debaixo de **Backup**,
+"Enviar várias capas de uma vez" debaixo de **Capas**, "Com o ajuste
+desligado, as capas marcadas como +18 saem embaçadas" debaixo do
+interruptor. Saíram todas, junto com duas irmãs no editor ("A imagem fica
+salva junto no seu backup" e "Abra cada volume para preencher…").
+
+**O rótulo já diz, e a tela já mostra.** Legenda que repete o nome do botão
+não ensina nada: ela transforma uma lista que se varre numa lista que se lê,
+e dobra a altura de cada linha para isso. É o mesmo fio da limpeza de textos
+da entrada — explicar o mecanismo levanta a dúvida que ele deveria acalmar.
+
+A exceção que FICOU é "Não mexe na sua coleção", debaixo de **Limpar cache**.
+Ela não explica o botão: ela desarma um medo que o botão cria. É a única
+linha do painel que diz algo que o rótulo não dizia.
+### Limpar cache: o que sai e o que fica
+
+"Cache" é palavra que assusta justamente quem tem mais a perder, então a tela
+diz antes do clique, e a confirmação repete:
+
+| sai | fica |
+|---|---|
+| o histórico guardado da ficha de atividades (`esquecerFicha`) | **a coleção** |
+| os avisos já dispensados | a conta e a sessão |
+| o que o navegador guardar em `caches` (service worker) | a configuração da nuvem |
+
+**As chaves que saem estão nomeadas uma a uma**, e o código não varre tudo o
+que começa com `gibiteca_`. Varrer por prefixo levaria a coleção junto no dia
+em que alguém acrescentasse uma chave nova sem pensar nisto.
+
+**Medido:** antes e depois do clique, 7 obras, perfil, sessão e as chaves
+`gibiteca_v1`, `gibiteca_sessao`, `gibiteca_tema`, `gibiteca_fixada` e
+`gibiteca_capa` intactas; só o aviso dispensado saiu.
+
+### O véu das capas +18
+
+`obra.adulto` já existia (ver a seção do editor). Agora ele pinta: enquanto
+`perfil.mostrarAdulto` estiver desligado, a capa sai borrada em **todo lugar
+que desenha capa** — grade, lista, fila, listas e ficha. Uma função só decide
+(`capaVelada`, em `helpers.js`), porque a regra não pode divergir entre as
+telas.
+
+**O ajuste vive no PERFIL**, não numa chave do aparelho como o tema: é
+preferência da PESSOA, não da tela. Guardado ali, viaja no backup e na nuvem
+junto com a conta. Nasce desligado, sempre.
+
+#### `scale` junto do `blur`, e por quê
+
+`filter: blur()` amostra pixels de FORA da imagem, e nas bordas mistura a capa
+com o transparente — sai uma moldura esmaecida que denuncia o formato da arte.
+Ampliar 8% empurra essa franja para fora da caixa, **que precisa ter
+`overflow: hidden`**. Por isso o véu veio acompanhado de um `overflow-hidden`
+em cada caixa de capa.
+
+16px num cartão de ~160px é o ponto em que a composição ainda se adivinha — dá
+para saber que ali tem uma capa, e não um retângulo cinza — mas nenhuma figura
+se reconhece. A dessaturação leve tira o que o borrão sozinho não tira: a cor
+berrante de uma capa chamativa continua chamando mesmo ilegível.
+
+#### Só a ficha revela, e só enquanto se segura
+
+No cartão e na lista o véu **não sai nunca**: ali não há como segurar nada, e
+revelar no hover acenderia capa adulta a cada passada de mouse numa grade
+inteira.
+
+Na ficha é diferente porque ali já houve uma escolha — você abriu ESTA obra. O
+gesto de segurar é o que separa "quero ver" de "esbarrei": um toque acidental
+não revela, e soltar devolve o véu sozinho, sem precisar desfazer nada. É o
+princípio do "segure para falar": a ação dura o tempo da intenção.
+
+- **o selo** é um disco com borda em rust na frente da capa. Ele é a única
+  coisa da ficha que usa rust além da urgência, e pode: as duas são avisos e
+  nunca aparecem no mesmo canto. Sai junto com o véu — cobrir a arte que a
+  pessoa pediu para ver seria desfazer o próprio gesto;
+- **teclado**: `onKeyDown`/`onKeyUp` com Enter e Espaço espelham o segurar. Sem
+  isso a revelação seria exclusiva de quem usa ponteiro — e a capa é `<button>`
+  justamente para estar no caminho do foco;
+- **`onPointerLeave` e `onPointerCancel`** junto do `onPointerUp`: o dedo que
+  escorrega para fora e a chamada que interrompe o toque precisam devolver o
+  véu também, senão ele fica preso aberto;
+- **trocar de obra zera a revelação**: a decisão foi sobre AQUELA capa.
+
+**Obra sem capa não é velada** — o bloco de iniciais não tem arte para
+esconder.
+
+#### A armadilha que o build não pega (de novo)
+
+Pôr `perfil.mostrarAdulto` num componente que não chama `useStore()` compila
+sem reclamar — é JavaScript válido — e explode em `ReferenceError` ao abrir a
+tela. Aconteceu em `EscolherObras` e `TiraDeCapas`, dentro de Listas. É o mesmo
+erro do `byPais` nas Estatísticas, e a lição se repete: **depois de espalhar um
+valor novo por vários arquivos, varrer o nome dele e conferir se o escopo
+existe em cada uso** — o `vite build` não vai contar.
+

@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { MOLA_GAVETA, FADE } from '../lib/motion.js'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../lib/store.jsx'
-import { authorsOf, paisesOf, edOf, moneyToNumber, moneyFormat, classeTinta, initials, listasDaObra } from '../lib/helpers.js'
+import { authorsOf, edOf, moneyToNumber, moneyFormat, classeTinta, initials, listasDaObra } from '../lib/helpers.js'
 import { TIPOS_EDICAO } from '../data.js'
 import Combo from './Combo.jsx'
 import Pessoas from './Pessoas.jsx'
@@ -16,13 +16,13 @@ function draftFromObra(o) {
   if (!o || !o.id) {
     // 'genres' não tem mais campo na tela. Continua no rascunho só para
     // atravessar uma edição sem apagar o que já estava gravado em obra.tags.
-    return { id: null, tipo: 'avulso', nome: '', origem: 'nacional', editora: '', pais: '', genres: [], img: '', resenha: '', tipoEdicao: '',
+    return { id: null, tipo: 'avulso', nome: '', origem: 'nacional', editora: '', pais: '', adulto: false, genres: [], img: '', resenha: '', tipoEdicao: '',
       roteirista: '', desenhista: '', status: 'wishlist', urgencia: false, valorPago: 0, lido: false, nota: 0, vols: [], listas: [] }
   }
   const tipo = o.tipo === 'avulsa' ? 'avulso' : (o.tipo || (o.volumes ? 'serie' : 'avulso'))
   return {
     id: o.id, tipo, nome: o.nome || '', origem: o.origem || (o.editoraBR ? 'nacional' : 'importado'),
-    editora: edOf(o), pais: o.pais || '', genres: Array.isArray(o.tags) ? o.tags.slice() : [], tipoEdicao: o.tipoEdicao || '',
+    editora: edOf(o), pais: o.pais || '', adulto: !!o.adulto, genres: Array.isArray(o.tags) ? o.tags.slice() : [], tipoEdicao: o.tipoEdicao || '',
     img: o.imagem || '', resenha: o.resenha || '',
     roteirista: o.roteirista || '', desenhista: o.desenhista || '',
     status: o.status || 'wishlist', urgencia: !!o.urgencia, valorPago: Number(o.valorPago) || 0,
@@ -335,7 +335,6 @@ export default function Editor({ target, onClose, onSaved }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, target])
 
-  const paises = useMemo(() => Array.from(new Set(obras.flatMap(paisesOf))).sort((a, b) => a.localeCompare(b, 'pt')), [obras])
   const autores = useMemo(() => Array.from(new Set(obras.flatMap(authorsOf))).sort((a, b) => a.localeCompare(b, 'pt')), [obras])
   const eds = useMemo(() => Array.from(new Set([...(editoras || []), ...obras.map(edOf)].filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt')), [editoras, obras])
 
@@ -376,7 +375,13 @@ export default function Editor({ target, onClose, onSaved }) {
     if (!title) { alert(d.tipo === 'box' ? 'Dê um título ao box.' : d.tipo === 'serie' ? 'Dê um título à série.' : 'Dê um título à obra.'); return }
     // tags entra igualzinho como saiu — editar uma obra antiga não apaga os
     // gêneros que ela já tinha
-    const base = { id: d.id ?? nextId(), nome: title, tipo: d.tipo, origem: d.origem, editora: d.editora.trim(), pais: d.pais.trim(), tags: d.genres.slice(), resenha: d.resenha.trim(), tipoEdicao: d.tipoEdicao || '' }
+    //
+    // `pais` segue pelo mesmo motivo, mesmo sem campo nenhum na tela: o
+    // rascunho carrega o valor que estava gravado e devolve igual. Tirá-lo
+    // daqui faria a primeira edição de cada obra antiga apagar, em silêncio,
+    // um dado que ninguém pediu para apagar. Invisível não é o mesmo que morto
+    // — e se um dia o país voltar, ele está lá.
+    const base = { id: d.id ?? nextId(), nome: title, tipo: d.tipo, origem: d.origem, editora: d.editora.trim(), pais: d.pais.trim(), adulto: !!d.adulto, tags: d.genres.slice(), resenha: d.resenha.trim(), tipoEdicao: d.tipoEdicao || '' }
     let rec
     if (isMulti) {
       const volumes = d.vols.map((v, i) => {
@@ -501,24 +506,42 @@ export default function Editor({ target, onClose, onSaved }) {
                     <label className={lbl}>{d.origem === 'importado' ? 'Editora' : 'Editora no Brasil'}</label>
                     <Combo options={eds} value={d.editora} onChange={x => patch({ editora: x })} placeholder="Nome da editora" />
                   </div>
-                  {/* País usa o MESMO campo de etiquetas de Autor e Artista.
-                      Antes era texto livre pedindo "Use / p/ separar": a barra
-                      é detalhe de armazenamento, e o campo obrigava a pessoa a
-                      conhecê-lo para cadastrar dois países. Com etiquetas, cada
-                      país vira um item que se vê e se apaga sozinho.
 
-                      O dado guardado não muda: `Pessoas` devolve a mesma
-                      string unida por " / " que o `paisesOf` já lê — os dois
-                      usam o mesmo `splitLista`. Nada a migrar. */}
-                  <div className="col-span-2 sm:col-span-1">
-                    <Pessoas rotulo="País de origem" options={paises} value={d.pais}
-                      onChange={x => patch({ pais: x })} placeholder="Digite um país e aperte Enter" />
+                  {/* CONTEÚDO ADULTO.
+                   *
+                   * Ocupa a metade que o país deixou vaga, ao lado da editora,
+                   * e não é vizinhança por acaso: as duas são decisões da
+                   * EDIÇÃO, não da história. A mesma obra sai livre numa
+                   * editora e +18 noutra.
+                   *
+                   * `Switch` de duas opções, e não uma caixa de marcação
+                   * "é +18": marcar nada e marcar "livre" são estados
+                   * diferentes para quem cadastra — um é "não pensei nisso", o
+                   * outro é "pensei e é livre". Com duas faces explícitas, o
+                   * padrão (Livre) é uma resposta, não um esquecimento.
+                   *
+                   * "+18" e não "Adulto": é o símbolo que a classificação
+                   * brasileira usa na capa, e quem cadastra está olhando para
+                   * a capa. */}
+                  <div className={`${box} col-span-2 sm:col-span-1`}>
+                    <label className={lbl}>Conteúdo</label>
+                    <Switch options={[[false, 'Livre'], [true, '+18']]} value={!!d.adulto}
+                      onChange={v => patch({ adulto: v })} />
                   </div>
+                  {/* O CAMPO DE PAÍS SAIU DAQUI, e do app inteiro.
+
+                      Ele pedia um dado que quase nunca mudava a decisão de
+                      ninguém e que se confundia com a origem da EDIÇÃO, logo
+                      ao lado: um mangá é japonês e sai em edição nacional, e
+                      as duas respostas na mesma tela faziam pensar que uma
+                      estava errada.
+
+                      O VALOR JÁ GRAVADO NÃO É APAGADO — ver `save`. */}
 
                   {/* Formato da edição: escolha ÚNICA, e clicar na marcada
                       desmarca — a maioria das obras não é edição especial,
                       então precisa haver caminho de volta para "nenhuma".
-                      Mora aqui, junto de editora e país: é dado de publicação,
+                      Mora aqui, junto de editora e origem: é dado de publicação,
                       e ficava largado depois do campo de resenha. */}
                   <div className={`${box} col-span-2`}>
                     <label className={lbl}>Tipo da edição</label>
@@ -557,7 +580,6 @@ export default function Editor({ target, onClose, onSaved }) {
                               title="Tirar a capa" aria-label="Tirar a capa"><IconLixeira /></BotaoIcone>
                           )}
                         </div>
-                        <div className="text-apoio text-ink-faint mt-1.5">A imagem fica salva junto no seu backup.</div>
                       </div>
                     </div>
                   </Secao>
@@ -571,11 +593,6 @@ export default function Editor({ target, onClose, onSaved }) {
                       <input type="number" min="1" max="80" className="field-input max-w-[150px]" value={d.vols.length || ''}
                         onChange={e => setQtd(e.target.value)} placeholder="ex.: 3" />
                     </div>
-                    {d.vols.length > 0 && (
-                      <div className="col-span-2 text-apoio text-ink-faint">
-                        Abra cada volume para preencher. O que se repete, copie com os botões do rodapé do volume.
-                      </div>
-                    )}
                     <div className="col-span-2 flex flex-col gap-2">
                       {d.vols.map((v, i) => (
                         <VolPanel key={i} v={v} i={i} withCover={withCover} autores={autores} onChange={setVol} onCopyAll={copyAll} onCover={volCover} onRemover={removerVol} podeRemover={d.vols.length > 1} />

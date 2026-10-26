@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { passes, sortList, fragmentosDe, chaveFila, itemDaFila, podeEnfileirar, volsOf } from './helpers.js'
 import { EDITORAS } from '../data.js'
-import { CONTA_VAZIA, limparCodigo } from './conta.js'
+import { CONTA_VAZIA, limparCodigo, maiorDeIdade } from './conta.js'
 import { ghCheckRepo, ghGet, ghPut, lerColecao, b64enc, b64dec, guessRepo } from './cloud.js'
 import { compararColecoes, mensagemDeCommit } from './diario.js'
 
@@ -29,7 +29,11 @@ export const useStore = () => useContext(StoreCtx)
  * como uma string descobre tarde que precisa do primeiro nome sozinho — para
  * saudar, para ordenar, para abreviar — e aí tem que adivinhar onde cortar.
  */
-export const PERFIL_VAZIO = () => ({ foto: null, nome: '', sobrenome: '' })
+/* `mostrarAdulto` vive no PERFIL, e nao numa chave propria do aparelho como o
+   tema: e uma preferencia da PESSOA, nao da tela. Guardada aqui, ela viaja no
+   backup e na nuvem junto com a conta — quem ligou num aparelho nao precisa
+   ligar de novo no outro. Nasce DESLIGADA, sempre. */
+export const PERFIL_VAZIO = () => ({ foto: null, nome: '', sobrenome: '', mostrarAdulto: false })
 
 /* A SESSAO — estar logado AGORA.
  *
@@ -53,7 +57,7 @@ function lerSessao() {
 }
 
 export const filtrosPadrao = () => ({
-  q: '', status: 'todos', tipo: '', tipoEdicao: [], editora: [], pais: [], autor: [],
+  q: '', status: 'todos', tipo: '', tipoEdicao: [], editora: [], autor: [], nota: '',
   importado: false, urgencia: false, leitura: 'todos',
 })
 const CLOUD_KEY = 'gibiteca_cloud'
@@ -392,6 +396,12 @@ export function StoreProvider({ children }) {
   // ---- perfil ----
   const [perfil, setPerfilState] = useState(init.perfil)
 
+  /* ACABOU DE CRIAR A CONTA — um sinal de uma vez só.
+     O App usa para abrir o pop-up de Tema logo depois do cadastro, e apaga a
+     marca ao consumir. Vive em memória de propósito: recarregar a página não
+     é "cadastrar de novo", e um flag guardado reabriria o Tema para sempre. */
+  const [recemCadastrado, setRecemCadastrado] = useState(false)
+
   /* Aceita pedaços: `setPerfil({ nome })` não apaga a foto. O formulário
      grava campo a campo enquanto se digita, e um setter que substitui o
      objeto inteiro zeraria o resto a cada tecla. */
@@ -428,7 +438,11 @@ export function StoreProvider({ children }) {
   const criarConta = useCallback(({ email, nascimento, termos, nome, sobrenome, foto }) => {
     marcarAlterado()
     setContaState({ email, nascimento, termos })
-    setPerfilState({ foto: foto || null, nome: nome || '', sobrenome: sobrenome || '' })
+    /* `mostrarAdulto: false` explícito: este objeto é montado do zero, e sem a
+       chave o campo nasceria `undefined` — falsy, então o véu até ficaria no
+       lugar certo, mas o perfil sairia sem a forma que o resto do app espera. */
+    setPerfilState({ foto: foto || null, nome: nome || '', sobrenome: sobrenome || '', mostrarAdulto: false })
+    setRecemCadastrado(true)
     entrarNaConta(email)
   }, [entrarNaConta])
 
@@ -850,6 +864,19 @@ export function StoreProvider({ children }) {
     fila, alternarFila, removerDaFila, reordenarFila, marcarLido,
     // perfil
     perfil, setPerfil,
+    /* A TRAVA DE IDADE MORA AQUI, e não na tela do interruptor.
+
+       `verAdulto` é o que todo desenho de capa pergunta. Deixar cada tela
+       olhar `perfil.mostrarAdulto` direto faria a trava valer só no botão — e
+       bastaria restaurar um backup de conta adulta numa conta de menor para o
+       ajuste chegar ligado e o véu sair. Com a conta entrando na conta, o
+       dado sozinho nunca basta.
+
+       `podeAdulto` é separado porque a tela precisa dos dois: o interruptor
+       fica desligado E impedido quando a idade não permite. */
+    verAdulto: !!perfil.mostrarAdulto && maiorDeIdade(conta.nascimento),
+    podeAdulto: maiorDeIdade(conta.nascimento),
+    recemCadastrado, limparRecemCadastrado: () => setRecemCadastrado(false),
     // conta e sessao
     conta, setConta, sessao, criarConta, entrarNaConta, sairDaConta, apagarConta,
     // listas

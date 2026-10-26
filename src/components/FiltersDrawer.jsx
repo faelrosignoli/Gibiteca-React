@@ -5,9 +5,10 @@ import {
 } from '../lib/motion.js'
 import { useMemo } from 'react'
 import { useStore } from '../lib/store.jsx'
-import { edOf, authorsOf, paisesOf, tipoOf, passes, comoLista } from '../lib/helpers.js'
+import { edOf, authorsOf, tipoOf, passes, comoLista } from '../lib/helpers.js'
 import { TIPOS_EDICAO } from '../data.js'
 import Selecao from './Selecao.jsx'
+import { EstrelasInput } from './Estrelas.jsx'
 
 /* O PAINEL DE FILTROS, reescrito para parar de se repetir.
  *
@@ -36,10 +37,64 @@ import Selecao from './Selecao.jsx'
 const TIPOS = [['avulso', 'Avulsos'], ['box', 'Boxes'], ['serie', 'Séries']]
 
 // valor "sem filtro" de cada campo, para conseguir neutralizar um de cada vez
-const NEUTRO = { status: 'todos', tipo: '', tipoEdicao: [], editora: [], pais: [], autor: [], leitura: 'todos', importado: false, urgencia: false, q: '' }
+const NEUTRO = { status: 'todos', tipo: '', tipoEdicao: [], editora: [], autor: [], nota: '', leitura: 'todos', importado: false, urgencia: false, q: '' }
 
 // campo multi ligado = lista com algo dentro
 const temAlgo = (v) => comoLista(v).length > 0
+
+/* O FILTRO DE NOTA — estrelas, e não uma lista suspensa.
+ *
+ * A lista dizia "★ 4,5" em texto. Mas a nota já tem uma forma nesta casa: o
+ * cartão, a ficha e o editor mostram estrelas, e só aqui ela viraria uma
+ * palavra. Escolher a nota com o mesmo gesto com que se dá a nota é o que
+ * torna o filtro reconhecível antes de ser lido.
+ *
+ * É O MESMO `EstrelasInput` do editor e da ficha, de propósito: clicar na
+ * estrela marcada vira meia estrela, que é como as notas quebradas existem no
+ * app. Um controle novo aqui teria de reaprender essa regra e um dia divergir
+ * dela.
+ *
+ * ZERO NÃO É ESCOLHÍVEL, e é isso que deixa o campo vazio significar "sem
+ * filtro" sem ambiguidade. Quem quiser sair de uma nota escolhida usa o ×,
+ * que só aparece quando há o que limpar.
+ *
+ * A NOTA É EXATA: quatro estrelas mostra o que tem quatro, não "quatro ou
+ * mais". Foi o pedido, e tem uma vantagem — com meia estrela na escala, "ou
+ * mais" sempre obriga a decidir se 4 inclui 4,5, e exato não precisa decidir
+ * nada. Para virar "ou mais", é trocar `!==` por `<` lá no `passes`.
+ */
+function FiltroNota({ valor, onChange }) {
+  const n = Number(valor) || 0
+  return (
+    <div className={`h-[42px] rounded-full border flex items-center gap-2 px-3 transition-colors
+      ${n ? 'border-moss bg-surface-2' : 'border-contorno bg-surface'}`}>
+      <span className={`font-rotulo text-rotulo uppercase font-bold shrink-0
+        ${n ? 'text-acento-texto' : 'text-ink-faint'}`}>Nota</span>
+      <EstrelasInput
+        value={n}
+        onChange={v => onChange(v || '')}
+        tamanho="w-[17px] h-[17px]"
+        limpar={false}
+      />
+      {/* O × ocupa lugar fixo mesmo apagado: aparecendo e sumindo, ele
+          empurrava as estrelas de lado a cada escolha. */}
+      <button
+        type="button"
+        onClick={() => onChange('')}
+        disabled={!n}
+        aria-label="Tirar o filtro de nota"
+        title="Tirar o filtro de nota"
+        className={`shrink-0 ml-auto w-4 h-4 inline-flex items-center justify-center transition-opacity
+          ${n ? 'text-ink-mute hover:text-rust opacity-100' : 'opacity-0 pointer-events-none'}`}
+      >
+        <svg className="w-[11px] h-[11px]" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             strokeWidth="2.6" strokeLinecap="round">
+          <path d="M6 6l12 12M18 6L6 18" />
+        </svg>
+      </button>
+    </div>
+  )
+}
 
 /* O rótulo do campo VAZIO é o nome do campo, e ele vem do `placeholder`.
  *
@@ -289,7 +344,6 @@ export default function FiltersDrawer({ open, onClose }) {
   const sobraSem = (campo) => obras.filter(o => passes(o, { ...filters, [campo]: NEUTRO[campo] }))
 
   // "Argentina / Espanha" entra como dois paises, nao como um rotulo so
-  const paises = useMemo(() => comOsEscolhidos(ordenar(new Set(sobraSem('pais').flatMap(paisesOf))), filters.pais), [obras, filters])
   const autores = useMemo(() => comOsEscolhidos(ordenar(new Set(sobraSem('autor').flatMap(authorsOf))), filters.autor), [obras, filters])
   // a lista de editoras vem das OBRAS, não do catálogo fixo: filtrar por uma
   // editora de que não se tem nada só serviria para esvaziar a estante
@@ -304,6 +358,7 @@ export default function FiltersDrawer({ open, onClose }) {
     const tem = TIPOS_EDICAO.filter(([v]) => marcadas.includes(v) || sobra.some(o => (o.tipoEdicao || '') === v))
     return tem
   }, [obras, filters])
+
 
   /* Clicar no que já está ligado desliga. É o que transforma dois chips em
      três estados (nenhum, um, o outro) sem um terceiro botão escrito
@@ -346,7 +401,7 @@ export default function FiltersDrawer({ open, onClose }) {
                    uma obra — e chega por autor ou editora, não por "tenho".
                    As condições, abaixo, refinam o que o afunilamento deixou.
 
-                   Tipo, edição, editora, país e autor descrevem a OBRA —
+                   Tipo, edição, editora e autor descrevem a OBRA —
                    existiriam igual se ela não fosse sua. Por isso entraram
                    todos no mesmo grupo, sob um rótulo só.
 
@@ -366,10 +421,18 @@ export default function FiltersDrawer({ open, onClose }) {
                   ))}
                 </div>
 
-                {/* A ORDEM é autor, editora, edição, país — a da pergunta que
+                {/* A ORDEM é autor, editora, edição, nota — a da pergunta que
                     se faz primeiro, não a da estrutura do dado. Quem procura
                     uma obra na estante lembra de quem a fez antes de lembrar
-                    em que formato ela saiu, e o país é o que menos se usa. */}
+                    em que formato ela saiu.
+
+                    A NOTA FECHA A FILA, e não é por ser menos usada: é a única
+                    das quatro que fala de VOCÊ, não da obra. Autor, editora e
+                    edição existiriam igual se a obra não fosse sua; a nota só
+                    existe porque é. Pela régua deste painel ela pertenceria às
+                    Condições — mas as condições são sim-ou-não, e a nota é uma
+                    lista de valores. Ficou onde a FORMA do controle manda,
+                    encostada na fronteira, e não onde a natureza mandaria. */}
                 <div className="grid grid-cols-2 gap-2">
                   <Selecao multi value={filters.autor} onChange={v => setFilter('autor', v)}
                     changed={temAlgo(filters.autor)} options={comoOpcoes(autores)} placeholder="Autor" />
@@ -377,8 +440,7 @@ export default function FiltersDrawer({ open, onClose }) {
                     changed={temAlgo(filters.editora)} options={comoOpcoes(eds)} placeholder="Editora" />
                   <Selecao multi value={filters.tipoEdicao} onChange={v => setFilter('tipoEdicao', v)}
                     changed={temAlgo(filters.tipoEdicao)} options={edicoes} placeholder="Edição" />
-                  <Selecao multi value={filters.pais} onChange={v => setFilter('pais', v)}
-                    changed={temAlgo(filters.pais)} options={comoOpcoes(paises)} placeholder="País" />
+                  <FiltroNota valor={filters.nota} onChange={v => setFilter('nota', v)} />
                 </div>
               </div>
 
@@ -439,7 +501,7 @@ export default function FiltersDrawer({ open, onClose }) {
                 <div className="flex items-center gap-2">
                   <Selecao className="flex-1 min-w-0" value={sort.by} onChange={v => setSort({ ...sort, by: v })}
                     options={[['nome', 'Título'], ['editora', 'Editora'], ['autor', 'Autor'], ['nota', 'Nota'],
-                              ['valor', 'Valor'], ['volumes', 'Qtd. volumes'], ['pais', 'País'], ['recent', 'Recentes']]} />
+                              ['valor', 'Valor'], ['volumes', 'Qtd. volumes'], ['recent', 'Recentes']]} />
                   <SetaOrdem dir={sort.dir} onClick={() => setSort({ ...sort, dir: sort.dir === 'asc' ? 'desc' : 'asc' })} />
                 </div>
               </div>

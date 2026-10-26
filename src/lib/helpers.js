@@ -17,9 +17,8 @@ export function initials(t){
 export function tintIndex(s){ let h=0; s=s||''; for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; return h%QTD_TINTAS; }
 /* Pronto para o className: `classeTinta('Panini')` → "tinta tinta-3". */
 export function classeTinta(s){ return 'tinta tinta-' + tintIndex(s); }
-// Campos que aceitam varios valores separados por "/" — autores e paises.
+// Campos que aceitam varios valores separados por "/" — os autores.
 export function splitLista(s){ return (s||'').toString().split('/').map(x=>x.trim()).filter(Boolean); }
-export function paisesOf(o){ return splitLista(o.pais); }
 export function authorsOf(o){
   const a=[]; const push=(s)=>{ splitLista(s).forEach(x=>{ if(!a.includes(x))a.push(x); }); };
   push(o.roteirista); push(o.desenhista);
@@ -31,6 +30,10 @@ export function edOf(o){ return o.editora || o.editoraBR || ''; }
 /* Rotulo do formato da edicao (Absoluta, Integral...), ou vazio. */
 export function edicaoDe(o){ const k=o&&o.tipoEdicao; if(!k) return ''; const t=TIPOS_EDICAO.find(x=>x[0]===k); return t?t[1]:''; }
 export function isImp(o){ return o.origem ? o.origem==='importado' : !(o.editoraBR); }
+/* A capa fica velada quando a obra e +18 e o ajuste esta desligado. Uma funcao
+   so, usada por todos os lugares que desenham capa — a regra nao pode divergir
+   entre a grade, a lista, a fila e a ficha. */
+export function capaVelada(o, verAdulto){ return !!(o && o.adulto) && !verAdulto; }
 export function volsOf(o){
   if(Array.isArray(o.volumes)) return o.volumes;
   if(Array.isArray(o.conteudo)) return o.conteudo.map(n=>({nome:n,imagem:null}));
@@ -183,8 +186,11 @@ export function passes(o, f){
   // lista vazia = sem filtro; com itens, basta a obra bater com UM deles
   const fEd=comoLista(f.tipoEdicao); if(fEd.length && !fEd.includes(o.tipoEdicao||'')) return false;
   const fEt=comoLista(f.editora);    if(fEt.length && !fEt.includes(edOf(o))) return false;
-  const fPa=comoLista(f.pais);       if(fPa.length && !paisesOf(o).some(x=>fPa.includes(x))) return false;
   const fAu=comoLista(f.autor);      if(fAu.length && !authorsOf(o).some(x=>fAu.includes(x))) return false;
+  /* Nota EXATA, e com `avgNota` porque numa serie a nota da obra e a media
+     dos volumes — a mesma conta que a ficha e o cartao ja mostram.
+     `f.nota` vazio e ausencia de filtro; 0 nunca e escolhivel. */
+  if(f.nota && avgNota(o)!==Number(f.nota)) return false;
   if(f.importado && !isImp(o)) return false;
   if(f.urgencia && !anyUrg(o)) return false;
   if(f.leitura==='lido' && !unitsOf(o).some(u=>u.status==='biblioteca'&&u.lido)) return false;
@@ -193,7 +199,7 @@ export function passes(o, f){
     // gNorm nos DOIS lados: tira acento e caixa. Sem isto, procurar "esfera"
     // nao achava "Ésfera" — e ninguem digita acento numa caixa de busca.
     const q=gNorm(f.q);
-    const hay=gNorm([o.nome,edOf(o),o.roteirista,o.desenhista,o.pais,o.resenha,
+    const hay=gNorm([o.nome,edOf(o),o.roteirista,o.desenhista,o.resenha,
       volsOf(o).map(v=>v.nome+' '+(v.roteirista||'')+' '+(v.desenhista||'')).join(' ')].join(' '));
     if(!hay.includes(q)) return false;
   }
@@ -205,7 +211,6 @@ function sortKey(o, by){
     case 'valor': return sumValor(o);
     case 'recent': return Number(o.id)||0;
     case 'volumes': return unitsOf(o).length;
-    case 'pais': return (paisesOf(o)[0]||'zzzzzz').toLowerCase();
     case 'editora': return (edOf(o)||'zzzzzz').toLowerCase();
     case 'autor': return (authorsOf(o)[0]||'zzzzzz').toLowerCase();
     default: return (o.nome||'').toLowerCase();

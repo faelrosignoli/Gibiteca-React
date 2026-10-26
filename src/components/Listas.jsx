@@ -5,6 +5,7 @@ import {
   deveDispensar, usaMovimentoReduzido, MOLA_TOQUE,
 } from '../lib/motion.js'
 import { useStore } from '../lib/store.jsx'
+import { capaVelada } from '../lib/helpers.js'
 import { obrasDaLista, sortList, coverOf, edOf, gNorm, initials, classeTinta } from '../lib/helpers.js'
 
 /* AS LISTAS.
@@ -30,6 +31,7 @@ import { obrasDaLista, sortList, coverOf, edOf, gNorm, initials, classeTinta } f
  * duplicaria o alvo de clique e roubaria largura da capa.
  */
 function EscolherObras({ obras, escolhidas, aoAlternar }) {
+  const { verAdulto } = useStore()
   const [busca, setBusca] = useState('')
 
   const vistas = useMemo(() => {
@@ -55,6 +57,7 @@ function EscolherObras({ obras, escolhidas, aoAlternar }) {
           {vistas.map(o => {
             const dentro = escolhidas.includes(o.id)
             const capa = coverOf(o)
+            const velada = capaVelada(o, verAdulto)
             return (
               <button
                 key={o.id} type="button" onClick={() => aoAlternar(o.id)}
@@ -64,7 +67,7 @@ function EscolherObras({ obras, escolhidas, aoAlternar }) {
                 <div className={'w-full aspect-square relative flex items-center justify-center rounded-pequeno transition ' +
                   (dentro ? 'ring-2 ring-moss ring-offset-2 ring-offset-surface' : 'opacity-80 group-hover:opacity-100')}>
                   {capa
-                    ? <img src={capa} alt="" loading="lazy" className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno" />
+                    ? <img src={capa} alt="" loading="lazy" className={`absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno ${velada ? 'capa-velada' : ''}`} />
                     : <div className={'w-full h-full rounded-pequeno flex items-center justify-center ' + classeTinta(edOf(o) || o.nome)}>
                         <span className="font-display font-semibold text-corpo leading-none text-sobre-tinta">{initials(o.nome)}</span>
                       </div>}
@@ -130,6 +133,7 @@ function IconNumerada() {
  * continua seguindo o cursor depois do gesto.
  */
 function TiraDeCapas({ obras, onAbrir }) {
+  const { verAdulto } = useStore()
   const caixa = useRef(null)
   const gesto = useRef(null)
 
@@ -176,13 +180,14 @@ function TiraDeCapas({ obras, onAbrir }) {
     >
       {obras.map(o => {
         const capa = coverOf(o)
+        const velada = capaVelada(o, verAdulto)
         return (
           /* sem largura nem altura aqui: o tamanho vem de `.tira-capas > *`,
              que divide a largura por seis. Fixar em classe faria dois lugares
              decidirem o mesmo, e o da tira ganharia só às vezes. */
           <div key={o.id} className="relative flex items-center justify-center">
             {capa
-              ? <img src={capa} alt="" loading="lazy" className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_6px_12px_-7px_rgba(33,33,33,.55)]" />
+              ? <img src={capa} alt="" loading="lazy" className={`absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_6px_12px_-7px_rgba(33,33,33,.55)] ${velada ? 'capa-velada' : ''}`} />
               : <div className={'w-full h-full rounded-pequeno flex items-center justify-center ' + classeTinta(edOf(o) || o.nome)}>
                   <span className="font-display font-semibold text-apoio leading-none text-sobre-tinta">{initials(o.nome)}</span>
                 </div>}
@@ -257,7 +262,9 @@ function SeletorOrdem({ valor, onChange }) {
  * ref porque o pai precisa das OITO de uma vez, no momento da soltura.
  */
 function CelulaLista({ obra, indice, numerada, arrastavel, aoSoltar, aoEditar, aoTirar }) {
+  const { verAdulto } = useStore()
   const capa = coverOf(obra)
+  const velada = capaVelada(obra, verAdulto)
   const reduzido = usaMovimentoReduzido()
   const podeArrastar = arrastavel && !reduzido
 
@@ -290,7 +297,7 @@ function CelulaLista({ obra, indice, numerada, arrastavel, aoSoltar, aoEditar, a
         title={(podeArrastar ? 'Arraste para mudar a ordem · ' : '') + 'Clique duas vezes para editar ' + obra.nome}
       >
         {capa
-          ? <img src={capa} alt="" loading="lazy" draggable="false" className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_10px_20px_-10px_rgba(33,33,33,.55)]" />
+          ? <img src={capa} alt="" loading="lazy" draggable="false" className={`absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_10px_20px_-10px_rgba(33,33,33,.55)] ${velada ? 'capa-velada' : ''}`} />
           : <div className={'w-full h-full rounded-pequeno flex items-center justify-center shadow-[0_10px_20px_-10px_rgba(33,33,33,.55)] ' + classeTinta(edOf(obra) || obra.nome)}>
               <span className="font-display font-semibold text-secao leading-none text-sobre-tinta">{initials(obra.nome)}</span>
             </div>}

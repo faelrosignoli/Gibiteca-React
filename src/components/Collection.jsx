@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import { useStore } from '../lib/store.jsx'
 import {
   edOf, tipoOf, statusMatch, avgNota, isImp, anyUrg, edicaoDe,
-  coverOf, unidadeVitrine, urgenteNaVitrine, unitsOf, ownedCount, sumValor, fmtBRL, initials, classeTinta, missingVols,
+  coverOf, unidadeVitrine, urgenteNaVitrine, capaVelada, unitsOf, ownedCount, sumValor, fmtBRL, initials, classeTinta, missingVols,
 } from '../lib/helpers.js'
 import Card from './Card.jsx'
 import Estrelas from './Estrelas.jsx'
@@ -15,8 +15,9 @@ import Pagination from './Pagination.jsx'
  * capa, editora, tipo, selos, nota, progresso da série e quanto já foi gasto.
  */
 function Ficha({ obra, index, onOpen }) {
-  const { filters } = useStore()
+  const { filters, verAdulto } = useStore()
   const capa = coverOf(obra, filters.status)
+  const velada = capaVelada(obra, verAdulto)
   const vitrine = unidadeVitrine(obra, filters.status)
   const volDaVez = vitrine ? (vitrine.nome || '').trim() : ''
   const t = tipoOf(obra)
@@ -43,10 +44,10 @@ function Ficha({ obra, index, onOpen }) {
                  transition-colors duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-separador hover:bg-toque"
     >
       {/* capa: caixa quadrada nua, imagem arredondada por dentro */}
-      <div className="w-[52px] sm:w-16 aspect-square relative flex items-center justify-center self-start">
+      <div className="w-[52px] sm:w-16 aspect-square relative flex items-center justify-center self-start overflow-hidden">
         {urgenteNaVitrine(obra, filters.status) && <UrgBadge />}
         {capa
-          ? <img src={capa} alt="" loading="lazy" className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_10px_20px_-10px_rgba(33,33,33,.55)]" />
+          ? <img src={capa} alt="" loading="lazy" className={`absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_10px_20px_-10px_rgba(33,33,33,.55)] ${velada ? 'capa-velada' : ''}`} />
           : <div className={`w-full h-full rounded-pequeno flex items-center justify-center shadow-[0_10px_20px_-10px_rgba(33,33,33,.55)] ${classeTinta(edOf(obra) || obra.nome)}`}>
               <span className="font-display font-semibold text-corpo sm:text-obra leading-none text-sobre-tinta">{initials(obra.nome)}</span>
             </div>}

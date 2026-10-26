@@ -1242,11 +1242,42 @@ button:hover .ico-lixo__tampa { transform: rotate(-18deg) translateY(-1px) }
   }
 }
 
+/* ---- NO TOQUE, A ARTE É DO TEMA ESCOLHIDO ----
+
+   Sem ponteiro não existe "passar por cima", e a regra acima nunca casava: no
+   celular a ilustração simplesmente não acontecia. Liberar o `:hover` ali não
+   resolve — num aparelho de toque ele é o estado que fica PRESO depois do
+   toque, e a arte acenderia na última faixa tocada por acaso, não por escolha.
+
+   Então o gatilho deixa de ser o ponteiro e passa a ser o ESTADO: a arte mora
+   no tema que está valendo. É determinístico (há sempre exatamente uma
+   ilustração na tela, a do tema atual), é informação de verdade — "este é o
+   seu" — e a animação continua existindo, no momento em que ela tem mais a
+   dizer: ao TROCAR de tema, a arte de quem sai gira de volta e some enquanto a
+   de quem entra gira para o lugar. A transição já está em `.faixa-arte`; aqui
+   só se liga o estado final.
+
+   `aria-checked` vem do próprio `role="radio"` do botão, então o seletor
+   descreve o que a tela já diz a quem ouve — não foi preciso inventar classe
+   nenhuma.
+
+   E CONTINUA BAIXANDO POUCO: o `background-image` só se aplica à faixa
+   escolhida, então o celular busca UMA ilustração, não quatro. É menos do que
+   o desktop baixa. */
+@media (hover: none) {
+  .grupo-faixa[aria-checked='true'] .faixa-arte {
+    background-image: var(--arte);
+    opacity: 1;
+    transform: rotate(0deg);
+  }
+}
+
 /* Quem pediu menos movimento recebe a troca sem o zoom — a arte ainda entra,
    porque ela é informação sobre o tema, mas sem nada se mexendo. */
 @media (prefers-reduced-motion: reduce) {
   .faixa-arte { transform: none; transition: opacity .2s linear; }
   .grupo-faixa:hover .faixa-arte { transform: none; }
+  .grupo-faixa[aria-checked='true'] .faixa-arte { transform: none; }
 }
 
 
@@ -1338,4 +1369,56 @@ button:hover .ico-lixo__tampa { transform: rotate(-18deg) translateY(-1px) }
   --linha:     rgb(var(--tinta) / var(--a-linha));
   --separador: rgb(var(--tinta) / var(--a-separador));
   --toque:     rgb(var(--tinta) / var(--a-toque));
+}
+
+
+/* ------------------------------------------------------------------
+   O VÉU DAS CAPAS +18.
+
+   Obra marcada como adulta sai borrada enquanto o ajuste "Exibir conteúdo
+   adulto" estiver desligado (menu ☰ › Configurações).
+
+   ---- POR QUE `scale` JUNTO DO `blur` ----
+
+   `filter: blur()` amostra pixels de FORA da imagem, e nas bordas ele mistura
+   a capa com o transparente — o resultado é uma moldura esmaecida que denuncia
+   o formato da arte e deixa a borda suja. Ampliar 8% empurra essa franja para
+   fora da caixa, que recorta. Por isso toda capa velada precisa de um pai com
+   `overflow: hidden`.
+
+   ---- A FORÇA ----
+
+   16px num cartão de ~160px é o ponto em que a composição ainda se adivinha —
+   dá para saber que ali tem uma capa, e não um retângulo cinza — mas nenhuma
+   figura se reconhece. Menos que isso e rostos aparecem; muito mais e a capa
+   vira borrão uniforme, e aí o cartão perde a cor que ajuda a localizar a obra
+   na grade.
+
+   A dessaturação leve tira o que o borrão sozinho não tira: a cor berrante de
+   uma capa chamativa continua chamando mesmo ilegível.
+
+   ---- A TRANSIÇÃO ----
+
+   Só existe para a ficha, onde segurar a capa revela e soltar devolve o véu.
+   No cartão nada se mexe: lá o véu não sai nunca.
+   ------------------------------------------------------------------ */
+.capa-velada {
+  filter: blur(16px) saturate(.75);
+  transform: scale(1.08);
+  transition: filter .22s var(--ease-prem), transform .22s var(--ease-prem);
+}
+
+/* REVELADA: o mesmo elemento sem o véu. Classe separada, e não a ausência da
+   outra, para a transição ter dois lados declarados e o React só trocar a
+   palavra. */
+.capa-revelada {
+  filter: none;
+  transform: none;
+}
+
+/* Quem pediu menos movimento recebe a revelação sem o zoom — o borrão ainda
+   sai, porque ele é a informação, mas sem nada crescendo. */
+@media (prefers-reduced-motion: reduce) {
+  .capa-velada, .capa-revelada { transition: filter .12s linear; }
+  .capa-velada { transform: none; filter: blur(16px) saturate(.75); }
 }

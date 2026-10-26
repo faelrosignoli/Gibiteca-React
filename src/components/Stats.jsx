@@ -3,7 +3,7 @@ import { MOLA_GAVETA, FADE } from '../lib/motion.js'
 import { useMemo, useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import {
-  unitsOf, edOf, isImp, sumValor, tipoOf, anyUrg, ownedCount, fmtBRL, paisesOf,
+  unitsOf, edOf, isImp, sumValor, tipoOf, anyUrg, ownedCount, fmtBRL,
 } from '../lib/helpers.js'
 import Ticker from './Ticker.jsx'
 
@@ -98,7 +98,6 @@ export default function Stats({ open, onClose }) {
       const m = {}; O.forEach(o => { const k = keyFn(o); if (k) m[k] = (m[k] || 0) + 1 }); return m
     }
     const byEd = tally(o => edOf(o) || (isImp(o) ? 'Importado (s/ editora)' : '—'))
-    const byPais = {}; O.forEach(o => paisesOf(o).forEach(p => { byPais[p] = (byPais[p] || 0) + 1 }))
     const invEd = {}; O.forEach(o => { const v = sumValor(o); if (v > 0) { const k = edOf(o) || '—'; invEd[k] = (invEd[k] || 0) + v } })
     const top = (obj, n = 7) => Object.entries(obj).sort((a, b) => b[1] - a[1]).slice(0, n)
 
@@ -111,7 +110,7 @@ export default function Stats({ open, onClose }) {
       invest, tenho: owned.length, quero: want.length, pctLido, lidos, ownedLen: owned.length,
       avg, notaMed, obras: O.length, itens: units.length,
       importados: O.filter(isImp).length, urgentes: O.filter(anyUrg).length, completas,
-      topEd: top(byEd), topPais: top(byPais), topInv: top(invEd),
+      topEd: top(byEd), topInv: top(invEd),
       buckets, counts,
     }
   }, [src])
@@ -198,7 +197,6 @@ export default function Stats({ open, onClose }) {
                   <div className="px-5 sm:px-6 pt-8 pb-10 border-t border-linha grid sm:grid-cols-2 gap-x-10 gap-y-9">
                     <Bars title="Itens por editora" data={s.topEd} />
                     <Bars title="Investimento por editora" data={s.topInv} money />
-                    <Bars title="Por país" data={s.topPais} />
                   </div>
                 </>
               )}
