@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1792900838860,
- "updated": "2026-10-25T04:00:38.860Z",
+ "atualizadoEm": 1793035341590,
+ "updated": "2026-10-26T17:22:21.590Z",
  "obras": [
   {
    "id": 1,
@@ -13488,7 +13488,12 @@
   "Hyperion Comics",
   "Moby Dick"
  ],
- "fila": [],
+ "fila": [
+  {
+   "id": 160,
+   "vol": null
+  }
+ ],
  "listas": [
   {
    "id": 1,
