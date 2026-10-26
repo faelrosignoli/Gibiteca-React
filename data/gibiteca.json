@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793052180382,
- "updated": "2026-10-26T22:03:00.382Z",
+ "atualizadoEm": 1793052235443,
+ "updated": "2026-10-26T22:03:55.443Z",
  "obras": [
   {
    "id": 1,
@@ -4299,8 +4299,10 @@
    "origem": "nacional",
    "editora": "Veneta",
    "pais": "França",
+   "adulto": true,
    "tags": [],
    "resenha": "",
+   "tipoEdicao": "",
    "imagem": "https://raw.githubusercontent.com/faelrosignoli/Gibiteca-React/main/covers/a-louca-do-sagrado-coracao-259.jpg",
    "roteirista": "Alejandro Jodorowsky",
    "desenhista": "Moebius",
