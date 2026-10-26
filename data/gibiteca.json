@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793052171573,
- "updated": "2026-10-26T22:02:51.573Z",
+ "atualizadoEm": 1793052180382,
+ "updated": "2026-10-26T22:03:00.382Z",
  "obras": [
   {
    "id": 1,
@@ -531,14 +531,18 @@
    "id": 32,
    "nome": "O Perfume do Invisível",
    "tipo": "avulso",
-   "imagem": null,
-   "roteirista": "Milo Manara",
-   "desenhista": "Milo Manara",
    "origem": "nacional",
    "editora": "Comix Zone",
    "pais": "Itália",
-   "urgencia": false,
+   "adulto": true,
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
+   "imagem": null,
+   "roteirista": "Milo Manara",
+   "desenhista": "Milo Manara",
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
