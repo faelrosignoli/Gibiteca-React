@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793138341291,
- "updated": "2026-10-27T21:59:01.291Z",
+ "atualizadoEm": 1793138345536,
+ "updated": "2026-10-27T21:59:05.536Z",
  "obras": [
   {
    "id": 1,
@@ -3185,8 +3185,10 @@
    "origem": "nacional",
    "editora": "Pipoca & Nanquim",
    "pais": "Itália",
+   "adulto": true,
    "tags": [],
    "resenha": "",
+   "tipoEdicao": "",
    "imagem": "https://raw.githubusercontent.com/faelrosignoli/Gibiteca-React/main/covers/o-rei-macaco-192.jpg",
    "roteirista": "Silverio Pisu",
    "desenhista": "Milo Manara",
