@@ -1,4 +1,4 @@
-import Marca from './Marca.jsx'
+import MarcaRodape from './MarcaRodape.jsx'
 import { FichaPrevia } from './FichaAtividades.jsx'
 
 /* O RODAPÉ — duas colunas e nada entre elas.
@@ -35,15 +35,20 @@ export default function Footer({ onAbrirFicha, fichaAberta }) {
               O logo no lugar do "A Gibiteca" escrito: os dois diziam a mesma
               coisa, e a marca diz melhor. Sem `layoutId` aqui — ele pertence
               ao par capa↔barra, e um terceiro com o mesmo id quebraria a
-              viagem do logo. O `Marca` já traz `role="img"` com nome
+              viagem do logo. O `MarcaRodape` já traz `role="img"` com nome
               acessível, então o rodapé não perde o texto para quem ouve.
+
+              É A MARCA CHAPADA, e não a do cabeçalho. Aquela vive de duas
+              camadas — a sombra deslocada atrás das letras vazadas —, e isso
+              existe porque a barra do topo inverte a tinta ao rolar. Aqui o
+              fundo é escuro o tempo todo, e sombra sobre escuro é borrão.
 
               GRANDE: 220px contra os 150 de antes. Com os números fora, esta
               coluna ficou com três linhas de texto para encher a mesma altura
               da ficha ao lado — e assinatura pequena ao lado de um cartão
               cheio faz o cartão parecer o assunto do rodapé. */}
           <div className="max-w-[460px]">
-            <Marca className="w-[220px] max-w-full h-auto mb-4" />
+            <MarcaRodape className="w-[220px] max-w-full h-auto mb-4" />
             <p className="text-ink-soft text-corpo leading-relaxed">
               Sua organização pessoal, pra nunca perder o fio da meada.
             </p>

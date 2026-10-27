@@ -44,6 +44,7 @@ src/
     Collection.jsx         # grade (Card) + Lista (Ficha) + estado vazio; usa Pagination
     Card.jsx               # card 3D (tilt), sombra dura, selos; SEM brilho de cursor
     Marca.jsx              # a marca em SVG inline, duas tintas trocáveis (gerada de assets/logo.svg)
+    MarcaRodape.jsx        # a marca CHAPADA, só no rodapé (gerada de assets/logo-rodape.svg)
     Selos.jsx              # linha de selos do card com teto de 2 linhas e pílula "+N"
     Pessoas.jsx            # autor/artista como etiquetas; entrega a string com " / "
     Divisoria.jsx          # faixa ilustrada entre a paginação e o rodapé (<img>, uma arte por largura)
@@ -2447,7 +2448,7 @@ uma tinta só precisaria inverter.
 puro: assim o desenho lê como recorte no papel, e não como adesivo colado por
 cima. Quem carrega a forma é a sombra.
 
-**O viewBox tem que abraçar a arte.** Os três SVG saíram do editor numa caixa
+**O viewBox tem que abraçar a arte.** Todos os SVG saíram do editor numa caixa
 de `0 0 4000 1080` com o desenho centrado no meio dela, ocupando **51%** da
 largura no `logo.svg`, 49% no alt-moss e **31%** no alt-nockout. Como o
 `preserveAspectRatio` encaixa a caixa inteira — vazio incluso —, `h-12` rendia
@@ -2458,8 +2459,11 @@ medidas com `getBBox()`:
 | arquivo | viewBox | proporção |
 |---|---|---|
 | `logo.svg` | `152 264 3695 551` | 6,71:1 |
+| `logo-rodape.svg` | `139.28 311.81 3721.42 456.39` | 8,15:1 |
 | `marca-alt-moss.svg` | `887 276 2225 528` | 4,21:1 |
 | `marca-alt-nockout.svg` | `207 374 3586 332` | 10,80:1 |
+| `marca-alt-candy.svg` | `304.04 308.37 3391.92 463.29` | 7,32:1 |
+| `marca-alt-midnight.svg` | `912.26 235.09 2175.49 609.83` | 3,57:1 |
 
 Um re-export com margem **não quebra nada visível** — só encolhe o logo pela
 metade de novo, em silêncio. Quem trocar a arte mede o `getBBox()` antes de
@@ -2509,19 +2513,59 @@ o navegador reserva para o descendente da fonte empurra a marca ~3px acima dos
 Quem precisar de uma combinação nova **muda a variável no contexto**, não o
 componente.
 
-**O favicon segue a mesma regra, e tem uma a mais.** `public/favicon.svg` é o
-monograma "GIBI" em bloco 2×2. Veio em `0 0 1080 1080` com a tinta ocupando 60%
-da largura e 79% da altura; num ícone de 16px esse vazio é perda direta de
-legibilidade. A caixa foi apertada para o quadrado `80 80 920 920` — quadrado
-porque o ícone é exibido num espaço quadrado, e centrado porque a tinta já
-estava no centro (539,95 × 540,05).
+#### A marca do rodapé é outra arte, e por um motivo
 
-A cor vem de um `<style>` DENTRO do SVG, com `prefers-color-scheme`: `#212121`
+`MarcaRodape.jsx` é a versão **chapada** do logotipo: uma camada, uma cor. Ela
+só aparece no rodapé.
+
+A marca do cabeçalho vive das duas tintas — sombra deslocada atrás, letras
+vazadas na frente —, e isso existe porque a barra do topo **inverte** ao rolar:
+cada camada troca de cor por conta própria e o desenho aguenta os dois fundos.
+No rodapé não há inversão nenhuma. A faixa é escura o tempo todo, e uma sombra
+escura atrás de letras claras sobre fundo escuro não é profundidade: é borrão.
+
+A cor sai do CSS, presa a `rgb(var(--tinta))` em `.marca-rodape`. Como
+`.rodape` define `--tinta: var(--paper)`, a marca sai cor de papel ali **sem o
+componente saber o que é um rodapé** — posta numa superfície clara, ela sai
+escura, sem regra nova. Medido na faixa: `fill` resolve para `rgb(244 240 230)`
+sobre `#212121`.
+
+Gerada por `tools/gerar-marca-rodape.cjs` a partir de
+`src/assets/logo-rodape.svg`, com o mesmo contrato das outras: texto em curvas,
+viewBox colado na tinta, `d` que não se edita à mão.
+
+**O favicon segue a mesma regra, e tem uma a mais.** `public/favicon.svg` é o
+ícone da casa — "GIBI / TECA" empilhado em duas linhas —, gerado por
+`tools/gerar-favicon.cjs` a partir de `src/assets/icone.svg`. A arte vem em
+`0 0 1080 1080` com folga em volta; num ícone de 16px essa folga é perda direta
+de legibilidade. O gerador aperta a caixa num **quadrado** — quadrado porque o
+ícone é exibido num espaço quadrado, e um viewBox retangular deixaria o
+navegador escolher o enquadramento — com o lado da maior dimensão da arte
+(931,27) e centrado nela: `74.35 74.37 931.27 931.27`.
+
+O contorno vai **cravado no script**, medido com `getBBox()` no navegador.
+Trocou a arte, mede de novo: um `getBBox()` velho não dá erro nenhum, só
+desloca o ícone em silêncio.
+
+**A duas linhas, ele custa a 16px.** Medido nos quatro tamanhos: a 64 e 128
+lê-se inteiro, a 32 lê-se com esforço, e a 16 — o tamanho da aba — vira uma
+mancha escura com o formato certo. É a arte escolhida, e a troca é consciente:
+o ícone funciona como mancha reconhecível na aba e como logotipo legível em
+qualquer lugar maior. Se um dia o 16px passar a importar, o caminho é uma arte
+de uma linha só (ou de uma letra), não um ajuste de caixa — a caixa já está
+colada na tinta.
+
+A cor vem de um `<style>` DENTRO do SVG, com `prefers-color-scheme`: `#23271C`
 no claro, `#F4F0E6` no escuro. É o esquema do **navegador**, não o tema do site
 — o favicon vive na aba, não na página, e não tem como saber se quem abriu está
 em Moss ou Nockout. Firefox e Chrome respeitam a consulta; **o Safari não**, e
 nele fica sempre a versão clara (tinta escura), que some numa barra escura. Não
 há `.ico` de reserva no projeto.
+
+**Pesa 29 kB**, contra 3,8 kB da arte anterior: são oito caminhos de contorno
+detalhado em vez de quatro de bloco. É um arquivo só, pedido uma vez e
+guardado pelo navegador — mas quem for enxugar o projeto um dia começa por
+aqui, simplificando a arte no editor, nunca editando os `d`.
 
 **Para trocar a arte:** aperte o viewBox na tinta (ver acima), substitua
 `src/assets/logo.svg` e rode

@@ -658,6 +658,13 @@ body::after {
 .marca-sombra { fill: var(--marca-sombra, #212121); transition: fill .45s var(--ease-prem); }
 .marca-letra  { fill: var(--marca-letra,  rgb(var(--paper))); transition: fill .45s var(--ease-prem); }
 
+/* A MARCA CHAPADA DO RODAPÉ.
+   Uma camada, uma cor — e a cor é a TINTA do lugar onde ela estiver. No
+   rodapé `--tinta` está invertida (`.rodape` a define como `--paper`), e
+   é só por isso que a marca sai cor de papel ali: o componente não sabe o que
+   é rodapé, e posto em superfície clara ele sai escuro, sem regra nova. */
+.marca-rodape { display: block; fill: rgb(var(--tinta)); }
+
 
 /* ------------------------------------------------------------------
    A tira de capas da prévia de cada lista.
