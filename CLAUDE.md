@@ -3516,6 +3516,41 @@ sempre, então dá para escolher uma nota que ninguém tem — e aí o rodapé d
 "Nada encontrado", que é resposta honesta e imediata. Foi a troca: o gesto
 certo em lugar da cascata.
 
+#### Sem moldura, e com o rótulo dos vizinhos
+
+A primeira versão vinha numa pílula com borda e `Nota` em caixa alta pequena,
+imitando os campos ao lado. Imitava a coisa errada: **aquela borda é a promessa
+de que o campo ABRE** — clicar em Autor, Editora ou Edição derruba uma lista. As
+estrelas já estão à vista e se clica nelas direto. Borda sem abertura é o painel
+prometendo um gesto que não existe.
+
+Então a caixa perdeu borda e fundo, e `Nota` passou a ser `text-corpo
+font-semibold` — o mesmo peso, tamanho e caixa dos rótulos de Autor, Editora e
+Edição, com a mesma troca de cor (`text-ink-soft` vazio → `text-ink`
+preenchido). O `pl-[15px]` repõe à mão o recuo que a pílula dava por dentro — 1px
+de borda + 14px de `px-3.5`, medidos da aresta externa — para `Nota` nascer na
+mesma vertical de `Editora`, o campo logo acima dele na coluna da direita.
+**O SUBLINHADO é o que sobrou da borda**: 1px de `border-contorno`, o mesmo fio
+e a mesma espessura da pílula ao lado, e vira `border-moss` quando há nota
+escolhida, como a borda do vizinho faz ao ser preenchida. Diz onde o campo
+pousa sem prometer que ele abre.
+
+Para o fio cair na mesma linha da borda de baixo do vizinho, a caixa **não tem
+altura cravada**: `self-stretch` faz ela crescer até o fundo da linha da grade,
+e quem decide essa altura é a pílula ao lado. Com o `h-[42px]` que estava aqui
+o fio caía 2px abaixo — a pílula mede 39,7px, não 42.
+
+**Conferido no navegador**: Inter 14px/600, sem `text-transform`, nos quatro
+rótulos; a caixa da nota sem fundo, e o sublinhado de 1px `rgba(33,33,33,.24)`
+terminando em `bottom: 238,375` — o mesmo pixel da borda inferior do campo
+Edição.
+
+O `aria-label` das estrelas **muda de frase aqui**. O `EstrelasInput` diz
+"dar nota 4" por padrão, que é o que ele faz no editor e na ficha; no filtro ele
+não dá nota nenhuma, escolhe quais notas aparecem. Daí a prop `rotulo` —
+padrão intacto para quem já usava, e "mostrar só as obras com nota 4" aqui. Quem
+vê a tela entende pela posição; quem ouve, só pelo rótulo.
+
 #### Por que ele ficou no Afunilar, e não nas Condições
 
 Pela régua deste painel, a nota pertenceria às **Condições**: ela fala de
@@ -3689,6 +3724,26 @@ pergunta são resposta.
 **Só os pares ganharam essa forma.** "Urgentes" e "Importados" continuam chips
 soltos: são booleanos independentes, uma obra pode ser os dois. A diferença de
 forma é honesta — ali se escolhe entre, aqui se liga.
+
+#### E os dois são das cores das marcas que procuram
+
+Estes dois chips **não usam o acento do tema**, e são os únicos do painel que
+não usam. Urgente é o selo vermelho (`rust`) do canto do cartão; importado é a
+etiqueta azul (`blue`, a mesma do `pill-imp`) da mesma obra. Vestindo a cor da
+marca que procuram, a ligação entre o botão e o que vai acender na grade não
+precisa de legenda. Os outros controles seguem no acento porque não procuram
+marca nenhuma: procuram um recorte.
+
+**Dois estados, sempre.** Apagado é a cor lavada (`tinta-rust`, `tinta-blue`)
+com a tinta dela por cima; aceso é a cor cheia com tinta clara, igual ao selo
+do cartão. Pintar o chip de um jeito só economizaria uma regra e custaria a
+única coisa que o chip precisa dizer: se o filtro está ligado. Contraste
+medido: `rust` sobre `tinta-rust` 5,3:1 e branco sobre `rust` 6,5:1; `blue`
+sobre `tinta-blue` 5,9:1 e branco sobre `blue` 7:1.
+
+As cores entram por um mapa `CORES` com `moss` como padrão, e não por classes
+soltas no JSX: o `Chip` continua um componente só, e um terceiro chip colorido
+amanhã é uma linha no mapa.
 
 ## A ordem dos grupos: afunilar → condições → ordenar
 
@@ -4332,18 +4387,30 @@ telas.
 preferência da PESSOA, não da tela. Guardado ali, viaja no backup e na nuvem
 junto com a conta. Nasce desligado, sempre.
 
-#### `scale` junto do `blur`, e por quê
+#### O borrão fica DENTRO da arte
 
-`filter: blur()` amostra pixels de FORA da imagem, e nas bordas mistura a capa
-com o transparente — sai uma moldura esmaecida que denuncia o formato da arte.
-Ampliar 8% empurra essa franja para fora da caixa, **que precisa ter
-`overflow: hidden`**. Por isso o véu veio acompanhado de um `overflow-hidden`
-em cada caixa de capa.
+`filter: blur()` amostra pixels de FORA da imagem: o borrão vaza para além da
+arte e, numa capa retrato dentro de uma caixa quadrada, toma também as faixas
+vazias dos lados — **a caixa inteira fica embaçada, não a capa**.
 
-16px num cartão de ~160px é o ponto em que a composição ainda se adivinha — dá
-para saber que ali tem uma capa, e não um retângulo cinza — mas nenhuma figura
-se reconhece. A dessaturação leve tira o que o borrão sozinho não tira: a cor
-berrante de uma capa chamativa continua chamando mesmo ilegível.
+`clip-path: inset(0 round 8px)` corta o resultado JÁ FILTRADO no próprio
+retângulo da imagem: na ordem da pintura, o recorte vem depois do filtro. O
+raio acompanha o `rounded-pequeno` da capa.
+
+**A primeira versão usava `transform: scale(1.08)`** para empurrar a franja
+para fora de um pai com `overflow: hidden` — e era justamente isso que
+espalhava o borrão pelo quadrado. Saíram os dois: o `scale` e o
+`overflow-hidden` que ele exigia (e que de quebra cortava a sombra da capa).
+
+Medido numa capa retrato de 139×194 dentro de uma caixa de 194×194: o borrão
+ocupa 139×194, o mesmo espaço das capas nítidas ao lado.
+
+**São 5px, e sem dessaturação.** O véu é LEVE de propósito: a composição se
+adivinha inteira, a cor fica, e o que sai é o detalhe — o ajuste não diz "não
+dá para ver", diz "não fica exposto na grade". A primeira versão era 16px com
+`saturate(.75)`, que apagava a figura por completo e ainda deixava a imagem
+doente; com um véu leve, tirar a cor só atrapalha, porque é justamente a cor
+que ajuda a achar a obra na grade.
 
 #### Só a ficha revela, e só enquanto se segura
 

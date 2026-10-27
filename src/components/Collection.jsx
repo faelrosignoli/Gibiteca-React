@@ -44,7 +44,7 @@ function Ficha({ obra, index, onOpen }) {
                  transition-colors duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-separador hover:bg-toque"
     >
       {/* capa: caixa quadrada nua, imagem arredondada por dentro */}
-      <div className="w-[52px] sm:w-16 aspect-square relative flex items-center justify-center self-start overflow-hidden">
+      <div className="w-[52px] sm:w-16 aspect-square relative flex items-center justify-center self-start">
         {urgenteNaVitrine(obra, filters.status) && <UrgBadge />}
         {capa
           ? <img src={capa} alt="" loading="lazy" className={`absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_10px_20px_-10px_rgba(33,33,33,.55)] ${velada ? 'capa-velada' : ''}`} />

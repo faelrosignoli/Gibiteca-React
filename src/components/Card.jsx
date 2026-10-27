@@ -118,7 +118,7 @@ export default function Card({ obra, index = 0, onOpen, feature = false, animarE
         {/* capa — caixa QUADRADA fixa, para todas as linhas alinharem.
             A capa fica contida dentro dela: formato natural, sem recorte
             (a regra do projeto permite "altura fixa + w-auto"). */}
-        <div className={`relative flex items-center justify-center aspect-square overflow-hidden`}>
+        <div className={`relative flex items-center justify-center aspect-square`}>
           {cover ? (
             /* absolute + inset-0 + m-auto: so assim o max-h-full tem uma
                altura definida para resolver contra, senao a capa alta estica

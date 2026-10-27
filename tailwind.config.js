@@ -85,6 +85,7 @@ export default {
         'tinta-moss': 'rgb(var(--tinta-moss) / <alpha-value>)',
         'tinta-gold': '#f3ead4',
         'tinta-rust': '#f0e2da',
+        'tinta-blue': '#e2e8f4',
       },
 
       fontFamily: {

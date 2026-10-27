@@ -1378,24 +1378,31 @@ button:hover .ico-lixo__tampa { transform: rotate(-18deg) translateY(-1px) }
    Obra marcada como adulta sai borrada enquanto o ajuste "Exibir conteúdo
    adulto" estiver desligado (menu ☰ › Configurações).
 
-   ---- POR QUE `scale` JUNTO DO `blur` ----
+   ---- O BORRÃO FICA DENTRO DA ARTE ----
 
-   `filter: blur()` amostra pixels de FORA da imagem, e nas bordas ele mistura
-   a capa com o transparente — o resultado é uma moldura esmaecida que denuncia
-   o formato da arte e deixa a borda suja. Ampliar 8% empurra essa franja para
-   fora da caixa, que recorta. Por isso toda capa velada precisa de um pai com
-   `overflow: hidden`.
+   `filter: blur()` amostra pixels de FORA da imagem: o borrão vaza para além
+   da arte e, numa capa retrato dentro de uma caixa quadrada, toma também as
+   faixas vazias dos lados — a caixa inteira fica embaçada, não a capa.
+
+   `clip-path: inset(0 round 8px)` corta o resultado JÁ FILTRADO no próprio
+   retângulo da imagem (na ordem da pintura, o recorte vem depois do filtro).
+   O raio acompanha o `rounded-pequeno` que a capa usa.
+
+   SEM `transform: scale`. A primeira versão ampliava 8% para empurrar a franja
+   para fora de um pai com `overflow: hidden` — e era justamente isso que
+   espalhava o borrão pelo quadrado. Com o recorte no lugar, ampliar só faria
+   a arte crescer sem motivo.
 
    ---- A FORÇA ----
 
-   16px num cartão de ~160px é o ponto em que a composição ainda se adivinha —
-   dá para saber que ali tem uma capa, e não um retângulo cinza — mas nenhuma
-   figura se reconhece. Menos que isso e rostos aparecem; muito mais e a capa
-   vira borrão uniforme, e aí o cartão perde a cor que ajuda a localizar a obra
-   na grade.
+   5px num cartão de ~160px é um véu LEVE: a composição se adivinha inteira, a
+   cor fica, e o que sai é o detalhe. Foi o pedido, e muda o que o ajuste
+   significa — não é mais "não dá para ver", é "não fica exposto na grade".
+   Era 16px antes, que apagava a figura por completo.
 
-   A dessaturação leve tira o que o borrão sozinho não tira: a cor berrante de
-   uma capa chamativa continua chamando mesmo ilegível.
+   SEM dessaturação. A versão anterior tirava 25% da cor para a capa berrante
+   parar de chamar mesmo ilegível; com um véu leve isso só deixava a imagem
+   doente, e a cor é justamente o que ajuda a achar a obra na grade.
 
    ---- A TRANSIÇÃO ----
 
@@ -1403,22 +1410,23 @@ button:hover .ico-lixo__tampa { transform: rotate(-18deg) translateY(-1px) }
    No cartão nada se mexe: lá o véu não sai nunca.
    ------------------------------------------------------------------ */
 .capa-velada {
-  filter: blur(16px) saturate(.75);
-  transform: scale(1.08);
-  transition: filter .22s var(--ease-prem), transform .22s var(--ease-prem);
+  filter: blur(5px);
+  clip-path: inset(0 round 8px);
+  transition: filter .22s var(--ease-prem);
 }
 
 /* REVELADA: o mesmo elemento sem o véu. Classe separada, e não a ausência da
    outra, para a transição ter dois lados declarados e o React só trocar a
    palavra. */
+/* REVELADA devolve o recorte também: com ele a sombra da capa ficaria
+   cortada, e a arte à mostra merece a mesma moldura das outras. */
 .capa-revelada {
   filter: none;
-  transform: none;
+  clip-path: none;
 }
 
 /* Quem pediu menos movimento recebe a revelação sem o zoom — o borrão ainda
    sai, porque ele é a informação, mas sem nada crescendo. */
 @media (prefers-reduced-motion: reduce) {
   .capa-velada, .capa-revelada { transition: filter .12s linear; }
-  .capa-velada { transform: none; filter: blur(16px) saturate(.75); }
 }

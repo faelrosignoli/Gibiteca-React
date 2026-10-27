@@ -199,7 +199,7 @@ function CapaDaFicha({ obra, src }) {
      aberta. */
   useEffect(() => { setRevelada(false) }, [obra.id])
 
-  const caixa = 'w-24 sm:w-28 shrink-0 self-start aspect-square relative flex items-center justify-center overflow-hidden rounded-pequeno'
+  const caixa = 'w-24 sm:w-28 shrink-0 self-start aspect-square relative flex items-center justify-center rounded-pequeno'
 
   const miolo = src
     ? <img src={src} alt=""

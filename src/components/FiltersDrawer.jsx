@@ -58,6 +58,26 @@ const temAlgo = (v) => comoLista(v).length > 0
  * filtro" sem ambiguidade. Quem quiser sair de uma nota escolhida usa o ×,
  * que só aparece quando há o que limpar.
  *
+ * SEM MOLDURA, e com o rótulo na tipografia dos vizinhos (`text-corpo`,
+ * `font-semibold`, caixa normal). A pílula com borda imitava um campo que
+ * abre — e este não abre nada: as estrelas já estão à vista e se clica nelas.
+ * A borda prometia um gesto que não existe.
+ *
+ * O SUBLINHADO é o que sobrou da borda: 1px de `border-contorno`, o mesmo fio
+ * e a mesma espessura da pílula ao lado, e vira `border-moss` quando há nota
+ * escolhida, como a borda do vizinho faz ao ser preenchida. Diz onde o campo
+ * pousa sem prometer que ele abre.
+ *
+ * Sem altura cravada: `self-stretch` faz a caixa crescer até o fundo da
+ * linha da grade, e quem decide essa altura é a pílula ao lado. Com `h-[42px]`
+ * — que era o que estava aqui — o fio caía 2px abaixo da borda do vizinho,
+ * porque a pílula mede 39,7px e não 42. Assim o sublinhado acompanha o campo
+ * ao lado mesmo que um dia ele mude de altura.
+ *
+ * O `pl-[15px]` não é enfeite: é 1px de borda + 14px de recuo, que é o que o
+ * texto dos campos ao lado tem entre si e a aresta externa da pílula. É o que faz "Nota" nascer na mesma vertical de
+ * "Editora", logo acima dele na coluna da direita.
+ *
  * A NOTA É EXATA: quatro estrelas mostra o que tem quatro, não "quatro ou
  * mais". Foi o pedido, e tem uma vantagem — com meia estrela na escala, "ou
  * mais" sempre obriga a decidir se 4 inclui 4,5, e exato não precisa decidir
@@ -66,15 +86,16 @@ const temAlgo = (v) => comoLista(v).length > 0
 function FiltroNota({ valor, onChange }) {
   const n = Number(valor) || 0
   return (
-    <div className={`h-[42px] rounded-full border flex items-center gap-2 px-3 transition-colors
-      ${n ? 'border-moss bg-surface-2' : 'border-contorno bg-surface'}`}>
-      <span className={`font-rotulo text-rotulo uppercase font-bold shrink-0
-        ${n ? 'text-acento-texto' : 'text-ink-faint'}`}>Nota</span>
+    <div className={`self-stretch flex items-center gap-2.5 pl-[15px] pr-1 border-b transition-colors duration-200
+      ${n ? 'border-moss' : 'border-contorno'}`}>
+      <span className={`text-corpo font-semibold shrink-0 ${n ? 'text-ink' : 'text-ink-soft'}`}>Nota</span>
       <EstrelasInput
         value={n}
         onChange={v => onChange(v || '')}
         tamanho="w-[17px] h-[17px]"
         limpar={false}
+        /* aqui a estrela não dá nota, escolhe quais notas aparecem. */
+        rotulo={i => `mostrar só as obras com nota ${i}`}
       />
       {/* O × ocupa lugar fixo mesmo apagado: aparecendo e sumindo, ele
           empurrava as estrelas de lado a cada escolha. */}
@@ -213,7 +234,33 @@ function ParLigado({ rotuloGrupo, opcoes, valor, neutro, onChange }) {
    Quem ouve recebe "Urgentes, botão, não pressionado", que é a descrição
    exata do que está na tela.
    ------------------------------------------------------------------ */
-function Chip({ ligado, onClick, children, title }) {
+/* A COR DOS DOIS NÃO É A DO TEMA, e é de propósito.
+   Urgente é o selo vermelho do canto do cartão; importado é a etiqueta azul
+   da mesma obra. O filtro veste a MESMA cor da marca que ele procura, e aí a
+   ligação entre o botão e o que vai aparecer na grade não precisa de legenda.
+   Os outros controles deste painel continuam no acento: eles não procuram
+   nenhuma marca colorida, procuram um recorte.
+
+   Apagado é a cor LAVADA com a tinta dela por cima; aceso é a cor CHEIA com
+   tinta clara — o mesmo selo que está no cartão. São dois estados visíveis de
+   propósito: um chip sempre pintado esconderia se o filtro está ligado. */
+const CORES = {
+  rust: {
+    on:  'border-rust bg-rust text-white',
+    off: 'border-rust/30 bg-tinta-rust text-rust hover:border-rust/60',
+  },
+  blue: {
+    on:  'border-blue bg-blue text-white',
+    off: 'border-blue/30 bg-tinta-blue text-blue hover:border-blue/60',
+  },
+  moss: {
+    on:  'border-moss bg-tinta-moss text-acento-texto',
+    off: 'border-contorno text-ink-soft hover:border-moss-3 hover:text-ink',
+  },
+}
+
+function Chip({ ligado, onClick, children, title, cor = 'moss' }) {
+  const c = CORES[cor] || CORES.moss
   return (
     <button
       type="button" onClick={onClick} aria-pressed={ligado} title={title}
@@ -222,9 +269,7 @@ function Chip({ ligado, onClick, children, title }) {
          alturas numa pilha de controles que se leem como uma coluna só. */
       className={`w-full inline-flex items-center justify-center gap-1.5 h-10 rounded-full border px-3 text-corpo font-semibold
         transition-colors duration-200
-        ${ligado
-          ? 'border-moss bg-tinta-moss text-acento-texto'
-          : 'border-contorno text-ink-soft hover:border-moss-3 hover:text-ink'}`}
+        ${ligado ? c.on : c.off}`}
     >
       {children}
     </button>
@@ -484,10 +529,10 @@ export default function FiltersDrawer({ open, onClose }) {
                 />
 
                 <div className="grid grid-cols-2 gap-2">
-                  <Chip ligado={filters.urgencia} onClick={() => setFilter('urgencia', !filters.urgencia)}>
+                  <Chip cor="rust" ligado={filters.urgencia} onClick={() => setFilter('urgencia', !filters.urgencia)}>
                     <IconUrgente /> Urgentes
                   </Chip>
-                  <Chip ligado={filters.importado} onClick={() => setFilter('importado', !filters.importado)}>
+                  <Chip cor="blue" ligado={filters.importado} onClick={() => setFilter('importado', !filters.importado)}>
                     <IconImportado /> Importados
                   </Chip>
                 </div>

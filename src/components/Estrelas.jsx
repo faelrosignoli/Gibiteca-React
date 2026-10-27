@@ -52,14 +52,14 @@ export default function Estrelas({ n, tamanho = 'w-4 h-4', className = '' }) {
    clique na estrela já marcada vai para a metade dela, e da metade volta para
    a inteira. Quem desenha o controle dentro de uma caixa estreita desliga o
    atalho e oferece outro caminho para zerar — ver a caixa de nota da ficha. */
-export function EstrelasInput({ value = 0, onChange, tamanho = 'w-6 h-6', limpar = true }) {
+export function EstrelasInput({ value = 0, onChange, tamanho = 'w-6 h-6', limpar = true, rotulo = i => `dar nota ${i}` }) {
   return (
     <div className="inline-flex items-center gap-1">
       {[1, 2, 3, 4, 5].map(i => (
         <button
           key={i} type="button"
           onClick={() => onChange(value === i ? i - 0.5 : i)}
-          aria-label={`dar nota ${i}`}
+          aria-label={rotulo(i)}
           className="transition-transform duration-200 hover:scale-110 leading-none"
         >
           <Estrela cheio={quanto(value, i)} tamanho={tamanho} />
