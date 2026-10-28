@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793211466047,
- "updated": "2026-10-28T18:17:46.047Z",
+ "atualizadoEm": 1793211522271,
+ "updated": "2026-10-28T18:18:42.271Z",
  "obras": [
   {
    "id": 1,
@@ -9988,7 +9988,13 @@
    "id": 530,
    "nome": "Y: O Último Homem",
    "tipo": "serie",
-   "imagem": null,
+   "origem": "nacional",
+   "editora": "",
+   "pais": "EUA",
+   "adulto": false,
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
    "volumes": [
     {
      "nome": "Y: O Último Homem",
@@ -10002,9 +10008,7 @@
      "nota": 0
     }
    ],
-   "origem": "importado",
-   "editora": "",
-   "pais": "EUA",
+   "imagem": null,
    "roteirista": "",
    "desenhista": "",
    "status": "wishlist",
