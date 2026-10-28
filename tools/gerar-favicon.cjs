@@ -20,7 +20,7 @@ const R = __dirname + '/../'
 
 /* Contorno da arte, medido no navegador com svg.getBBox() sobre
    src/assets/icone.svg. Trocou a arte? Meça de novo e troque aqui. */
-const BBOX = { x: 129.02, y: 74.37, w: 821.93, h: 931.27 }
+const BBOX = { x: 50.02, y: 50.02, w: 979.95, h: 979.95 }
 
 const svg = fs.readFileSync(R + 'src/assets/icone.svg', 'utf8')
 const d = [...svg.matchAll(/<path[^>]*?\sd="([^"]+)"\s*\/?>/g)].map(m => m[1])
