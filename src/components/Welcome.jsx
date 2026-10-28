@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { MOLA_CALMA } from '../lib/motion.js'
+import { MOLA_CALMA, useEhDesktop } from '../lib/motion.js'
 import Marca from './Marca.jsx'
 
 /* Página de boas-vindas: a capa da gibiteca.
@@ -33,10 +33,14 @@ import Marca from './Marca.jsx'
        moore.alan.jpg     ->   moore.alan-m.jpg
        hurlant.metal.jpg  ->   hurlant.metal-m.jpg
 
-   Convenção, e não um par escrito à mão (`{d: ..., m: ...}`), porque cada
-   capa TEM as duas versões — e um campo que nunca varia é um campo que só
-   serve para ser esquecido. Faltando o `-m`, nada quebra: aquela capa vai de
-   desktop no celular — mais peso do que devia, mas a imagem certa.
+   Convenção, e não um par escrito à mão (`{d: ..., m: ...}`): o nome já diz
+   o que o arquivo é, e um campo que nunca varia é um campo que só serve para
+   ser esquecido.
+
+   CAPA DE UM ARQUIVO SÓ TAMBÉM VALE, e não é descuido: há arte que só
+   funciona deitada e arte que só funciona em pé. Quem tem só a de desktop
+   não é oferecida ao celular, e quem tem só a `-m` não é oferecida ao
+   computador — ver `capasDe()` logo abaixo.
 
    POR QUE EM `src/assets/` E NÃO EM `public/`. Site estático não responde
    "o que tem nessa pasta?": o que está em `public/` chega ao navegador como
@@ -84,24 +88,44 @@ const ehVersaoCelular = (nome) => {
   return (i < 0 ? nome : nome.slice(0, i)).endsWith('-m')
 }
 
-/* A LISTA. Uma entrada por capa de desktop, com o endereço da versão de
-   celular ao lado — `m: null` quando o arquivo `-m` não está na pasta. As
-   `-m` não entram como capa própria: elas vêm pelo par.
+/* O nome SEM o `-m`. É ele que identifica a capa, tenha ela as duas versões
+   ou uma só — então `foo.jpg` e `foo-m.jpg` são a MESMA capa, e uma pasta com
+   só o `-m` ainda tem uma capa chamada `foo.jpg`. */
+function nomeBase(nome) {
+  const i = nome.lastIndexOf('.')
+  return i < 0 ? nome.slice(0, -2) : nome.slice(0, i - 2) + nome.slice(i)
+}
+
+/* A LISTA. Uma entrada por capa, com os dois endereços — e `null` no que
+   faltar. Monta-se juntando os arquivos pelo nome base, e não procurando o
+   par de cada um: assim o arquivo `-m` sozinho vira capa em vez de sumir.
 
    Ordenada por nome para o sorteio não depender da ordem em que o Vite
    devolveu os arquivos. */
-export const CAPAS = Object.keys(ARQUIVOS)
-  .sort()
-  .filter(caminho => !ehVersaoCelular(caminho))
-  .map(caminho => {
-    const corte = caminho.lastIndexOf('/') + 1
-    const nome = caminho.slice(corte)
-    return {
-      nome,
-      d: ARQUIVOS[caminho],
-      m: ARQUIVOS[caminho.slice(0, corte) + versaoCelular(nome)] || null,
-    }
-  })
+export const CAPAS = (() => {
+  const porNome = new Map()
+  for (const caminho of Object.keys(ARQUIVOS).sort()) {
+    const arquivo = caminho.slice(caminho.lastIndexOf('/') + 1)
+    const celular = ehVersaoCelular(arquivo)
+    const nome = celular ? nomeBase(arquivo) : arquivo
+    const capa = porNome.get(nome) || { nome, d: null, m: null }
+    capa[celular ? 'm' : 'd'] = ARQUIVOS[caminho]
+    porNome.set(nome, capa)
+  }
+  return [...porNome.values()]
+})()
+
+/* QUEM ENTRA NO SORTEIO DESTA TELA.
+ *
+ * Capa sem `-m` não é oferecida ao celular; capa que só tem `-m` não é
+ * oferecida ao computador. Cada arte aparece só onde cabe, porque esticar
+ * estraga: uma foto de 377px de largura ocupando uma tela de 1920 chega a
+ * cinco vezes o tamanho, e vira grão.
+ *
+ * O preço, dito em voz alta: telefone e computador sorteiam de conjuntos
+ * DIFERENTES, e uma pasta só de arte deitada deixa o celular sem capa
+ * nenhuma — papel com o logo, que é o fundo de poço de sempre. */
+export const capasDe = (ehDesktop) => CAPAS.filter(c => (ehDesktop ? c.d : c.m))
 
 /* O sorteio evita repetir a capa da visita anterior.
  *
@@ -149,10 +173,17 @@ export default function Welcome({ onEntrar, aberturaNoAr = false }) {
      caminho de erro ainda vai precisar saber qual era. */
   const [anterior] = useState(lerAnterior)
 
+  /* A largura decide de QUAL conjunto se sorteia. Lida uma vez, na montagem:
+     o inicializador de `useState` só roda no primeiro render, então girar o
+     telefone depois não refaz o sorteio — e não deve mesmo, a capa da visita
+     já foi escolhida. */
+  const ehDesktop = useEhDesktop()
+  const [elegiveis] = useState(() => capasDe(ehDesktop))
+
   /* Sorteia UMA vez, na montagem. Em `useState` e não em variável de módulo
      porque módulo só roda uma vez por carregamento de página — e aí voltar
      para a abertura dentro da mesma sessão traria sempre a mesma capa. */
-  const [capa, setCapa] = useState(() => escolherEntre(CAPAS, anterior))
+  const [capa, setCapa] = useState(() => escolherEntre(elegiveis, anterior))
 
   /* A gravação fica no efeito, não no sorteio: em modo estrito o React roda o
      inicializador de estado DUAS vezes e fica com o primeiro resultado. Se o
@@ -166,12 +197,12 @@ export default function Welcome({ onEntrar, aberturaNoAr = false }) {
   /* Arquivo que não carregou cai fora — mas em DOIS degraus, porque há duas
    * perdas de tamanhos bem diferentes.
    *
-   * 1. Quebrou a versão de CELULAR: fica a de desktop. Ela é mais pesada do
-   *    que devia num telefone, e ainda assim é a capa certa — melhor que
-   *    trocar a foto inteira porque um arquivo veio ruim. O `-m` AUSENTE nem
-   *    chega aqui: a pasta é lida na compilação, e sem o arquivo o `<source>`
-   *    simplesmente não é escrito. Este degrau cobre o arquivo que existe e
-   *    não abre — upload truncado, arte corrompida.
+   * 1. Quebrou a versão de CELULAR de uma capa que TEM as duas: fica a de
+   *    desktop. Ela é mais pesada do que devia num telefone, e ainda assim é
+   *    a capa certa — melhor que trocar a foto inteira porque um arquivo veio
+   *    ruim. O `-m` AUSENTE nem chega aqui: a pasta é lida na compilação, e
+   *    capa sem `-m` nem é oferecida ao celular. Este degrau cobre o arquivo
+   *    que existe e não abre — upload truncado, arte corrompida.
    *
    * 2. Quebrou a capa mesmo: tenta outra. Acabando as capas, fica o papel com
    *    o logo — melhor que um ícone de imagem quebrada em tela cheia.
@@ -188,12 +219,14 @@ export default function Welcome({ onEntrar, aberturaNoAr = false }) {
   const aoFalhar = (e) => {
     const quebrou = (e.target.currentSrc || '').split('/').pop()
     const arquivoCelular = capa.m ? capa.m.split('/').pop() : null
-    if (arquivoCelular && quebrou === arquivoCelular && !semCelular.has(capa.nome)) {
+    /* `capa.d &&`: sem a de desktop não há para onde cair, e insistir deixaria
+       a tela com a imagem quebrada. Aí vale o degrau 2. */
+    if (capa.d && arquivoCelular && quebrou === arquivoCelular && !semCelular.has(capa.nome)) {
       setSemCelular(s => new Set(s).add(capa.nome))
       return
     }
     falharam.current.add(capa.nome)
-    const restantes = CAPAS.filter(c => !falharam.current.has(c.nome))
+    const restantes = elegiveis.filter(c => !falharam.current.has(c.nome))
     setCapa(escolherEntre(restantes, anterior))
   }
 
@@ -220,11 +253,14 @@ export default function Welcome({ onEntrar, aberturaNoAr = false }) {
            decisão é tomada uma vez, quando o elemento nasce. Mudando a chave,
            nasce outro. */
         <picture key={capa.nome + (semCelular.has(capa.nome) ? '#d' : '')}>
-          {capa.m && !semCelular.has(capa.nome) && (
+          {/* O `<source>` só faz sentido quando existem AS DUAS: é ele que
+              escolhe entre uma e outra. Com um arquivo só, a escolha já foi
+              feita lá em cima, por `capasDe()`, e o que resta é mostrá-lo. */}
+          {capa.d && capa.m && !semCelular.has(capa.nome) && (
             <source media="(max-width: 639.98px)" srcSet={capa.m} />
           )}
           <img
-            src={capa.d}
+            src={capa.d || capa.m}
             alt=""
             aria-hidden="true"
             className="welcome__imagem"
