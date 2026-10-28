@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793206152630,
- "updated": "2026-10-28T16:49:12.630Z",
+ "atualizadoEm": 1793206161184,
+ "updated": "2026-10-28T16:49:21.184Z",
  "obras": [
   {
    "id": 1,
@@ -4852,7 +4852,7 @@
    "id": 292,
    "nome": "A Máscara da Morte Rubra",
    "tipo": "avulso",
-   "origem": "importado",
+   "origem": "nacional",
    "editora": "Figura",
    "pais": "Itália",
    "adulto": false,
