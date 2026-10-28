@@ -1,0 +1,30 @@
+AS CAPAS DA PÁGINA DE BOAS-VINDAS
+=================================
+
+Esta pasta É a lista. Toda imagem que estiver aqui entra no sorteio da
+abertura, sem mexer em código nenhum — basta subir o arquivo e esperar o
+GitHub publicar.
+
+CADA CAPA SÃO DOIS ARQUIVOS:
+
+    nome.jpg      a de computador
+    nome-m.jpg    a de celular  (o "-m" vai ANTES do ponto)
+
+Exemplos:
+
+    moore.alan.jpg      ->  moore.alan-m.jpg
+    hurlant.metal.jpg   ->  hurlant.metal-m.jpg
+
+O nome pode ser qualquer um, e pode ter ponto no meio. Formatos aceitos:
+.jpg  .jpeg  .png  .webp  .avif
+
+Faltando a versão "-m", nada quebra: no celular aparece a de computador,
+mais pesada do que devia, mas é a imagem certa.
+
+PARA TIRAR UMA CAPA: apague os dois arquivos.
+
+TAMANHO: a imagem cobre a tela inteira. Abaixo de ~3840px de largura a de
+computador pode ser esticada em telas grandes, e esticar borra. Reduzir não
+borra — na dúvida, mande grande.
+
+Arquivos que não sejam imagem (como este) são ignorados.

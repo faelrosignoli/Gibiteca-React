@@ -21,46 +21,55 @@ import Marca from './Marca.jsx'
 /* ------------------------------------------------------------------
    AS CAPAS. Uma por visita, sorteada.
 
-   PARA ACRESCENTAR UMA: ponha os DOIS arquivos em `public/` e escreva aqui
-   só o nome da versão de DESKTOP. Qualquer nome e qualquer formato que o
-   navegador abra — a lista guarda nomes, não um padrão de numeração,
-   justamente para não obrigar ninguém a renomear arte.
+   PARA ACRESCENTAR UMA: ponha os DOIS arquivos em `src/assets/capas/`. Não
+   se escreve nada aqui — a lista É a pasta, lida na hora de compilar.
+   Qualquer nome e qualquer formato que o navegador abra: a pasta guarda
+   nomes, não um padrão de numeração, justamente para não obrigar ninguém a
+   renomear arte.
 
-   A versão de CELULAR não se escreve: ela é o mesmo nome com `-m` antes da
-   extensão, igual ao par `divisoria` / `divisoria-m` do rodapé.
+   A versão de CELULAR é o mesmo nome com `-m` antes da extensão, igual ao
+   par `divisoria` / `divisoria-m` do rodapé:
 
-       moore.alan.jpg   ->   moore.alan-m.jpg
-       hurlant.metal.jpg ->  hurlant.metal-m.jpg
+       moore.alan.jpg     ->   moore.alan-m.jpg
+       hurlant.metal.jpg  ->   hurlant.metal-m.jpg
 
    Convenção, e não um par escrito à mão (`{d: ..., m: ...}`), porque cada
    capa TEM as duas versões — e um campo que nunca varia é um campo que só
-   serve para ser esquecido. O preço: o arquivo `-m` precisa existir mesmo,
-   ou no celular aquela capa falha e outra entra no lugar.
+   serve para ser esquecido. Faltando o `-m`, nada quebra: aquela capa vai de
+   desktop no celular — mais peso do que devia, mas a imagem certa.
 
-   NOME SEM BARRA NO COMEÇO. O endereço sai de `BASE_URL + nome`, e `/foto.jpg`
-   viraria `//foto.jpg`, que o navegador lê como outro domínio. Subpasta pode:
-   `capas/foto.jpg` acha `public/capas/foto.jpg`.
+   POR QUE EM `src/assets/` E NÃO EM `public/`. Site estático não responde
+   "o que tem nessa pasta?": o que está em `public/` chega ao navegador como
+   arquivos soltos, sem índice, então em tempo de execução não há como
+   descobrir uma capa nova. Daria para gerar um manifesto e buscá-lo, mas ele
+   seria uma requisição A MAIS *antes* de o navegador saber qual imagem pedir
+   — e essa imagem é a coisa mais pesada e mais importante da tela. Lida na
+   compilação, a lista já vem dentro do bundle, e o download da capa começa
+   no primeiro render.
 
-   Por que uma lista no código, e não um arquivo de manifesto em `public/`
-   que desse para editar direto no GitHub sem recompilar: o manifesto seria
-   uma requisição A MAIS *antes* de o navegador saber qual imagem buscar, e
-   essa imagem é a coisa mais pesada e mais importante da tela. A lista vem
-   junto do bundle, então o download da capa começa no primeiro render.
+   `import.meta.glob` com `eager` NÃO embute imagem em JavaScript: ele troca
+   cada arquivo por um endereço, uma linha de texto. Os bytes continuam indo
+   inteiros para o `dist/`, sem reencodar, só ganhando um sufixo no nome — o
+   que é de graça e ainda resolve um problema que `public/` tinha: trocar a
+   arte mantendo o nome deixava quem já visitou vendo a antiga, de cache.
 
-   A qualidade não muda em nada: cada arquivo continua indo de `public/` para
-   o `dist/` byte a byte, sem reencodar. A regra de ampliação vale para as
-   duas versões — ver o comentário do `.welcome__imagem` no index.css.
+   A regra de ampliação vale para as duas versões — ver o comentário do
+   `.welcome__imagem` no index.css.
 
    E só UM arquivo é baixado por visita, não a soma: nem as outras capas, nem
    a outra versão desta. Quem garante isso é o `<picture>` lá embaixo.
    ------------------------------------------------------------------ */
-export const CAPAS = [
-  'moore.alan.jpg',
-  'hurlant.metal.jpg',
-  'ale.jodo.jpg',
-  'tezuka.osamu.jpg',
-  'sousa.mauricio.jpg',
-]
+
+/* A pasta inteira, lida na compilação: a chave é o caminho do arquivo, e o
+   valor é o endereço dele no site publicado.
+
+   Os formatos estão listados um a um, e não como `*`, para a lista não
+   engolir o `.psd` ou o `.txt` que alguém deixe ali junto da arte. */
+const ARQUIVOS = import.meta.glob('../assets/capas/*.{jpg,jpeg,png,webp,avif}', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+})
 
 /* O nome da versão de celular: `-m` ANTES da extensão.
    `lastIndexOf` e não `split('.')`: os nomes têm ponto no meio
@@ -70,12 +79,40 @@ export function versaoCelular(nome) {
   return i < 0 ? nome + '-m' : nome.slice(0, i) + '-m' + nome.slice(i)
 }
 
+const ehVersaoCelular = (nome) => {
+  const i = nome.lastIndexOf('.')
+  return (i < 0 ? nome : nome.slice(0, i)).endsWith('-m')
+}
+
+/* A LISTA. Uma entrada por capa de desktop, com o endereço da versão de
+   celular ao lado — `m: null` quando o arquivo `-m` não está na pasta. As
+   `-m` não entram como capa própria: elas vêm pelo par.
+
+   Ordenada por nome para o sorteio não depender da ordem em que o Vite
+   devolveu os arquivos. */
+export const CAPAS = Object.keys(ARQUIVOS)
+  .sort()
+  .filter(caminho => !ehVersaoCelular(caminho))
+  .map(caminho => {
+    const corte = caminho.lastIndexOf('/') + 1
+    const nome = caminho.slice(corte)
+    return {
+      nome,
+      d: ARQUIVOS[caminho],
+      m: ARQUIVOS[caminho.slice(0, corte) + versaoCelular(nome)] || null,
+    }
+  })
+
 /* O sorteio evita repetir a capa da visita anterior.
  *
  * "Cada vez que abrir, uma imagem diferente" — e sorteio puro repete. Com 3
  * capas, uma visita em cada 3 cairia na mesma de antes, e a promessa quebraria
  * logo na segunda abertura. Guardando a última, a seguinte sai sempre das
  * OUTRAS.
+ *
+ * O que fica guardado é o NOME do arquivo, não o endereço: o endereço ganha um
+ * sufixo novo a cada compilação, e a memória da visita passada morreria em
+ * toda publicação.
  *
  * Isso é memória de navegador, não de usuário: é por aparelho, e some se a
  * pessoa limpar os dados. Perder essa memória não quebra nada — volta a ser
@@ -102,7 +139,7 @@ function lerAnterior() {
  * capa nenhuma. */
 function escolherEntre(lista, anterior) {
   if (lista.length < 2) return lista[0] || null
-  const outras = lista.filter(c => c !== anterior)
+  const outras = lista.filter(c => c.nome !== anterior)
   return sorteia(outras.length ? outras : lista)
 }
 
@@ -123,18 +160,20 @@ export default function Welcome({ onEntrar, aberturaNoAr = false }) {
      visita evitaria a imagem errada. */
   useEffect(() => {
     if (!capa) return
-    try { localStorage.setItem(CHAVE, capa) } catch (e) { /* */ }
+    try { localStorage.setItem(CHAVE, capa.nome) } catch (e) { /* */ }
   }, [capa])
 
   /* Arquivo que não carregou cai fora — mas em DOIS degraus, porque há duas
    * perdas de tamanhos bem diferentes.
    *
-   * 1. Faltou só a versão de CELULAR (`-m`): fica a de desktop. Ela é mais
-   *    pesada do que devia num telefone, e ainda assim é a capa certa —
-   *    melhor que trocar a foto inteira porque um arquivo não subiu. É o
-   *    estado normal enquanto as versões de celular não existem.
+   * 1. Quebrou a versão de CELULAR: fica a de desktop. Ela é mais pesada do
+   *    que devia num telefone, e ainda assim é a capa certa — melhor que
+   *    trocar a foto inteira porque um arquivo veio ruim. O `-m` AUSENTE nem
+   *    chega aqui: a pasta é lida na compilação, e sem o arquivo o `<source>`
+   *    simplesmente não é escrito. Este degrau cobre o arquivo que existe e
+   *    não abre — upload truncado, arte corrompida.
    *
-   * 2. Faltou a capa mesmo: tenta outra. Acabando as capas, fica o papel com
+   * 2. Quebrou a capa mesmo: tenta outra. Acabando as capas, fica o papel com
    *    o logo — melhor que um ícone de imagem quebrada em tela cheia.
    *
    * Quem diz QUAL arquivo falhou é o `currentSrc`: ele traz o endereço que o
@@ -148,12 +187,13 @@ export default function Welcome({ onEntrar, aberturaNoAr = false }) {
 
   const aoFalhar = (e) => {
     const quebrou = (e.target.currentSrc || '').split('/').pop()
-    if (quebrou === versaoCelular(capa) && !semCelular.has(capa)) {
-      setSemCelular(s => new Set(s).add(capa))
+    const arquivoCelular = capa.m ? capa.m.split('/').pop() : null
+    if (arquivoCelular && quebrou === arquivoCelular && !semCelular.has(capa.nome)) {
+      setSemCelular(s => new Set(s).add(capa.nome))
       return
     }
-    falharam.current.add(capa)
-    const restantes = CAPAS.filter(c => !falharam.current.has(c))
+    falharam.current.add(capa.nome)
+    const restantes = CAPAS.filter(c => !falharam.current.has(c.nome))
     setCapa(escolherEntre(restantes, anterior))
   }
 
@@ -179,12 +219,12 @@ export default function Welcome({ onEntrar, aberturaNoAr = false }) {
            `<picture>` não faria o navegador escolher a fonte de novo — essa
            decisão é tomada uma vez, quando o elemento nasce. Mudando a chave,
            nasce outro. */
-        <picture key={capa + (semCelular.has(capa) ? '#d' : '')}>
-          {!semCelular.has(capa) && (
-            <source media="(max-width: 639.98px)" srcSet={`${import.meta.env.BASE_URL}${versaoCelular(capa)}`} />
+        <picture key={capa.nome + (semCelular.has(capa.nome) ? '#d' : '')}>
+          {capa.m && !semCelular.has(capa.nome) && (
+            <source media="(max-width: 639.98px)" srcSet={capa.m} />
           )}
           <img
-            src={`${import.meta.env.BASE_URL}${capa}`}
+            src={capa.d}
             alt=""
             aria-hidden="true"
             className="welcome__imagem"

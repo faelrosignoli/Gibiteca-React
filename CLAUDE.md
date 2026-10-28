@@ -55,7 +55,7 @@ src/
     Stats.jsx              # painel de estatísticas (KPIs, médias, histograma, barras) com escopo
     Cloud.jsx              # modal de conexão/sincronização com o GitHub
     BulkCovers.jsx         # envio de capas em massa (casa por nome, sobe p/ covers/)
-    Welcome.jsx            # a capa: uma imagem por visita (lista CAPAS), celular/desktop por <picture>
+    Welcome.jsx            # a capa: uma imagem por visita (a pasta assets/capas É a lista), celular/desktop por <picture>
     Backup.jsx             # pop-up de exportar/importar a coleção
     Tema.jsx               # pop-up do tema: uma faixa colorida por tema, empilhadas
     Fila.jsx               # fila de leitura: gaveta com arrasto para reordenar + pop-up da nota
@@ -1135,24 +1135,33 @@ Modal novo que tenha campo preenchível segue a mesma regra.
 barra e um botão "Minha Gibiteca" no rodapé dela, centrado. Clicar entra na
 coleção.
 
-**A capa muda a cada abertura.** A lista de arquivos é a constante `CAPAS` no
-topo do `Welcome.jsx`; para acrescentar uma, ponha o arquivo em `public/` e
-escreva o nome na lista. Qualquer nome, qualquer formato que o navegador abra
-— a lista guarda NOMES, não um padrão de numeração, para não obrigar ninguém
-a renomear arte.
+**A capa muda a cada abertura, e a lista É A PASTA `src/assets/capas/`.** Para
+acrescentar uma capa, ponha os dois arquivos lá: não se escreve nada no código.
+Quem lê a pasta é um `import.meta.glob` no topo do `Welcome.jsx`, na hora de
+compilar — e como o GitHub Actions recompila a cada push, subir a arte já
+publica a capa. Qualquer nome, qualquer formato que o navegador abra: a pasta
+guarda NOMES, não um padrão de numeração, para não obrigar ninguém a renomear
+arte.
 
-Lista no código, e não um manifesto JSON em `public/` que desse para editar
-direto no GitHub sem recompilar: o manifesto seria uma requisição a mais
-*antes* de o navegador saber qual imagem buscar, e essa imagem é a coisa mais
-pesada e mais importante da tela. A lista vem no bundle, então o download da
-capa começa no primeiro render.
+**Por que em `src/assets/` e não em `public/`.** Site estático não responde "o
+que tem nessa pasta?": o que está em `public/` chega ao navegador como arquivos
+soltos, sem índice, e em tempo de execução não há como descobrir uma capa nova.
+Daria para gerar um manifesto JSON, mas ele seria uma requisição a mais *antes*
+de o navegador saber qual imagem buscar, e essa imagem é a coisa mais pesada e
+mais importante da tela. Lida na compilação, a lista já vem no bundle, e o
+download da capa começa no primeiro render.
+
+`import.meta.glob` com `eager` **não embute imagem em JavaScript**: ele troca
+cada arquivo por um endereço, uma linha de texto. O que entra no bundle são
+quatro endereços, não quatro fotos.
 
 **Só UMA é baixada por visita**, nunca a soma — as outras o navegador nem sabe
 que existem.
 
-**Cada capa tem DUAS versões: celular e desktop.** Só a de desktop se escreve
-na lista; a de celular é o mesmo nome com **`-m` antes da extensão**, igual ao
-par `divisoria` / `divisoria-m` do rodapé:
+**Cada capa tem DUAS versões: celular e desktop.** Nenhuma das duas se escreve
+em lugar nenhum: a de celular é o mesmo nome com **`-m` antes da extensão**,
+igual ao par `divisoria` / `divisoria-m` do rodapé, e o par se monta sozinho na
+compilação:
 
 ```
 moore.alan.jpg     ->  moore.alan-m.jpg
@@ -1163,6 +1172,10 @@ Convenção, e não um par escrito à mão (`{d: ..., m: ...}`): toda capa TEM a
 duas versões, e um campo que nunca varia é um campo que só serve para ser
 esquecido. O `-m` entra por `lastIndexOf('.')`, não por `split('.')` — os
 nomes têm ponto no meio, e quebrar no primeiro daria `moore-m.alan.jpg`.
+
+Faltando o `-m` na pasta, nada quebra: a capa entra na lista com `m: null` e no
+celular vai a de desktop — mais peso do que devia, mas a imagem certa. As
+versões `-m` também não viram capa própria no sorteio: elas entram pelo par.
 
 **A escolha é `<picture>` com `<source media>`, não CSS escondendo uma das
 duas.** Escondendo por CSS o navegador baixaria as DUAS, e aqui cada uma é uma
@@ -1183,24 +1196,24 @@ não o faz decidir de novo.
 
 | o que faltou | o que acontece |
 |---|---|
-| só a versão `-m` | fica a de desktop: mais pesada num telefone, mas é a capa certa |
+| a versão `-m` não abriu | fica a de desktop: mais pesada num telefone, mas é a capa certa |
 | a capa inteira | tenta outra capa |
 | todas as capas | papel com o logo e o botão |
 
 Quem diz qual arquivo falhou é o `currentSrc`, que traz o endereço que o
-`<picture>` escolheu de verdade — no celular ele não é o `src`. O primeiro
-degrau existe para o estado normal de hoje: **as versões `-m` ainda não
-existem**, e sem ele a capa sumiria no celular em vez de aparecer em desktop.
+`<picture>` escolheu de verdade — no celular ele não é o `src`. O `-m`
+**ausente** não chega ao primeiro degrau: a pasta é lida na compilação, e sem o
+arquivo o `<source>` nem é escrito. O degrau cobre o arquivo que existe e não
+abre — envio truncado, arte corrompida.
 
 O conjunto de capas sem celular mora em ESTADO (muda o que se desenha: o
 `<source>` some); o de capas mortas mora num ref (não desenha nada, e em
 estado só custaria um render a mais).
 
-Medido no build de produção, a 375px: com `-m` presente baixa só o `-m`; com
-`-m` ausente tenta o `-m`, falha e mostra a de desktop, visível. O servidor do
-`vite preview` devolve `index.html` com status 200 para arquivo que não
-existe, e o `onError` dispara do mesmo jeito — não é imagem. No GitHub Pages
-seria um 404 de verdade, com o mesmo resultado.
+Conferido no servidor de desenvolvimento: a 1024 vem a de desktop, a 375 vem a
+`-m`. Com o `-m` fora da pasta não existe `<source>` nenhum, e a de desktop vai
+sem requisição perdida — antes a capa pedia o arquivo inexistente, levava 404 e
+só então trocava.
 
 **O sorteio foge da capa da visita anterior** (`gibiteca_capa` no
 localStorage). Sorteio puro repete: com 3 capas, uma abertura em cada 3 cairia
@@ -1218,8 +1231,7 @@ distribuição 6/8/6 entre três capas.
 
 **Com uma capa só**, falhar significava esconder a imagem e ficar o papel com
 o logo — melhor que um ícone de imagem quebrada ocupando a tela. Com uma LISTA
-falhar ficou mais provável (basta escrever um nome e esquecer de subir o
-arquivo), e por isso a queda ganhou os degraus da tabela acima.
+falhar ficou mais provável (basta uma arte que não abre), e por isso a queda ganhou os degraus da tabela acima.
 
 **O sorteio mora em `useState`, não em variável de módulo**: módulo roda uma
 vez por carregamento de página, e voltar à abertura dentro da mesma sessão
@@ -1228,10 +1240,14 @@ modo estrito o React roda o inicializador de estado duas vezes e fica com o
 primeiro resultado; gravando ali, o registro guardaria a capa descartada e a
 visita seguinte evitaria a imagem errada.
 
-**Os arquivos não perdem nada no caminho.** `public/` é copiado byte a byte para
-o `dist/` — conferido com `md5sum` e `cmp` na imagem real —, e o projeto não
-tem plugin de imagem, `sharp` nem `imagemin`. O que chega ao navegador é
-exatamente o que se pôs lá.
+**Os arquivos não perdem nada no caminho.** O Vite copia a imagem de
+`src/assets/` para o `dist/assets/` sem reencodar — o projeto não tem plugin de
+imagem, `sharp` nem `imagemin` —, só acrescentando um sufixo ao nome
+(`ale.jodo.jpg` → `ale.jodo-CIqVlGDr.jpg`). O sufixo é de graça e ainda resolve
+um problema que `public/` tinha: trocar a arte mantendo o nome deixava quem já
+visitou vendo a antiga, de cache. O que chega ao navegador é exatamente o que se
+pôs lá. (O que segue em `public/` continua indo byte a byte para a raiz do
+`dist/` — conferido com `md5sum` e `cmp`.)
 
 **O que PODE borrar é ampliação, e hoje borra.** Com `cover`, se a tela em
 pixels reais (largura × densidade) for maior que o arquivo, o navegador
