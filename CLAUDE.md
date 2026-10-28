@@ -1173,9 +1173,34 @@ duas versões, e um campo que nunca varia é um campo que só serve para ser
 esquecido. O `-m` entra por `lastIndexOf('.')`, não por `split('.')` — os
 nomes têm ponto no meio, e quebrar no primeiro daria `moore-m.alan.jpg`.
 
-Faltando o `-m` na pasta, nada quebra: a capa entra na lista com `m: null` e no
-celular vai a de desktop — mais peso do que devia, mas a imagem certa. As
-versões `-m` também não viram capa própria no sorteio: elas entram pelo par.
+**Capa de um arquivo só também vale, e cada uma aparece onde cabe.** Há arte
+que só funciona deitada e arte que só funciona em pé:
+
+| na pasta | onde entra no sorteio |
+|---|---|
+| `nome.jpg` + `nome-m.jpg` | nas duas larguras |
+| só `nome.jpg` | só no computador |
+| só `nome-m.jpg` | só no celular |
+
+Quem decide é `capasDe(ehDesktop)`, e a largura é lida **uma vez, na
+montagem** — girar o telefone depois não refaz o sorteio da visita.
+
+A alternativa seria servir o arquivo único nas duas telas, e ela foi
+descartada de olho: uma foto de 377×212 ocupando uma tela de 1920 é ampliada
+cinco vezes e vira grão: aconteceu em produção com a primeira capa do Tezuka.
+O preço dito em voz alta: **telefone e computador sorteiam de conjuntos
+diferentes**, e uma pasta só de arte deitada deixa o celular sem capa nenhuma
+— papel com o logo, o fundo de poço de sempre.
+
+A lista se monta juntando os arquivos pelo **nome base** (o nome sem o `-m`),
+e não procurando o par de cada arquivo de desktop: é o que faz o `-m` sozinho
+virar capa em vez de sumir. Por isso a capa `nome-m.jpg` sozinha se chama
+`nome.jpg` na memória da visita anterior — o nome identifica a capa, não o
+arquivo.
+
+O `<source>` só é escrito quando a capa tem **as duas** versões: é ele que
+escolhe entre uma e outra. Com um arquivo só, a escolha já foi feita no
+sorteio, e o `<img>` aponta para o que existe (`capa.d || capa.m`).
 
 **A escolha é `<picture>` com `<source media>`, não CSS escondendo uma das
 duas.** Escondendo por CSS o navegador baixaria as DUAS, e aqui cada uma é uma
@@ -1196,24 +1221,26 @@ não o faz decidir de novo.
 
 | o que faltou | o que acontece |
 |---|---|
-| a versão `-m` não abriu | fica a de desktop: mais pesada num telefone, mas é a capa certa |
+| a versão `-m` não abriu, e a capa tem as duas | fica a de desktop: mais pesada num telefone, mas é a capa certa |
 | a capa inteira | tenta outra capa |
 | todas as capas | papel com o logo e o botão |
 
 Quem diz qual arquivo falhou é o `currentSrc`, que traz o endereço que o
 `<picture>` escolheu de verdade — no celular ele não é o `src`. O `-m`
-**ausente** não chega ao primeiro degrau: a pasta é lida na compilação, e sem o
-arquivo o `<source>` nem é escrito. O degrau cobre o arquivo que existe e não
-abre — envio truncado, arte corrompida.
+**ausente** não chega ao primeiro degrau: a pasta é lida na compilação, e capa
+sem `-m` nem é oferecida ao celular. O degrau cobre o arquivo que existe e não
+abre — envio truncado, arte corrompida —, e só vale para capa que tem as duas
+versões: sem a de desktop não há para onde cair, e aí vale o degrau 2.
 
 O conjunto de capas sem celular mora em ESTADO (muda o que se desenha: o
 `<source>` some); o de capas mortas mora num ref (não desenha nada, e em
 estado só custaria um render a mais).
 
 Conferido no servidor de desenvolvimento: a 1024 vem a de desktop, a 375 vem a
-`-m`. Com o `-m` fora da pasta não existe `<source>` nenhum, e a de desktop vai
-sem requisição perdida — antes a capa pedia o arquivo inexistente, levava 404 e
-só então trocava.
+`-m`; capa só de desktop não aparece na lista do celular e capa só `-m` não
+aparece na do computador; e, montando cada uma delas, sai um `<img>` sozinho,
+sem `<source>` e sem requisição perdida — antes a capa pedia o arquivo
+inexistente, levava 404 e só então trocava.
 
 **O sorteio foge da capa da visita anterior** (`gibiteca_capa` no
 localStorage). Sorteio puro repete: com 3 capas, uma abertura em cada 3 cairia
