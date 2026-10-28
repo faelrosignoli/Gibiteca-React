@@ -1124,6 +1124,11 @@ Usam Combo: Editora, País, Autor/Roteirista e Desenhista — na obra avulsa e
 em cada volume. Os `<select>` dos Filtros continuam nativos: são escolha
 única de lista fechada, onde o nativo se comporta bem (inclusive no celular).
 
+### Os avisos de `confirm` são frases inteiras
+`Excluir"Akira" da coleção?` passou meses assim, sem o espaço. Diálogo do
+sistema não tem revisão de layout para denunciar: ninguém vê até ler. Ao mexer
+em qualquer `confirm`/`alert`, ler a frase montada, não o template.
+
 ### O Editor não fecha por clique fora
 Gavetas e painéis de leitura (Filtros, Detalhe, Estatísticas) fecham no clique
 fora. O **Editor não**: ele tem formulário preenchido, e perder um cadastro por
@@ -2273,6 +2278,30 @@ rápido.
 O "(.json)" saiu dos rótulos: quem abre o menu quer salvar a coleção, não
 escolher formato.
 
+**Restaurar passa por TRÊS portas**, porque são três falhas diferentes:
+
+1. *o arquivo abre?* — JSON quebrado, `.txt` renomeado → "Esse arquivo não
+   abre: não é um backup da Gibiteca."
+2. *tem uma coleção dentro?* — JSON legítimo de outra coisa qualquer → "Esse
+   arquivo não tem uma coleção dentro."
+3. *você quer mesmo trocar?* — `confirm` com os DOIS números: quantas obras
+   há aqui e quantas vêm no arquivo.
+
+Antes existia só a primeira. Um JSON qualquer passava batido: `applyData` via
+que não havia `obras`, saía calado, e a tela ainda dizia **"Coleção
+restaurada."** — a pessoa acreditava ter restaurado e não tinha. Por isso
+`applyData` agora **devolve `true`/`false`**, e quem chama checa.
+
+O `confirm` com números é a última porta, e vem depois de ler o arquivo
+justamente para poder dizer "aqui 554, no arquivo 2". O aviso ao lado do botão
+("Substitui o que está aqui") continua — ele chega antes do clique, que é
+quando ainda dá para mudar de ideia sem ler diálogo nenhum.
+
+**Havia uma SEGUNDA cópia de restaurar**, no `Header.jsx`: outro `<input
+type="file">`, outro tratamento de erro (`alert('Arquivo inválido.')`), sem
+mensagem de sucesso e sem conferir nada — e inalcançável, porque nenhum botão
+abria o seletor. Foi removida. Restaurar mora num lugar só.
+
 **As linhas do menu encolheram** de `text-titulo` para `text-obra`. Em Lexend
 e no tamanho de título, "ESTATÍSTICAS" e "NUVEM E BACKUP" dominavam a tela
 inteira do celular.
@@ -2959,6 +2988,38 @@ mostraria de novo.
 é a única ação do painel que destrói dado, e fica longe dos "copiar p/ todos".
 Some quando resta **um** volume — série sem volume nenhum não é um estado que
 valha a pena existir. A quantidade acompanha sozinha.
+
+### O campo de quantidade de volumes guarda TEXTO
+Ele lia `d.vols.length` e devolvia `Number(x) || 0`. Apagar o campo para
+digitar outro número — gesto de todo dia — virava "zero volumes", e os
+volumes sumiam inteiros, com nome, capa, autor e nota dentro. Sem aviso e sem
+desfazer. **A pior perda de dado do app custava um Backspace.**
+
+Hoje o campo guarda o que está escrito, e só um NÚMERO mexe nos volumes:
+
+| o que se digita | o que acontece |
+|---|---|
+| campo vazio | nada — alguém está no meio de digitar |
+| número maior | nascem volumes vazios no fim |
+| número menor, cauda vazia | corta direto, não há o que perder |
+| número menor, cauda preenchida | **pergunta antes**, dizendo quantos |
+
+Um volume está "vazio" enquanto ninguém encostou nele (`volumeTemConteudo`:
+nome, capa, autor, artista, status na estante, urgência, valor, lido ou nota).
+A distinção existe para a pergunta não aparecer no caso comum — série
+recém-criada, volumes em branco —, onde ela seria só uma porta a mais.
+
+Quem desiste da pergunta vê o campo voltar ao número que havia: o texto é
+sincronizado por um efeito sobre `d.vols.length`, que também o mantém em dia
+quando a quantidade muda por outro caminho (trocar o tipo, excluir um volume
+pela lixeira, abrir outra obra).
+
+### Salvar e Excluir não rodam duas vezes
+O modal leva meio segundo saindo de cena, e nesse tempo os botões continuam no
+ar, clicáveis. Uma trava por abertura (`fechando`, um ref zerado quando o
+Editor abre) faz o segundo clique não ter o que fazer. Não houve duplicata
+medida — `upsertObra` reaproveita o id —, mas o segundo clique chegava a
+gravar de novo e a disparar outro envio para a nuvem.
 
 ### Filtros multi-seleção
 **Editora, País, Autor e Tipo de edição guardam LISTA**, não valor único.

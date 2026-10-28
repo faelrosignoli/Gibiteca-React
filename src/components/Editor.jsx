@@ -323,6 +323,26 @@ export default function Editor({ target, onClose, onSaved }) {
   const coverRef = useRef(null)
   const [listasAberto, setListasAberto] = useState(false)
 
+  /* O CAMPO DE QUANTIDADE GUARDA TEXTO, não o número de volumes.
+   *
+   * Apagar o campo para digitar outro número é gesto comum — e enquanto o
+   * campo lia `d.vols.length`, o vazio virava zero: os volumes sumiam
+   * inteiros, com nome, capa, autor e nota digitados dentro, sem aviso e sem
+   * desfazer. Era a pior perda de dado do app, e custava um Backspace.
+   *
+   * Guardando o texto, o campo pode ficar vazio sem que nada aconteça: só um
+   * NÚMERO escrito mexe nos volumes. O efeito mantém o texto em dia quando a
+   * quantidade muda por outro caminho — trocar o tipo, excluir um volume pela
+   * lixeira, abrir outra obra. */
+  const [qtdTexto, setQtdTexto] = useState('')
+  useEffect(() => { setQtdTexto(d.vols.length ? String(d.vols.length) : '') }, [d.vols.length])
+
+  /* Salvar e excluir fecham o modal, mas ele leva meio segundo saindo de cena
+     — e nesse meio tempo os botões continuam no ar, clicáveis. Uma trava por
+     abertura: o segundo clique não tem mais o que fazer. */
+  const fechando = useRef(false)
+  useEffect(() => { if (open) fechando.current = false }, [open])
+
   /* A obra não guarda em que listas está — quem guarda são as listas. Por
      isso o rascunho é montado em dois passos: os campos saem da obra, e a
      marcação das listas sai de `listas`. */
@@ -352,13 +372,37 @@ export default function Editor({ target, onClose, onSaved }) {
      para manter em sincronia. */
   const removerVol = (i) => setD(s => ({ ...s, vols: s.vols.filter((_, j) => j !== i) }))
 
-  const setQtd = (n) => setD(s => {
-    n = Math.max(0, Math.min(80, Number(n) || 0))
-    const cur = s.vols.slice()
-    if (n > cur.length) while (cur.length < n) cur.push(emptyVol())
-    else cur.length = n
-    return { ...s, vols: cur }
-  })
+  /* Um volume está VAZIO enquanto ninguém encostou nele. É o que separa as
+     duas reduções: cortar a cauda de uma lista recém-criada não custa nada,
+     jogar fora volume preenchido custa o trabalho de quem preencheu. */
+  const volumeTemConteudo = (v) => !!(
+    (v.nome || '').trim() || v.imagem || (v.roteirista || '').trim() || (v.desenhista || '').trim() ||
+    v.status === 'biblioteca' || v.urgencia || v.valorPago || v.lido || v.nota
+  )
+
+  const setQtd = (texto) => {
+    setQtdTexto(texto)
+    /* Campo vazio não é "zero volumes": é alguém no meio de digitar outro
+       número. Nada acontece até aparecer um número. */
+    if (String(texto).trim() === '') return
+
+    const n = Math.max(0, Math.min(80, Number(texto) || 0))
+    const perdidos = d.vols.slice(n).filter(volumeTemConteudo).length
+    if (perdidos && !confirm(
+      `Reduzir para ${n} joga fora ${perdidos} ${perdidos === 1 ? 'volume preenchido' : 'volumes preenchidos'}.\n\n` +
+      'Isso não tem desfazer. Continuar?'
+    )) {
+      setQtdTexto(String(d.vols.length))   // desistiu: o campo volta ao que era
+      return
+    }
+
+    setD(s => {
+      const cur = s.vols.slice()
+      if (n > cur.length) while (cur.length < n) cur.push(emptyVol())
+      else cur.length = n
+      return { ...s, vols: cur }
+    })
+  }
   const setVol = (i, p) => setD(s => { const v = s.vols.slice(); v[i] = { ...v[i], ...p }; return { ...s, vols: v } })
   const copyAll = (i, f) => setD(s => { const val = s.vols[i][f]; return { ...s, vols: s.vols.map(v => ({ ...v, [f]: val, ...(f === 'status' && val === 'biblioteca' ? { urgencia: false } : {}) })) } })
   const volCover = (i, e) => {
@@ -371,6 +415,7 @@ export default function Editor({ target, onClose, onSaved }) {
   }
 
   const save = () => {
+    if (fechando.current) return          // já salvou; o modal ainda está saindo
     const title = d.nome.trim()
     if (!title) { alert(d.tipo === 'box' ? 'Dê um título ao box.' : d.tipo === 'serie' ? 'Dê um título à série.' : 'Dê um título à obra.'); return }
     // tags entra igualzinho como saiu — editar uma obra antiga não apaga os
@@ -401,6 +446,7 @@ export default function Editor({ target, onClose, onSaved }) {
       rec = { ...base, imagem: d.img || null, roteirista: d.roteirista.trim(), desenhista: d.desenhista.trim(),
         status: d.status, urgencia: !owned && d.urgencia, valorPago: owned ? d.valorPago : 0, lido: owned && d.lido, nota: owned ? d.nota : 0 }
     }
+    fechando.current = true
     upsertObra(rec)
     /* Depois do upsert: numa obra NOVA o id só existe a partir daqui —
        `rec.id` veio de `nextId()` e é com ele que as listas são marcadas. */
@@ -409,8 +455,9 @@ export default function Editor({ target, onClose, onSaved }) {
     onClose()
   }
   const remove = () => {
-    if (!d.id) return
-    if (!confirm(`Excluir"${d.nome || 'esta obra'}" da coleção?`)) return
+    if (fechando.current || !d.id) return
+    if (!confirm(`Excluir "${d.nome || 'esta obra'}" da coleção?`)) return
+    fechando.current = true
     deleteObra(d.id); onSaved?.('Excluído.'); onClose()
   }
 
@@ -590,7 +637,7 @@ export default function Editor({ target, onClose, onSaved }) {
                   <Secao titulo={d.tipo === 'box' ? 'Livros do box' : 'Volumes da série'}>
                     <div className={`${box} col-span-2`}>
                       <label className={lbl}>Quantidade de {d.tipo === 'box' ? 'livros' : 'volumes'}</label>
-                      <input type="number" min="1" max="80" className="field-input max-w-[150px]" value={d.vols.length || ''}
+                      <input type="number" min="1" max="80" className="field-input max-w-[150px]" value={qtdTexto}
                         onChange={e => setQtd(e.target.value)} placeholder="ex.: 3" />
                     </div>
                     <div className="col-span-2 flex flex-col gap-2">

@@ -23,18 +23,48 @@ export default function Backup({ open, onClose, onNotice }) {
     onNotice?.('Backup salvo.')
   }
 
+  /* Restaurar passa por três portas, e cada uma responde uma pergunta
+     diferente — porque as três falhas são diferentes:
+       1. o arquivo abre?           (JSON quebrado, .txt renomeado)
+       2. tem uma coleção dentro?   (JSON legítimo que não é desta casa)
+       3. você quer mesmo trocar?   (substitui tudo, sem desfazer)
+     Antes havia só a primeira: um JSON qualquer passava batido, não trocava
+     nada, e o app ainda dizia "Coleção restaurada". */
   const aoEscolher = (e) => {
     const f = e.target.files && e.target.files[0]
     if (!f) return
     const r = new FileReader()
+    r.onerror = () => onNotice?.('Não deu para ler o arquivo.')
     r.onload = () => {
+      let dados
       try {
-        loadBackup(JSON.parse(String(r.result)))
-        onNotice?.('Coleção restaurada.')
-        onClose()
+        dados = JSON.parse(String(r.result))
       } catch (err) {
-        onNotice?.('Não deu para ler o arquivo: ' + (err && err.message))
+        onNotice?.('Esse arquivo não abre: não é um backup da Gibiteca.')
+        return
       }
+
+      if (!Array.isArray(dados && dados.obras)) {
+        onNotice?.('Esse arquivo não tem uma coleção dentro. Use o que sai de “Exportar coleção”.')
+        return
+      }
+
+      /* Os números vêm antes do clique, e são a parte que importa: "substitui
+         554 por 2" é um aviso; "isso não tem desfazer" é só uma frase. */
+      const certeza = confirm(
+        'Restaurar SUBSTITUI a coleção deste navegador.\n\n' +
+        'Aqui: ' + obras.length + ' obra(s).\n' +
+        'No arquivo: ' + dados.obras.length + ' obra(s).\n\n' +
+        'Isso não tem desfazer. Exporte antes, se tiver dúvida.'
+      )
+      if (!certeza) return
+
+      if (!loadBackup(dados)) {
+        onNotice?.('Não deu para restaurar esse arquivo.')
+        return
+      }
+      onNotice?.('Coleção restaurada.')
+      onClose()
     }
     r.readAsText(f)
     e.target.value = ''

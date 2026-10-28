@@ -568,8 +568,13 @@ export function StoreProvider({ children }) {
     setPerfilState({ ...PERFIL_VAZIO(), ...(p || {}) })
   }, [])
 
+  /* DEVOLVE `true` QUANDO TROCOU MESMO.
+   *
+   * O `return` abaixo é a saída para arquivo que não é coleção — e, calado,
+   * ele fazia a tela de Backup dizer "Coleção restaurada" sobre um arquivo
+   * que não restaurou nada. Quem chama precisa saber a diferença. */
   const applyData = useCallback((data, { fromCloud = false } = {}) => {
-    if (!Array.isArray(data?.obras)) return
+    if (!Array.isArray(data?.obras)) return false
     dirty.current = true
     // vindo da nuvem, herda o carimbo de lá: esta cópia passa a ser aquela.
     // Vindo de um arquivo restaurado, é alteração local e ganha a hora de agora.
@@ -593,6 +598,7 @@ export function StoreProvider({ children }) {
        portao do App ve sessao e conta discordando e pede login de novo. */
     setContaState({ ...CONTA_VAZIA(), ...(data.conta || {}) })
     setPage(1)
+    return true
   }, [])
 
   const pullFromCloud = useCallback(async () => {

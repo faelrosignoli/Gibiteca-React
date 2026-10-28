@@ -4,7 +4,6 @@ import { MOLA_TOQUE, MOLA_GAVETA, MOLA_CALMA, useEhDesktop } from '../lib/motion
 import { useStore } from '../lib/store.jsx'
 import Marca from './Marca.jsx'
 import MarcaAlt from './MarcaAlt.jsx'
-import { baixarBackup } from '../lib/backup.js'
 
 /* O logo é o botão de "começar de novo": limpa os filtros (inclusive a busca)
  * e sobe para o topo. É o que se espera da marca em qualquer site — e aqui
@@ -85,11 +84,10 @@ function useRolado() {
  * deixaria de ser o centro e o logo escorregaria para a esquerda.
  */
 export default function Header({ onCloud, onConfig, onAjuda, onTema, onFila, onListas, onFilters, onStats, onSearch, filterCount, aberturaNoAr = false, soMarca = false }) {
-  const { obras, editoras, loadBackup, sync, view, setView, filters, perfil } = useStore()
+  const { sync, view, setView, filters, perfil } = useStore()
   const aoInicio = useVoltarAoInicio()
   const rolado = useRolado()
   const ehDesktop = useEhDesktop()
-  const fileRef = useRef(null)
   const barraRef = useRef(null)
   const [menu, setMenu] = useState(false)
   const [alturaBarra, setAlturaBarra] = useState(0)
@@ -150,12 +148,13 @@ export default function Header({ onCloud, onConfig, onAjuda, onTema, onFila, onL
     return () => { document.body.style.overflow = antes }
   }, [menu, ehDesktop])
 
-  const onFile = (e) => {
-    const f = e.target.files?.[0]; if (!f) return
-    const r = new FileReader()
-    r.onload = () => { try { loadBackup(JSON.parse(r.result)) } catch (_) { alert('Arquivo inválido.') } }
-    r.readAsText(f); e.target.value = ''
-  }
+  /* RESTAURAR BACKUP NÃO MORA MAIS AQUI.
+
+     Havia duas cópias do mesmo recurso, com comportamentos diferentes — uma
+     avisava por toast, esta por `alert`, e nenhuma das duas conferia o
+     arquivo. Esta ainda por cima já não era alcançável: nenhum botão abria o
+     seletor. Quem restaura é o pop-up de Backup (☰ › Configurações ›
+     Backup), que confere o arquivo e confirma antes de trocar. */
 
   const fechar = () => setMenu(false)
 
@@ -215,8 +214,6 @@ export default function Header({ onCloud, onConfig, onAjuda, onTema, onFila, onL
     <>
     <header className="barra-topo" data-acento={comAcento ? '1' : '0'} ref={barraRef}>
       <div className="mx-auto w-full max-w-[1320px] px-3 sm:px-5">
-        <input ref={fileRef} type="file" accept="application/json" hidden onChange={onFile} />
-
         {/* ---- primeira linha: a grade de três colunas põe o logo no centro
              exato, independente da largura dos dois lados ---- */}
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4 py-2 sm:py-2.5">
