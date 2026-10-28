@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793211522271,
- "updated": "2026-10-28T18:18:42.271Z",
+ "atualizadoEm": 1793211541070,
+ "updated": "2026-10-28T18:19:01.070Z",
  "obras": [
   {
    "id": 1,
@@ -6591,14 +6591,18 @@
    "id": 394,
    "nome": "Uzumaki",
    "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "",
+   "pais": "Japão",
+   "adulto": false,
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
    "imagem": null,
    "roteirista": "Junji Ito",
    "desenhista": "Junji Ito",
-   "origem": "importado",
-   "editora": "",
-   "pais": "Japão",
-   "urgencia": false,
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
