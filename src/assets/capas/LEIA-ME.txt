@@ -18,8 +18,13 @@ Exemplos:
 O nome pode ser qualquer um, e pode ter ponto no meio. Formatos aceitos:
 .jpg  .jpeg  .png  .webp  .avif
 
-Faltando a versão "-m", nada quebra: no celular aparece a de computador,
-mais pesada do que devia, mas é a imagem certa.
+UMA VERSÃO SÓ TAMBÉM VALE:
+
+    só "nome.jpg"    ->  essa capa aparece apenas no computador
+    só "nome-m.jpg"  ->  essa capa aparece apenas no celular
+
+É para a arte que só funciona deitada, ou só em pé. Cada uma aparece onde
+cabe; nada é esticado para a outra tela.
 
 PARA TIRAR UMA CAPA: apague os dois arquivos.
 
