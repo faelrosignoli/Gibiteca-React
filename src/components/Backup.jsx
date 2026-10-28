@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { FADE, MOLA_GAVETA } from '../lib/motion.js'
 import { useStore } from '../lib/store.jsx'
 import { baixarBackup } from '../lib/backup.js'
+import { usePergunta } from './Pergunta.jsx'
 
 /* Pop-up do backup.
  *
@@ -15,6 +16,7 @@ import { baixarBackup } from '../lib/backup.js'
  * clique rápido, e restaurar não é ação para clique rápido.
  */
 export default function Backup({ open, onClose, onNotice }) {
+  const { perguntar } = usePergunta()
   const { obras, editoras, fila, listas, loadBackup } = useStore()
   const fileRef = useRef(null)
 
@@ -23,19 +25,13 @@ export default function Backup({ open, onClose, onNotice }) {
     onNotice?.('Backup salvo.')
   }
 
-  /* Restaurar passa por três portas, e cada uma responde uma pergunta
-     diferente — porque as três falhas são diferentes:
-       1. o arquivo abre?           (JSON quebrado, .txt renomeado)
-       2. tem uma coleção dentro?   (JSON legítimo que não é desta casa)
-       3. você quer mesmo trocar?   (substitui tudo, sem desfazer)
-     Antes havia só a primeira: um JSON qualquer passava batido, não trocava
-     nada, e o app ainda dizia "Coleção restaurada". */
+  /* Três portas: o arquivo abre? tem coleção dentro? quer mesmo trocar? */
   const aoEscolher = (e) => {
     const f = e.target.files && e.target.files[0]
     if (!f) return
     const r = new FileReader()
     r.onerror = () => onNotice?.('Não deu para ler o arquivo.')
-    r.onload = () => {
+    r.onload = async () => {
       let dados
       try {
         dados = JSON.parse(String(r.result))
@@ -49,14 +45,12 @@ export default function Backup({ open, onClose, onNotice }) {
         return
       }
 
-      /* Os números vêm antes do clique, e são a parte que importa: "substitui
-         554 por 2" é um aviso; "isso não tem desfazer" é só uma frase. */
-      const certeza = confirm(
-        'Restaurar SUBSTITUI a coleção deste navegador.\n\n' +
-        'Aqui: ' + obras.length + ' obra(s).\n' +
-        'No arquivo: ' + dados.obras.length + ' obra(s).\n\n' +
-        'Isso não tem desfazer. Exporte antes, se tiver dúvida.'
-      )
+      // os números são o aviso: "substitui 554 por 2" diz mais que "não tem desfazer"
+      const certeza = await perguntar({
+        titulo: `Substituir ${obras.length === 1 ? '1 obra' : obras.length + ' obras'} daqui por ${dados.obras.length} do arquivo?`,
+        tom: 'perigo',
+        confirmar: 'Restaurar',
+      })
       if (!certeza) return
 
       if (!loadBackup(dados)) {

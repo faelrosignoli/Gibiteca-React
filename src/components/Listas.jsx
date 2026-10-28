@@ -7,6 +7,7 @@ import {
 import { useStore } from '../lib/store.jsx'
 import { capaVelada } from '../lib/helpers.js'
 import { obrasDaLista, sortList, coverOf, edOf, gNorm, initials, classeTinta } from '../lib/helpers.js'
+import { usePergunta } from './Pergunta.jsx'
 
 /* AS LISTAS.
  *
@@ -438,6 +439,7 @@ function PopupLista({ aberto, lista, obras, onFechar, onSalvar }) {
 }
 
 export default function Listas({ open, onClose, onNotice, onEditar }) {
+  const { perguntar } = usePergunta()
   const { obras, listas, criarLista, renomearLista, apagarLista, alternarNaLista, alternarNumeracao, reordenarLista } = useStore()
   const reduzido = usaMovimentoReduzido()
   const arrasto = useDragControls()
@@ -517,10 +519,14 @@ export default function Listas({ open, onClose, onNotice, onEditar }) {
     }
   }
 
-  const apagar = (l) => {
-    /* Confirma porque não tem desfazer. E DIZ que as obras ficam: sem essa
-       frase, apagar uma lista de 40 itens parece apagar 40 obras. */
-    if (!confirm(`Apagar a lista "${l.nome}"?\n\nAs obras continuam na coleção — some só a lista.\n\nIsso não tem desfazer.`)) return
+  const apagar = async (l) => {
+    // "só a lista" no título: apagar uma lista de 40 itens parece apagar 40 obras
+    const ok = await perguntar({
+      titulo: `Apagar só a lista "${l.nome}"?`,
+      tom: 'perigo',
+      confirmar: 'Apagar',
+    })
+    if (!ok) return
     if (abertaId === l.id) setAbertaId(null)
     apagarLista(l.id)
     onNotice?.('Lista apagada.')

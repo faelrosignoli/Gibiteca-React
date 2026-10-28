@@ -1124,10 +1124,45 @@ Usam Combo: Editora, País, Autor/Roteirista e Desenhista — na obra avulsa e
 em cada volume. Os `<select>` dos Filtros continuam nativos: são escolha
 única de lista fechada, onde o nativo se comporta bem (inclusive no celular).
 
-### Os avisos de `confirm` são frases inteiras
-`Excluir"Akira" da coleção?` passou meses assim, sem o espaço. Diálogo do
-sistema não tem revisão de layout para denunciar: ninguém vê até ler. Ao mexer
-em qualquer `confirm`/`alert`, ler a frase montada, não o template.
+### Perguntar e avisar: `usePergunta()`, nunca `confirm`/`alert`
+Os nativos estão proibidos: a caixa é desenhada pelo sistema, ignora os tokens
+e escreve o endereço do site em cima. Quem faz as duas coisas é
+`components/Pergunta.jsx` — um provedor no `main.jsx` e um gancho.
+
+```js
+const { perguntar, avisar } = usePergunta()
+const ok = await perguntar({ titulo: `Excluir "${nome}" da coleção?`, tom: 'perigo', confirmar: 'Excluir' })
+await avisar({ titulo: 'Dê um título à obra', corpo: <p>É por ele que a busca acha.</p> })
+```
+
+Devolvem promessa, então **quem chama vira `async`** — é por isso que `save`,
+`remove`, `setQtd`, `apagar`, `desmembrar` e o `r.onload` do Backup o têm.
+
+**Confirmação é título e botões, mais nada.** O que importa vai no título,
+número inclusive: "Reduzir para 1 e perder 2 volumes preenchidos?",
+"Substituir 1 obra daqui por 2 do arquivo?". O rótulo do botão diz o que
+acontece — "Excluir", "Restaurar" —, nunca "OK". `corpo` existe só para
+aviso, e em uma frase.
+
+**O que o nativo tinha de bom foi mantido:** ele travava a aba, e não havia
+como fechar sem querer.
+
+| | gaveta comum | a pergunta |
+|---|---|---|
+| clique fora | fecha | **não fecha** |
+| Esc | fecha | responde **não** |
+| foco ao abrir | primeiro campo | a **saída segura** |
+| Tab | passeia pela página | preso na caixa |
+
+Em `tom: 'perigo'` o botão **cheio é o Cancelar**; a ação destrutiva fica de
+contorno rust. No nativo o OK vinha focado, e um Enter no reflexo apagava a
+obra.
+
+Cartão centrado nos dois tamanhos — tela cheia no celular esconderia justamente
+a obra sobre a qual se pergunta.
+
+**A `Salvaguarda` não pode usar isto:** ela desenha quando o React quebrou, e
+o provedor mora dentro do React. Lá o recado sai inline no cartão de resgate.
 
 ### O Editor não fecha por clique fora
 Gavetas e painéis de leitura (Filtros, Detalhe, Estatísticas) fecham no clique

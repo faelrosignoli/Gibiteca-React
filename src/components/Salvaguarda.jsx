@@ -30,6 +30,9 @@ export default class Salvaguarda extends Component {
       erro: forcada
         ? new Error('Tela aberta de propósito por "?erro=1". Nada quebrou — tire o ?erro=1 do endereço para voltar.')
         : null,
+      // recado do botão de backup; aqui não dá para usar o pop-up da casa,
+      // que mora dentro do React — e o React acabou de quebrar
+      recado: null,
     }
   }
 
@@ -45,7 +48,7 @@ export default class Salvaguarda extends Component {
   baixarBackup = () => {
     try {
       const bruto = localStorage.getItem('gibiteca_v1')
-      if (!bruto) { alert('Não há coleção guardada neste navegador.'); return }
+      if (!bruto) { this.setState({ recado: 'Não há coleção guardada neste navegador — não há o que baixar.' }); return }
       const blob = new Blob([bruto], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -53,8 +56,9 @@ export default class Salvaguarda extends Component {
       a.download = 'gibiteca-resgate-' + new Date().toISOString().slice(0, 10) + '.json'
       a.click()
       setTimeout(() => URL.revokeObjectURL(url), 1000)
+      this.setState({ recado: null })
     } catch (e) {
-      alert('Não deu para montar o arquivo: ' + (e && e.message))
+      this.setState({ recado: 'Não deu para montar o arquivo: ' + (e && e.message) })
     }
   }
 
@@ -117,6 +121,13 @@ export default class Salvaguarda extends Component {
                   Recarregar a página
                 </button>
               </div>
+
+              {/* no lugar do alert: logo abaixo do botão que o gerou */}
+              {this.state.recado && (
+                <p role="status" className="mt-3 rounded-medio border border-rust bg-tinta-rust px-3 py-2 text-apoio text-ink">
+                  {this.state.recado}
+                </p>
+              )}
 
               <details className="mt-5">
                 <summary className="font-rotulo text-rotulo uppercase text-ink-faint cursor-pointer">

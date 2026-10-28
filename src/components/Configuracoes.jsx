@@ -5,6 +5,7 @@ import { useStore } from '../lib/store.jsx'
 import { MAIORIDADE } from '../lib/conta.js'
 import { esquecerFicha } from '../lib/ficha.js'
 import PopupDocumentos from './Documentos.jsx'
+import { usePergunta } from './Pergunta.jsx'
 
 /* CONFIGURAÇÕES.
  *
@@ -78,6 +79,7 @@ const Seta = () => (
 )
 
 export default function Configuracoes({ open, onClose, onBulk, onBackup, onNotice }) {
+  const { perguntar } = usePergunta()
   const { perfil, setPerfil, podeAdulto, conta } = useStore()
   const [docs, setDocs] = useState(null)      // 'termos' | 'privacidade' | null
 
@@ -94,12 +96,7 @@ export default function Configuracoes({ open, onClose, onBulk, onBackup, onNotic
    * começa com `gibiteca_`. Varrer por prefixo levaria a coleção junto no dia
    * em que alguém acrescentasse uma chave nova sem pensar nisto. */
   const limpar = async () => {
-    const ok = window.confirm(
-      'Limpar o cache?\n\n' +
-      'Sai: o histórico guardado da ficha de atividades, os avisos já dispensados ' +
-      'e os arquivos que o navegador guardou do site.\n\n' +
-      'Fica: a sua coleção, a conta e a configuração da nuvem.'
-    )
+    const ok = await perguntar({ titulo: 'Limpar o cache?', confirmar: 'Limpar' })
     if (!ok) return
 
     esquecerFicha()

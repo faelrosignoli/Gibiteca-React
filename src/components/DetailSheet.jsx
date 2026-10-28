@@ -8,7 +8,8 @@ import { useStore } from '../lib/store.jsx'
 import { linkDoGuia } from '../lib/catalogo.js'
 import { Switch, CheckTile, lbl, box } from './Campos.jsx'
 import { EstrelasInput } from './Estrelas.jsx'
-import { coverOf, tipoOf, edOf, edicaoDe, isImp, authorsOf, capaVelada, unitsForStatus, unitsOf, ownedCount, initials, classeTinta, volumesSemCapa, naFila, podeEnfileirar, moneyFormat, moneyToNumber } from '../lib/helpers.js'
+import { coverOf, tipoOf, edOf, edicaoDe, isImp, authorsOf, capaVelada, unitsForStatus, unitsOf, ownedCount, initials, classeTinta, naFila, podeEnfileirar, moneyFormat, moneyToNumber } from '../lib/helpers.js'
+import { usePergunta } from './Pergunta.jsx'
 
 /* ------------------------------------------------------------------
    SITUAÇÃO E ANOTAÇÃO, EDITÁVEIS AQUI MESMO
@@ -420,6 +421,7 @@ function BotaoFila({ naLista, cabe, compacto, rotulo, onClick }) {
 }
 
 export default function DetailSheet({ obra: obraAberta, onClose, onEdit, onDuplicar, onDesmembrar }) {
+  const { perguntar } = usePergunta()
   const { fixada, fixarObra, filters, fila, alternarFila, obras, upsertObra } = useStore()
 
   /* A FICHA LÊ A OBRA VIVA, não a cópia que a abriu.
@@ -468,27 +470,14 @@ export default function DetailSheet({ obra: obraAberta, onClose, onEdit, onDupli
   }
 
 
-  /* Desmembrar PERGUNTA, e pergunta com números.
-   *
-   * É a ação mais destrutiva da gaveta depois de excluir: a série some e no
-   * lugar dela aparecem N obras, sem desfazer. O confirm diz exatamente
-   * quantas obras vão nascer e quantas delas vão ficar sem capa — porque
-   * capa é o que não dá para recuperar digitando de novo.
-   *
-   * E diz o TOTAL, não o que está na tela. Com o filtro em "Tenho" a lista
-   * abaixo mostra 3 de 8 volumes; desmembrar mexe nos 8. Quem só olhasse a
-   * tela contaria errado, então o aviso conta por ele. */
-  const desmembrar = () => {
-    const semCapa = volumesSemCapa(obra)
-    const linhas = [
-      `Desmembrar "${obra.nome}"?`,
-      '',
-      `Os ${unidades} volumes viram ${unidades} obras avulsas, cada uma com o que já era dela: status, valor, nota e capa. A ${tipoOf(obra) === 'box' ? 'caixa' : 'série'} deixa de existir.`,
-    ]
-    if (filtrando) linhas.push('', `Atenção: o filtro mostra só ${volumes.length} volume${volumes.length === 1 ? '' : 's'} aqui, mas o desmembramento vale para os ${unidades}.`)
-    if (semCapa) linhas.push('', `${semCapa} ${semCapa === 1 ? 'volume não tem capa própria e vai ficar' : 'volumes não têm capa própria e vão ficar'} sem capa.`)
-    linhas.push('', 'Isso não tem desfazer.')
-    if (!confirm(linhas.join('\n'))) return
+  /* O número no título é o TOTAL, não o que o filtro mostra na tela. */
+  const desmembrar = async () => {
+    const ok = await perguntar({
+      titulo: `Desmembrar "${obra.nome}" em ${unidades} obras avulsas?`,
+      tom: 'perigo',
+      confirmar: 'Desmembrar',
+    })
+    if (!ok) return
     onDesmembrar?.(obra)
   }
 

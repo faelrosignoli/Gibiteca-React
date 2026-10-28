@@ -8,11 +8,13 @@ import { reduzirFoto } from '../lib/foto.js'
 import { PassosGitHub } from './TutorialGitHub.jsx'
 import { idadeEm } from '../lib/conta.js'
 import { inventario, moverCapasParaNuvem } from '../lib/capas.js'
+import { usePergunta } from './Pergunta.jsx'
 
 const dotColor = { off: 'bg-ink-mute', ok: 'bg-moss', sync: 'bg-gold animate-pulse', pending: 'bg-gold animate-pulse', err: 'bg-rust', conflito: 'bg-rust animate-pulse' }
 const lbl = 'font-rotulo text-rotulo uppercase text-ink-faint pl-0.5'
 
 export default function Cloud({ open, onClose, onNotice }) {
+  const { perguntar } = usePergunta()
   const { cloud, sync, syncErro, obras, aplicarObras, guessRepo, cloudConnect, cloudDisconnect, pullFromCloud, cloudPushNow, perfil, setPerfil, loadBackup, conta, sairDaConta, apagarConta } = useStore()
   const fotoRef = useRef(null)
 
@@ -27,25 +29,13 @@ export default function Cloud({ open, onClose, onNotice }) {
     }
   }
 
-  /* APAGAR A CONTA. As palavras exatas que o usuário pediu, mais o que
-     some de fato — "todos os dados cadastrados" sem a lista deixaria a
-     pessoa descobrir depois que a fila de leitura também foi.
-
-     `confirm` do navegador, e não um pop-up nosso: ele BLOQUEIA a aba até
-     ter resposta, e esta é a única ação do app sem desfazer. Um pop-up
-     bonito que se fecha clicando fora é um pop-up que se fecha por
-     acidente — e aqui o acidente é a coleção inteira.
-
-     Quem apaga de verdade é o store (`apagarConta`): são três lugares —
-     coleção, conta e sessão — e espalhar isso por uma tela deixaria um
-     deles de fora no dia em que nascer o quarto. */
-  const apagarEstaConta = () => {
-    const certeza = confirm(
-      'Você tem certeza?\n\n' +
-      'Perderá todos os dados cadastrados: obras, listas, fila de leitura, perfil e a própria conta.\n\n' +
-      (on ? 'O que já está na nuvem NÃO é apagado — dá para puxar de volta depois de entrar de novo.\n\n' : '') +
-      'Isso não tem desfazer.'
-    )
+  /* Quem apaga é o store (apagarConta): coleção, conta e sessão de uma vez. */
+  const apagarEstaConta = async () => {
+    const certeza = await perguntar({
+      titulo: 'Apagar a conta e tudo que está nela?',
+      tom: 'perigo',
+      confirmar: 'Apagar a conta',
+    })
     if (!certeza) return
     apagarConta()
     onNotice?.('Conta apagada.')

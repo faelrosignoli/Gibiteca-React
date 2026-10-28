@@ -9,6 +9,7 @@ import Pessoas from './Pessoas.jsx'
 import { EstrelasInput } from './Estrelas.jsx'
 import { Switch, CheckTile, lbl, box } from './Campos.jsx'
 import { linkDoGuia } from '../lib/catalogo.js'
+import { usePergunta } from './Pergunta.jsx'
 
 const emptyVol = () => ({ nome: '', imagem: null, roteirista: '', desenhista: '', status: 'wishlist', urgencia: false, valorPago: 0, lido: false, nota: 0, _open: true })
 
@@ -323,25 +324,17 @@ export default function Editor({ target, onClose, onSaved }) {
   const coverRef = useRef(null)
   const [listasAberto, setListasAberto] = useState(false)
 
-  /* O CAMPO DE QUANTIDADE GUARDA TEXTO, não o número de volumes.
-   *
-   * Apagar o campo para digitar outro número é gesto comum — e enquanto o
-   * campo lia `d.vols.length`, o vazio virava zero: os volumes sumiam
-   * inteiros, com nome, capa, autor e nota digitados dentro, sem aviso e sem
-   * desfazer. Era a pior perda de dado do app, e custava um Backspace.
-   *
-   * Guardando o texto, o campo pode ficar vazio sem que nada aconteça: só um
-   * NÚMERO escrito mexe nos volumes. O efeito mantém o texto em dia quando a
-   * quantidade muda por outro caminho — trocar o tipo, excluir um volume pela
-   * lixeira, abrir outra obra. */
+  /* O campo guarda TEXTO, não a contagem: vazio é alguém digitando, não zero
+     volumes. O efeito o mantém em dia quando a quantidade muda por outro
+     caminho (trocar o tipo, excluir um volume, abrir outra obra). */
   const [qtdTexto, setQtdTexto] = useState('')
   useEffect(() => { setQtdTexto(d.vols.length ? String(d.vols.length) : '') }, [d.vols.length])
 
-  /* Salvar e excluir fecham o modal, mas ele leva meio segundo saindo de cena
-     — e nesse meio tempo os botões continuam no ar, clicáveis. Uma trava por
-     abertura: o segundo clique não tem mais o que fazer. */
+  // o modal leva meio segundo saindo de cena: trava para o 2º clique não repetir
   const fechando = useRef(false)
   useEffect(() => { if (open) fechando.current = false }, [open])
+
+  const { perguntar, avisar } = usePergunta()
 
   /* A obra não guarda em que listas está — quem guarda são as listas. Por
      isso o rascunho é montado em dois passos: os campos saem da obra, e a
@@ -372,15 +365,13 @@ export default function Editor({ target, onClose, onSaved }) {
      para manter em sincronia. */
   const removerVol = (i) => setD(s => ({ ...s, vols: s.vols.filter((_, j) => j !== i) }))
 
-  /* Um volume está VAZIO enquanto ninguém encostou nele. É o que separa as
-     duas reduções: cortar a cauda de uma lista recém-criada não custa nada,
-     jogar fora volume preenchido custa o trabalho de quem preencheu. */
+  // volume vazio é o que ninguém encostou: cortar a cauda em branco não pergunta
   const volumeTemConteudo = (v) => !!(
     (v.nome || '').trim() || v.imagem || (v.roteirista || '').trim() || (v.desenhista || '').trim() ||
     v.status === 'biblioteca' || v.urgencia || v.valorPago || v.lido || v.nota
   )
 
-  const setQtd = (texto) => {
+  const setQtd = async (texto) => {
     setQtdTexto(texto)
     /* Campo vazio não é "zero volumes": é alguém no meio de digitar outro
        número. Nada acontece até aparecer um número. */
@@ -388,10 +379,11 @@ export default function Editor({ target, onClose, onSaved }) {
 
     const n = Math.max(0, Math.min(80, Number(texto) || 0))
     const perdidos = d.vols.slice(n).filter(volumeTemConteudo).length
-    if (perdidos && !confirm(
-      `Reduzir para ${n} joga fora ${perdidos} ${perdidos === 1 ? 'volume preenchido' : 'volumes preenchidos'}.\n\n` +
-      'Isso não tem desfazer. Continuar?'
-    )) {
+    if (perdidos && !await perguntar({
+      titulo: `Reduzir para ${n} e perder ${perdidos} ${perdidos === 1 ? 'volume preenchido' : 'volumes preenchidos'}?`,
+      tom: 'perigo',
+      confirmar: 'Reduzir',
+    })) {
       setQtdTexto(String(d.vols.length))   // desistiu: o campo volta ao que era
       return
     }
@@ -414,10 +406,16 @@ export default function Editor({ target, onClose, onSaved }) {
     const r = new FileReader(); r.onload = () => patch({ img: r.result }); r.readAsDataURL(f); e.target.value = ''
   }
 
-  const save = () => {
+  const save = async () => {
     if (fechando.current) return          // já salvou; o modal ainda está saindo
     const title = d.nome.trim()
-    if (!title) { alert(d.tipo === 'box' ? 'Dê um título ao box.' : d.tipo === 'serie' ? 'Dê um título à série.' : 'Dê um título à obra.'); return }
+    if (!title) {
+      await avisar({
+        titulo: d.tipo === 'box' ? 'Dê um título ao box' : d.tipo === 'serie' ? 'Dê um título à série' : 'Dê um título à obra',
+        corpo: <p>É por ele que a busca acha e a estante ordena.</p>,
+      })
+      return
+    }
     // tags entra igualzinho como saiu — editar uma obra antiga não apaga os
     // gêneros que ela já tinha
     //
@@ -454,10 +452,15 @@ export default function Editor({ target, onClose, onSaved }) {
     onSaved?.(d.id == null ? 'Obra adicionada ✓' : 'Alterações salvas ✓')
     onClose()
   }
-  const remove = () => {
+  const remove = async () => {
     if (fechando.current || !d.id) return
-    if (!confirm(`Excluir "${d.nome || 'esta obra'}" da coleção?`)) return
-    fechando.current = true
+    const ok = await perguntar({
+      titulo: `Excluir "${d.nome || 'esta obra'}" da coleção?`,
+      tom: 'perigo',
+      confirmar: 'Excluir',
+    })
+    if (!ok) return
+    fechando.current = true   // depois da pergunta: um "não" não pode travar o Salvar
     deleteObra(d.id); onSaved?.('Excluído.'); onClose()
   }
 
