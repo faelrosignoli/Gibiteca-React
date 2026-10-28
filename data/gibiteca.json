@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793205901538,
- "updated": "2026-10-28T16:45:01.538Z",
+ "atualizadoEm": 1793206152630,
+ "updated": "2026-10-28T16:49:12.630Z",
  "obras": [
   {
    "id": 1,
@@ -4852,14 +4852,18 @@
    "id": 292,
    "nome": "A Máscara da Morte Rubra",
    "tipo": "avulso",
-   "imagem": null,
-   "roteirista": "Batta Glia",
-   "desenhista": "Batta Glia",
    "origem": "importado",
-   "editora": "",
+   "editora": "Figura",
    "pais": "Itália",
-   "urgencia": false,
+   "adulto": false,
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
+   "imagem": null,
+   "roteirista": "Edgar Allan Poe / Batta Glia",
+   "desenhista": "Batta Glia",
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
