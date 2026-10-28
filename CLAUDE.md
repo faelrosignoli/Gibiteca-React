@@ -2535,25 +2535,25 @@ Gerada por `tools/gerar-marca-rodape.cjs` a partir de
 viewBox colado na tinta, `d` que não se edita à mão.
 
 **O favicon segue a mesma regra, e tem uma a mais.** `public/favicon.svg` é o
-ícone da casa — "GIBI / TECA" empilhado em duas linhas —, gerado por
+ícone da casa — a estrela de oito pontas com o G dentro —, gerado por
 `tools/gerar-favicon.cjs` a partir de `src/assets/icone.svg`. A arte vem em
 `0 0 1080 1080` com folga em volta; num ícone de 16px essa folga é perda direta
 de legibilidade. O gerador aperta a caixa num **quadrado** — quadrado porque o
 ícone é exibido num espaço quadrado, e um viewBox retangular deixaria o
-navegador escolher o enquadramento — com o lado da maior dimensão da arte
-(931,27) e centrado nela: `74.35 74.37 931.27 931.27`.
+navegador escolher o enquadramento — com o lado da maior dimensão da arte e
+centrado nela: `50.02 50.02 979.95 979.95`.
 
 O contorno vai **cravado no script**, medido com `getBBox()` no navegador.
 Trocou a arte, mede de novo: um `getBBox()` velho não dá erro nenhum, só
 desloca o ícone em silêncio.
 
-**A duas linhas, ele custa a 16px.** Medido nos quatro tamanhos: a 64 e 128
-lê-se inteiro, a 32 lê-se com esforço, e a 16 — o tamanho da aba — vira uma
-mancha escura com o formato certo. É a arte escolhida, e a troca é consciente:
-o ícone funciona como mancha reconhecível na aba e como logotipo legível em
-qualquer lugar maior. Se um dia o 16px passar a importar, o caminho é uma arte
-de uma linha só (ou de uma letra), não um ajuste de caixa — a caixa já está
-colada na tinta.
+**Ele aguenta o 16px, e é esse o ponto.** Medido em 16, 24, 32, 64 e 128: a
+silhueta de estrela se reconhece em todos; o G lê-se de 24 para cima e a 16
+fecha o vão do meio sem levar o contorno junto. É o que a primeira versão — o
+logotipo "GIBI / TECA" em duas linhas — não conseguia: a 16px ela virava mancha
+escura sem forma. Um ícone de aba é uma silhueta vista de longe, não um
+logotipo lido de perto; a arte atual assume isso, e por ser um desenho fechado
+cabe num caminho só (2 kB contra 29 kB daquela).
 
 A cor vem de um `<style>` DENTRO do SVG, com `prefers-color-scheme`: `#23271C`
 no claro, `#F4F0E6` no escuro. É o esquema do **navegador**, não o tema do site
@@ -2562,10 +2562,12 @@ em Moss ou Nockout. Firefox e Chrome respeitam a consulta; **o Safari não**, e
 nele fica sempre a versão clara (tinta escura), que some numa barra escura. Não
 há `.ico` de reserva no projeto.
 
-**Pesa 29 kB**, contra 3,8 kB da arte anterior: são oito caminhos de contorno
-detalhado em vez de quatro de bloco. É um arquivo só, pedido uma vez e
-guardado pelo navegador — mas quem for enxugar o projeto um dia começa por
-aqui, simplificando a arte no editor, nunca editando os `d`.
+**Conferido no navegador**, com o esquema escuro emulado: inline, o `fill` do
+caminho resolve para `rgb(244 240 230)`. Vale dizer para a próxima conferência
+— num `<img>` a emulação de esquema do navegador **não alcança** o documento
+da imagem, e o ícone continua saindo na tinta clara ali mesmo com a página em
+modo escuro. Isso é artefato da emulação, não do arquivo: quem muda o esquema
+no sistema vê a troca.
 
 **Para trocar a arte:** aperte o viewBox na tinta (ver acima), substitua
 `src/assets/logo.svg` e rode
