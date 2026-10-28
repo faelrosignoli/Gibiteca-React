@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793206843553,
- "updated": "2026-10-28T17:00:43.553Z",
+ "atualizadoEm": 1793211372458,
+ "updated": "2026-10-28T18:16:12.458Z",
  "obras": [
   {
    "id": 1,
@@ -13577,13 +13577,17 @@
  "listas": [],
  "perfil": {
   "foto": null,
-  "nome": "",
-  "sobrenome": "",
+  "nome": "Rafael",
+  "sobrenome": "Rosignoli",
   "mostrarAdulto": false
  },
  "conta": {
-  "email": "",
-  "nascimento": "",
-  "termos": null
+  "email": "rafaelorosignoli@gmail.com",
+  "nascimento": "2005-09-18",
+  "termos": {
+   "aceito": true,
+   "versao": "1.0",
+   "em": "2026-10-28T18:16:05.431Z"
+  }
  }
 }
