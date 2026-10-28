@@ -959,11 +959,26 @@ Agora:
   1,5s** e sai na hora — a nuvem passa a ser a única cópia que sobrevive a
   fechar a aba.
 
-**Isto é remendo, não cura.** A cura é parar de guardar a imagem da capa
+**A torneira foi fechada:** a capa agora é reduzida antes de entrar, por
+`reduzirCapa()` em `lib/foto.js` — 1200px no maior lado, JPEG a 82%, **sem
+cortar**, porque capa é arte. Imagem já menor que isso passa como veio: reduzir
+é bom, ampliar não. Antes só a foto de perfil era reduzida, e a capa entrava
+crua: 3,78 MB dos 3,94 medidos eram capas embutidas.
+
+Isso vale para a capa que ENTRA. As já gravadas continuam do tamanho que
+entraram — tirá-las dali é outra conversa.
+
+**Ainda assim é remendo, não cura.** A cura é parar de guardar a imagem da capa
 dentro da coleção: com o endereço em vez do base64, o JSON cai para poucos KB
 e o problema some — junto com os 4 MB que sobem a cada sincronização. O app já
 tem 'Enviar capas', que põe as imagens como arquivos no repositório. Mexer
 nisso muda o modelo de dados do usuário, então não fazer sem pedido.
+
+### Conflito na nuvem não reenfileira o envio
+`pushAgain` marca "chegou alteração enquanto eu enviava, manda de novo no
+fim". No caminho de conflito o envio saía com `return` antes de limpar a
+marca, e o próximo envio saía dobrado. Zerado junto com `pushing`
+(`store.jsx`, no ramo do conflito).
 
 ### Nuvem: quem decide é o carimbo de tempo
 A sincronização tinha dois furos que, juntos, faziam parecer que a nuvem não

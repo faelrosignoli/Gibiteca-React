@@ -500,6 +500,7 @@ export function StoreProvider({ children }) {
           writeCloud({ ...cloudRef.current, sha: f.sha })
           setSync('conflito')
           pushing.current = false
+          pushAgain.current = false   // conflito não reenfileira: o envio seguinte sairia dobrado
           return
         }
       }

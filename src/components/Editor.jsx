@@ -9,6 +9,7 @@ import Pessoas from './Pessoas.jsx'
 import { EstrelasInput } from './Estrelas.jsx'
 import { Switch, CheckTile, lbl, box } from './Campos.jsx'
 import { linkDoGuia } from '../lib/catalogo.js'
+import { reduzirCapa } from '../lib/foto.js'
 import { usePergunta } from './Pergunta.jsx'
 
 const emptyVol = () => ({ nome: '', imagem: null, roteirista: '', desenhista: '', status: 'wishlist', urgencia: false, valorPago: 0, lido: false, nota: 0, _open: true })
@@ -397,14 +398,15 @@ export default function Editor({ target, onClose, onSaved }) {
   }
   const setVol = (i, p) => setD(s => { const v = s.vols.slice(); v[i] = { ...v[i], ...p }; return { ...s, vols: v } })
   const copyAll = (i, f) => setD(s => { const val = s.vols[i][f]; return { ...s, vols: s.vols.map(v => ({ ...v, [f]: val, ...(f === 'status' && val === 'biblioteca' ? { urgencia: false } : {}) })) } })
-  const volCover = (i, e) => {
-    const f = e.target.files?.[0]; if (!f) return
-    const r = new FileReader(); r.onload = () => setVol(i, { imagem: r.result }); r.readAsDataURL(f); e.target.value = ''
+  // capa reduzida antes de entrar: crua, ela estourava a cota do navegador
+  const lerCapa = async (e, guardar) => {
+    const f = e.target.files?.[0]; e.target.value = ''
+    if (!f) return
+    try { guardar(await reduzirCapa(f)) }
+    catch (err) { await avisar({ titulo: 'Não deu para usar essa imagem', corpo: <p>{err.message}</p> }) }
   }
-  const onCover = (e) => {
-    const f = e.target.files?.[0]; if (!f) return
-    const r = new FileReader(); r.onload = () => patch({ img: r.result }); r.readAsDataURL(f); e.target.value = ''
-  }
+  const volCover = (i, e) => lerCapa(e, (img) => setVol(i, { imagem: img }))
+  const onCover = (e) => lerCapa(e, (img) => patch({ img }))
 
   const save = async () => {
     if (fechando.current) return          // já salvou; o modal ainda está saindo

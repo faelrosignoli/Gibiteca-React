@@ -19,6 +19,38 @@
  */
 export const LADO_FOTO = 256
 
+/* A CAPA, reduzida antes de entrar na coleção.
+ *
+ * A foto de perfil já era reduzida; a capa entrava crua. É a origem do
+ * "navegador não conseguiu guardar": 3,78 MB de 3,94 eram capas embutidas.
+ *
+ * 1200px no maior lado, e sem cortar — capa é arte, e o app nunca corta capa.
+ * Imagem menor que isso passa do jeito que veio: reduzir é bom, ampliar não. */
+export const LADO_CAPA = 1200
+
+export function reduzirCapa(arquivo) {
+  return new Promise((ok, falhou) => {
+    const leitor = new FileReader()
+    leitor.onerror = () => falhou(new Error('não deu para ler o arquivo'))
+    leitor.onload = () => {
+      const img = new Image()
+      img.onerror = () => falhou(new Error('o arquivo não é uma imagem que o navegador abra'))
+      img.onload = () => {
+        const maior = Math.max(img.width, img.height)
+        if (maior <= LADO_CAPA) { ok(leitor.result); return }
+        const escala = LADO_CAPA / maior
+        const tela = document.createElement('canvas')
+        tela.width = Math.round(img.width * escala)
+        tela.height = Math.round(img.height * escala)
+        tela.getContext('2d').drawImage(img, 0, 0, tela.width, tela.height)
+        ok(tela.toDataURL('image/jpeg', 0.82))
+      }
+      img.src = leitor.result
+    }
+    leitor.readAsDataURL(arquivo)
+  })
+}
+
 export function reduzirFoto(arquivo) {
   return new Promise((ok, falhou) => {
     const leitor = new FileReader()

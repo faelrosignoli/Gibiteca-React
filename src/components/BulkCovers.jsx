@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { MOLA_GAVETA, FADE } from '../lib/motion.js'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import { canon, slugify } from '../lib/helpers.js'
 import { ghGet, ghPut } from '../lib/cloud.js'
@@ -16,6 +16,12 @@ export default function BulkCovers({ open, onClose, onNotice }) {
   const [progress, setProgress] = useState({ done: 0, total: 0, label: '' })
   const fileRef = useRef(null)
 
+  /* O endereço da miniatura nasce com o item e morre com ele. Dentro do
+     desenho, um novo era criado a cada tique da barra de progresso. */
+  const itensRef = useRef([])
+  itensRef.current = items
+  useEffect(() => () => itensRef.current.forEach(i => URL.revokeObjectURL(i.url)), [])
+
   const index = useMemo(() => {
     const m = {}; obras.forEach(o => { const k = canon(o.nome); (m[k] = m[k] || []).push(o) }); return m
   }, [obras])
@@ -28,9 +34,10 @@ export default function BulkCovers({ open, onClose, onNotice }) {
       let status = 'none', work = null
       if (matches.length === 1) { status = 'match'; work = matches[0] }
       else if (matches.length > 1) status = 'ambig'
-      return { file: f, base, status, work, matches: matches.length }
+      return { file: f, base, status, work, matches: matches.length, url: URL.createObjectURL(f) }
     })
-    setItems(next); setProgress({ done: 0, total: 0, label: '' })
+    setItems(prev => { prev.forEach(p => URL.revokeObjectURL(p.url)); return next })
+    setProgress({ done: 0, total: 0, label: '' })
   }
 
   const counts = useMemo(() => ({
@@ -124,7 +131,7 @@ export default function BulkCovers({ open, onClose, onNotice }) {
                         <tr key={i} className="border-t first:border-t-0 border-paper-3">
                           <td className="px-2.5 py-2 w-[38px]">
                             <div className="w-8 h-10 rounded border border-separador bg-surface overflow-hidden">
-                              <img src={URL.createObjectURL(it.file)} alt="" className="w-full h-full object-cover" onLoad={e => URL.revokeObjectURL(e.currentTarget.src)} />
+                              <img src={it.url} alt="" className="w-full h-full object-cover" />
                             </div>
                           </td>
                           <td className="px-2.5 py-2">
