@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793583207881,
- "updated": "2026-11-02T01:33:27.881Z",
+ "atualizadoEm": 1793583241790,
+ "updated": "2026-11-02T01:34:01.790Z",
  "obras": [
   {
    "id": 1,
@@ -1713,22 +1713,6 @@
    "origem": "nacional",
    "editora": "Figura",
    "pais": "Itália",
-   "urgencia": false,
-   "status": "wishlist",
-   "valorPago": 0,
-   "lido": false,
-   "nota": 0
-  },
-  {
-   "id": 104,
-   "nome": "Ticonderoga",
-   "tipo": "avulso",
-   "imagem": null,
-   "roteirista": "",
-   "desenhista": "",
-   "origem": "nacional",
-   "editora": "Figura",
-   "pais": "",
    "urgencia": false,
    "status": "wishlist",
    "valorPago": 0,
