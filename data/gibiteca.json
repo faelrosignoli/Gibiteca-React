@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793583241790,
- "updated": "2026-11-02T01:34:01.790Z",
+ "atualizadoEm": 1793583264066,
+ "updated": "2026-11-02T01:34:24.066Z",
  "obras": [
   {
    "id": 1,
@@ -1675,14 +1675,18 @@
    "id": 101,
    "nome": "Reparações",
    "tipo": "avulso",
-   "imagem": null,
-   "roteirista": "",
-   "desenhista": "",
    "origem": "nacional",
    "editora": "Figura",
    "pais": "",
-   "urgencia": false,
+   "adulto": false,
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
+   "imagem": null,
+   "roteirista": "Lelis",
+   "desenhista": "Lelis",
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
