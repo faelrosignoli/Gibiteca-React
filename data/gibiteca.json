@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793675608281,
- "updated": "2026-11-03T03:13:28.281Z",
+ "atualizadoEm": 1793675621620,
+ "updated": "2026-11-03T03:13:41.620Z",
  "obras": [
   {
    "id": 1,
@@ -2754,7 +2754,7 @@
    "desenhista": "Pedro Mauro",
    "status": "biblioteca",
    "urgencia": false,
-   "valorPago": 0,
+   "valorPago": 32.97,
    "lido": false,
    "nota": 0
   },
