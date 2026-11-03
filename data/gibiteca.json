@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793675621620,
- "updated": "2026-11-03T03:13:41.620Z",
+ "atualizadoEm": 1793675643694,
+ "updated": "2026-11-03T03:14:03.694Z",
  "obras": [
   {
    "id": 1,
@@ -3301,7 +3301,7 @@
    "desenhista": "Becky Cloonan / Lee Loushridge",
    "status": "biblioteca",
    "urgencia": false,
-   "valorPago": 0,
+   "valorPago": 18.87,
    "lido": true,
    "nota": 2
   },
