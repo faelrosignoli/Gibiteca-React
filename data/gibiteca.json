@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793672096018,
- "updated": "2026-11-03T02:14:56.018Z",
+ "atualizadoEm": 1793675523383,
+ "updated": "2026-11-03T03:12:03.383Z",
  "obras": [
   {
    "id": 1,
@@ -8642,8 +8642,10 @@
    "origem": "nacional",
    "editora": "Pipoca & Nanquim",
    "pais": "Japão",
+   "adulto": false,
    "tags": [],
    "resenha": "",
+   "tipoEdicao": "",
    "volumes": [
     {
      "nome": "As Crônicas da Era do Gelo — Vol. 1",
@@ -8652,7 +8654,7 @@
      "desenhista": "Jiro Taniguchi",
      "status": "biblioteca",
      "urgencia": false,
-     "valorPago": 0,
+     "valorPago": 16.47,
      "lido": false,
      "nota": 0
     },
@@ -8663,7 +8665,7 @@
      "desenhista": "Jiro Taniguchi",
      "status": "biblioteca",
      "urgencia": false,
-     "valorPago": 0,
+     "valorPago": 16.47,
      "lido": false,
      "nota": 0
     }
