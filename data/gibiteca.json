@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793798333505,
- "updated": "2026-11-04T13:18:53.505Z",
+ "atualizadoEm": 1793798372375,
+ "updated": "2026-11-04T13:19:32.375Z",
  "obras": [
   {
    "id": 1,
@@ -7704,22 +7704,6 @@
    "origem": "importado",
    "editora": "",
    "pais": "Brasil",
-   "urgencia": false,
-   "status": "wishlist",
-   "valorPago": 0,
-   "lido": false,
-   "nota": 0
-  },
-  {
-   "id": 467,
-   "nome": "Fortaleza Móvel",
-   "tipo": "avulso",
-   "imagem": null,
-   "roteirista": "Ricardo Barreiro",
-   "desenhista": "Enrique Alcatena",
-   "origem": "importado",
-   "editora": "",
-   "pais": "Argentina",
    "urgencia": false,
    "status": "wishlist",
    "valorPago": 0,
