@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793798518239,
- "updated": "2026-11-04T13:21:58.239Z",
+ "atualizadoEm": 1793798542307,
+ "updated": "2026-11-04T13:22:22.307Z",
  "obras": [
   {
    "id": 1,
@@ -5856,14 +5856,18 @@
    "id": 347,
    "nome": "Ronin",
    "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Panini",
+   "pais": "EUA",
+   "adulto": false,
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
    "imagem": null,
    "roteirista": "Frank Miller",
    "desenhista": "Frank Miller",
-   "origem": "importado",
-   "editora": "",
-   "pais": "EUA",
-   "urgencia": false,
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
