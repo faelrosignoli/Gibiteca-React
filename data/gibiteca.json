@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793675699943,
- "updated": "2026-11-03T03:14:59.943Z",
+ "atualizadoEm": 1793798247877,
+ "updated": "2026-11-04T13:17:27.877Z",
  "obras": [
   {
    "id": 1,
@@ -6196,14 +6196,18 @@
    "id": 370,
    "nome": "Blood",
    "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Pipoca & Nanquim",
+   "pais": "EUA",
+   "adulto": false,
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
    "imagem": null,
    "roteirista": "J.M. Dematteis",
    "desenhista": "J.M. Dematteis",
-   "origem": "importado",
-   "editora": "",
-   "pais": "EUA",
-   "urgencia": false,
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
