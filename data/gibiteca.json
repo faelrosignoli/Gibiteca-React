@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793798247877,
- "updated": "2026-11-04T13:17:27.877Z",
+ "atualizadoEm": 1793798259707,
+ "updated": "2026-11-04T13:17:39.707Z",
  "obras": [
   {
    "id": 1,
@@ -7934,14 +7934,18 @@
    "id": 482,
    "nome": "Cannon",
    "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Pipoca & Nanquim",
+   "pais": "EUA",
+   "adulto": false,
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
    "imagem": null,
    "roteirista": "Wallace Wood",
    "desenhista": "Wallace Wood",
-   "origem": "importado",
-   "editora": "",
-   "pais": "EUA",
-   "urgencia": false,
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
