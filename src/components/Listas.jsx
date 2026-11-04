@@ -6,7 +6,7 @@ import {
 } from '../lib/motion.js'
 import { useStore } from '../lib/store.jsx'
 import { capaVelada } from '../lib/helpers.js'
-import { obrasDaLista, sortList, coverOf, edOf, gNorm, initials, classeTinta } from '../lib/helpers.js'
+import { obrasDaLista, sortList, coverOf, edOf, authorsOf, gNorm, initials, classeTinta } from '../lib/helpers.js'
 import { usePergunta } from './Pergunta.jsx'
 
 /* AS LISTAS.
@@ -38,18 +38,24 @@ function EscolherObras({ obras, escolhidas, aoAlternar }) {
   const vistas = useMemo(() => {
     const q = gNorm(busca.trim())
     if (!q) return obras
-    return obras.filter(o => gNorm([o.nome, edOf(o)].filter(Boolean).join(' ')).includes(q))
+    return obras.filter(o => gNorm([o.nome, edOf(o), ...authorsOf(o)].filter(Boolean).join(' ')).includes(q))
   }, [obras, busca])
 
   return (
     <>
-      <input
-        className="field-input w-full"
-        value={busca}
-        onChange={e => setBusca(e.target.value)}
-        placeholder="Procurar na coleção"
-        aria-label="Procurar obras para pôr na lista"
-      />
+      <div className="relative">
+        <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-ink-faint pointer-events-none"
+             viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+        </svg>
+        <input
+          className="field-input w-full !pl-11"
+          value={busca}
+          onChange={e => setBusca(e.target.value)}
+          placeholder="Título, autor ou editora"
+          aria-label="Procurar obras para pôr na lista"
+        />
+      </div>
 
       {vistas.length === 0 ? (
         <p className="mt-4 text-apoio text-ink-faint">Nada com esse nome.</p>
@@ -112,6 +118,32 @@ function IconNumerada() {
          strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M10 6h11M10 12h11M10 18h11" />
       <path d="M4 5.5 5.5 5V9M3.5 15.5a1.5 1.5 0 1 1 2.6 1L3.5 19H6.5" />
+    </svg>
+  )
+}
+
+/* A tela sem lista nenhuma: três gibis jogados um sobre o outro.
+ *
+ * O desenho é a piada da frase ao lado — e tortos de propósito: pilha
+ * alinhada viraria "lista", que é justamente o que ainda não existe aqui. */
+const GIBIS = [
+  { x: 18, y: 50, w: 84, giro: -3 },
+  { x: 23, y: 34, w: 75, giro: 2.5 },
+  { x: 28, y: 18, w: 66, giro: -6.5 },
+]
+
+function PilhaNoChao() {
+  return (
+    <svg viewBox="0 0 120 84" role="img" aria-label="Uma pilha de gibis no chão"
+         className="w-[132px] h-[92px] mx-auto text-ink-mute"
+         fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
+      {GIBIS.map(({ x, y, w, giro }) => (
+        <g key={y} transform={`rotate(${giro} 60 ${y + 8})`}>
+          <rect x={x} y={y} width={w} height="16" rx="2.5" />
+          {/* a lombada, que é o que se vê numa pilha de verdade */}
+          <path d={`M${x + 8} ${y + 2.5}v11`} />
+        </g>
+      ))}
     </svg>
   )
 }
@@ -209,33 +241,31 @@ const ORDENS = [
   ['numerada', '123', 'Numerada'],
 ]
 
-/* O seletor de ordem, no pop-up de editar a lista.
- *
- * Aqui e não na galeria: é um ajuste da lista, e ajuste mora junto do nome,
- * atrás da mesma porta. Exposto sobre a galeria, virava um botão permanente
- * para uma decisão que se toma uma vez.
+/* O seletor de ordem: curto, ao lado do nome.
  *
  * Duas opções lado a lado e não um interruptor de liga/desliga: alfabética
- * não é "numerada desligada", é outra ordem. Um interruptor diria que uma
- * delas é a ausência da outra.
- */
+ * não é "numerada desligada", é outra ordem.
+ *
+ * Sem as palavras: "ABC" e "123" já dizem tudo, e o rótulo por extenso dobrava
+ * a largura de um ajuste que se toma uma vez. Quem lê por leitor de tela
+ * recebe o nome inteiro pelo `aria-label`. */
 function SeletorOrdem({ valor, onChange }) {
   return (
     <div role="radiogroup" aria-label="Ordem das obras na lista"
-         className="flex w-full rounded-full border border-contorno bg-paper-2 p-1 gap-1">
+         className="shrink-0 inline-flex rounded-full border border-contorno bg-paper-2 p-1 gap-1">
       {ORDENS.map(([v, sigla, rotulo]) => {
         const marcado = valor === v
         return (
           <button
             key={v} type="button" role="radio" aria-checked={marcado}
             onClick={() => onChange(v)}
-            className={'flex-1 inline-flex items-center justify-center gap-2 rounded-full py-2 px-2 text-corpo font-semibold transition ' +
+            title={rotulo} aria-label={rotulo}
+            className={'w-11 h-9 inline-flex items-center justify-center rounded-full transition ' +
               (marcado
                 ? 'bg-surface-pure text-acento-texto shadow-amb ring-1 ring-moss-2'
                 : 'text-ink-soft hover:bg-toque')}
           >
             <span className="font-mono text-rotulo font-bold tracking-tight" aria-hidden="true">{sigla}</span>
-            {rotulo}
           </button>
         )
       })}
@@ -389,28 +419,28 @@ function PopupLista({ aberto, lista, obras, onFechar, onSalvar }) {
             </div>
 
             <div className="flex-1 overflow-auto px-5 sm:px-6 py-5">
-              <label className="font-rotulo text-rotulo uppercase text-ink-soft pl-0.5">Nome da lista</label>
-              <input
-                className="field-input w-full mt-1"
-                value={nome}
-                onChange={e => setNome(e.target.value)}
-                placeholder="Para reler, Emprestados, Comprar na bienal…"
-                autoFocus
-              />
-
-              <div className="mt-5">
-                <label className="font-rotulo text-rotulo uppercase text-ink-soft pl-0.5">Ordem das obras</label>
-                <div className="mt-1.5"><SeletorOrdem valor={ordem} onChange={setOrdem} /></div>
-                <p className="mt-2 text-apoio text-ink-faint leading-relaxed">
-                  {ordem === 'numerada'
-                    ? 'As obras ficam na ordem que você montar, numeradas — e dá para arrastar na galeria.'
-                    : 'As obras aparecem em ordem alfabética.'}
-                </p>
+              {/* `items-end` alinha o campo e o seletor pela base: o sublinhado
+                  do nome e a borda de baixo do seletor caem na mesma linha. */}
+              <div className="flex items-end gap-3">
+                <input
+                  className="field-linha flex-1"
+                  value={nome}
+                  onChange={e => setNome(e.target.value)}
+                  placeholder="Nome"
+                  aria-label="Nome da lista"
+                  autoFocus
+                />
+                <SeletorOrdem valor={ordem} onChange={setOrdem} />
               </div>
 
               {!editando && (
-                <div className="mt-6">
-                  <div className="font-rotulo text-rotulo uppercase text-ink-soft pl-0.5 mb-2">
+                <div className="mt-5">
+                  {/* A régua sai do respiro lateral para atravessar o pop-up
+                      inteiro: dentro do padding ela pararia antes da borda e
+                      viraria um traço solto. Só existe ao CRIAR — editando não
+                      há parte de baixo, e ela ficaria pendurada no vazio. */}
+                  <div className="-mx-5 sm:-mx-6 border-t border-linha" />
+                  <div className="mt-5 font-rotulo text-rotulo uppercase text-ink-soft pl-0.5 mb-2">
                     Obras {escolhidas.length > 0 && <span className="text-acento-texto">· {escolhidas.length}</span>}
                   </div>
                   {obras.length === 0 ? (
@@ -579,12 +609,10 @@ export default function Listas({ open, onClose, onNotice, onEditar }) {
                   /* ---------- nível 1: o índice ---------- */
                   <>
                     {listas.length === 0 ? (
-                      <div className="py-8 text-center">
-                        <div className="text-corpo text-ink-soft">Nenhuma lista ainda.</div>
-                        <p className="mt-2 max-w-[38ch] mx-auto text-apoio text-ink-faint leading-relaxed">
-                          Listas são pastas feitas por você — "Para reler", "Emprestados". Uma obra
-                          pode estar em várias, e entrar numa lista não muda nada sobre ela.
-                        </p>
+                      <div className="py-10 text-center">
+                        <PilhaNoChao />
+                        <div className="mt-5 text-corpo text-ink-soft">Nenhuma lista ainda.</div>
+                        <p className="mt-1 text-apoio text-ink-mute">A pilha no chão também é um sistema.</p>
                       </div>
                     ) : (
                       <div className="flex flex-col">

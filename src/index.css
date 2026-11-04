@@ -112,6 +112,15 @@ body {
     transition: border-color var(--dur) var(--ease-prem), box-shadow var(--dur) var(--ease-prem);
   }
   .field-input:focus { @apply border-moss; box-shadow: 0 0 0 3px rgb(var(--moss-2) / .14); }
+
+  /* Campo de uma linha só, sem caixa. Para o campo que É o assunto da tela —
+     hoje o nome da lista. Em formulário com vários campos, continua .field-input:
+     sem a caixa, a coluna de rótulos some e nada alinha. */
+  .field-linha {
+    @apply w-full bg-transparent border-0 border-b border-contorno rounded-none px-1 py-2 text-corpo text-ink outline-none;
+    transition: border-color var(--dur) var(--ease-prem);
+  }
+  .field-linha:focus { @apply border-moss; }
 }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }

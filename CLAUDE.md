@@ -23,6 +23,9 @@ GitHub via Contents API. Idioma da interface e dos commits: **português (BR)**.
 - `npm run dev` — servidor de desenvolvimento (Vite, porta 5173).
 - `npm run build` — gera `/dist` (site estático, base relativa; serve em qualquer subpasta, inclusive GitHub Pages).
 - `npm run preview` — pré-visualiza o build.
+- `npm test` — roda `tests/puras.mjs` no node, sem framework nenhum. São as
+  funções puras: dinheiro, texto, idade, conta, filtros, fila, desmembrar,
+  ordenação e **a decisão da nuvem**.
 - Deploy: GitHub Pages via `.github/workflows` (Actions).
 
 ## Estrutura
@@ -36,6 +39,7 @@ src/
     store.jsx              # StoreProvider (contexto global): obras, filtros, paginação, persistência, nuvem
     helpers.js             # funções puras: coverOf, unitsOf, tipoOf, edOf, edicaoDe, statusMatch, avgNota, canon, slugify, fmtBRL, moneyToNumber/Format, tintIndex/classeTinta, initials...
     cloud.js               # GitHub Contents API: ghCheckRepo, ghGet, ghPut, b64enc/dec, guessRepo
+    sync.js                # quem ganha, a cópia daqui ou a da nuvem (testável fora do navegador)
     motion.js              # tokens de movimento: molas, projeção de momento, elástico das bordas, hooks de viewport e movimento reduzido
   components/
     Header.jsx             # barra de ponta a ponta, sticky: véu desfocado no topo, cortina moss ao rolar
@@ -974,6 +978,22 @@ e o problema some — junto com os 4 MB que sobem a cada sincronização. O app 
 tem 'Enviar capas', que põe as imagens como arquivos no repositório. Mexer
 nisso muda o modelo de dados do usuário, então não fazer sem pedido.
 
+### A decisão da nuvem mora num `.js`, para poder ser testada
+`carimboDe`, `decidirAoAbrir`, `haConflitoAoEnviar` e `ehColecao` saíram do
+`store.jsx` para `lib/sync.js`. O motivo é prosaico: o node não importa `.jsx`
+(`Unknown file extension`), então a parte do app onde um erro faz **coleção
+sumir** era a única sem teste automático. Agora são 23 testes só dela.
+
+O `store.jsx` reexporta `carimboDe`, e a decisão virou três linhas:
+
+```js
+const decisao = decidirAoAbrir({ carimboLocal, carimboNuvem, temCoisaAqui })
+// 'puxar' | 'enviar' | 'conflito' | 'nada'
+```
+
+**Regra nova que entre aqui precisa de teste em `tests/puras.mjs`.** Lógica de
+nuvem que volte para dentro do `store.jsx` deixa de ser testável no mesmo dia.
+
 ### Conflito na nuvem não reenfileira o envio
 `pushAgain` marca "chegou alteração enquanto eu enviava, manda de novo no
 fim". No caminho de conflito o envio saía com `return` antes de limpar a
@@ -1786,6 +1806,27 @@ essa pergunta é sobre a obra.
 
 A ORDEM do array é a ordem de entrada: quem chega depois vai para o fim. Ao
 contrário da fila, essa ordem não é o conteúdo — é só previsibilidade.
+
+#### O pop-up de criar: nome e ordem na mesma linha
+O nome usa `.field-linha` — campo sem caixa, só a linha de baixo — e não tem
+rótulo em cima: é o único campo ali, e "Nome" dentro dele basta. Ao lado, na
+mesma linha, o seletor de ordem encurtado: só `ABC` e `123`, sem as palavras.
+Cada metade leva `title` e `aria-label` por extenso, que sem texto visível é
+o que sobra para quem ouve a tela.
+
+Uma régua de ponta a ponta (`-mx-5 sm:-mx-6`, para furar o respiro lateral)
+separa o cabeçalho da escolha de obras. **Ela só existe ao CRIAR**: editando
+não há parte de baixo, e a régua ficaria pendurada no vazio.
+
+A busca das obras casa **título, editora e autor** (`authorsOf`, que já traz
+roteirista e desenhista, inclusive os de cada volume). O placeholder diz os
+três — é o único lugar que conta que dá para procurar por autor.
+
+#### Sem lista nenhuma: a pilha no chão
+Três gibis tortos (`PilhaNoChao`, SVG inline) e uma frase seca: *"A pilha no
+chão também é um sistema."* Substituiu um parágrafo que explicava o que é uma
+lista — explicação em tela vazia é lida por ninguém. Os gibis são tortos de
+propósito: pilha alinhada viraria "lista", que é o que ainda não existe ali.
 
 #### Uma gaveta, dois níveis
 Índice das listas e, ao abrir uma, a **galeria** dela. Não são duas gavetas
