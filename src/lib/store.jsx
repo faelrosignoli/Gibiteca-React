@@ -4,6 +4,9 @@ import { EDITORAS } from '../data.js'
 import { CONTA_VAZIA, limparCodigo, maiorDeIdade } from './conta.js'
 import { ghCheckRepo, ghGet, ghPut, lerColecao, b64enc, b64dec, guessRepo } from './cloud.js'
 import { compararColecoes, mensagemDeCommit } from './diario.js'
+import { carimboDe, decidirAoAbrir, haConflitoAoEnviar, ehColecao } from './sync.js'
+
+export { carimboDe }
 
 const StoreCtx = createContext(null)
 export const useStore = () => useContext(StoreCtx)
@@ -70,13 +73,6 @@ const CLOUD_DEFAULT = { connected: false, owner: '', repo: '', branch: 'main', p
  * atropela o que estiver lá. O carimbo antigo (`updated`, em texto ISO) é
  * aceito na leitura, para os arquivos que já existem na nuvem continuarem
  * valendo. */
-export function carimboDe(d) {
-  if (!d) return 0
-  if (Number.isFinite(d.atualizadoEm)) return d.atualizadoEm
-  const t = Date.parse(d.updated || d.exported || '')
-  return Number.isFinite(t) ? t : 0
-}
-
 function loadInitial() {
   let bruto = null
   try { bruto = localStorage.getItem('gibiteca_v1') } catch (e) { /* navegador sem storage */ }
@@ -493,9 +489,7 @@ export function StoreProvider({ children }) {
       if (f) {
         anterior = lerColecao(f)
         const laFora = carimboDe(anterior)
-        // 'forcar' vem do botao 'Enviar agora': ali a pessoa esta mandando
-        // gravar por cima, sabendo disso. O envio automatico nunca forca.
-        if (!forcar && laFora > carimbo.current) {
+        if (haConflitoAoEnviar({ carimboLocal: carimbo.current, carimboNuvem: laFora, forcar })) {
           // a nuvem está na frente: não grava por cima
           writeCloud({ ...cloudRef.current, sha: f.sha })
           setSync('conflito')
@@ -575,7 +569,7 @@ export function StoreProvider({ children }) {
    * ele fazia a tela de Backup dizer "Coleção restaurada" sobre um arquivo
    * que não restaurou nada. Quem chama precisa saber a diferença. */
   const applyData = useCallback((data, { fromCloud = false } = {}) => {
-    if (!Array.isArray(data?.obras)) return false
+    if (!ehColecao(data)) return false
     dirty.current = true
     // vindo da nuvem, herda o carimbo de lá: esta cópia passa a ser aquela.
     // Vindo de um arquivo restaurado, é alteração local e ganha a hora de agora.
@@ -676,25 +670,14 @@ export function StoreProvider({ children }) {
         writeCloud({ ...cloudRef.current, sha: f.sha })
         const laFora = carimboDe(dados)
 
-        /* Carimbo local zero quer dizer DESCONHECIDO, não "muito antigo".
-         *
-         * É o caso de quem já usava o app antes desta mudança: os dados estão
-         * salvos aqui sem carimbo nenhum. Tratar isso como antigo faria a
-         * nuvem ganhar sempre — e foi exatamente assim que um backup
-         * restaurado no PC sumiu sozinho, toda vez que o app abria.
-         *
-         * Sem saber quem é mais novo, o app não escolhe: só puxa se aqui não
-         * houver nada a perder. Havendo, para e pergunta. */
-        const semCarimboLocal = !carimbo.current
-        const temCoisaAqui = (dataRef.current.obras || []).length > 0
-
-        if (semCarimboLocal && temCoisaAqui) {
-          // as duas cópias existem e não dá para ordená-las: quem decide é você
-          setSync(laFora ? 'conflito' : 'ok')
-          return
-        }
-        if (laFora > carimbo.current) applyData(dados, { fromCloud: true })
-        else if (carimbo.current > laFora) { setSync('ok'); scheduleCloudPush(); return }
+        const decisao = decidirAoAbrir({
+          carimboLocal: carimbo.current,
+          carimboNuvem: laFora,
+          temCoisaAqui: (dataRef.current.obras || []).length > 0,
+        })
+        if (decisao === 'conflito') { setSync('conflito'); return }
+        if (decisao === 'puxar') applyData(dados, { fromCloud: true })
+        else if (decisao === 'enviar') { setSync('ok'); scheduleCloudPush(); return }
         setSync('ok')
       } catch (e) { if (vivo) falhou(e) }
     })()
