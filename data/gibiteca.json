@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793798556268,
- "updated": "2026-11-04T13:22:36.268Z",
+ "atualizadoEm": 1793798832884,
+ "updated": "2026-11-04T13:27:12.884Z",
  "obras": [
   {
    "id": 1,
@@ -6408,14 +6408,18 @@
    "id": 382,
    "nome": "Family Tree",
    "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Intrínseca",
+   "pais": "Canadá",
+   "adulto": false,
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
    "imagem": null,
    "roteirista": "Jeff Lemire",
    "desenhista": "Jeff Lemire",
-   "origem": "importado",
-   "editora": "",
-   "pais": "Canadá",
-   "urgencia": false,
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
