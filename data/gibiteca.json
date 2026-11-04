@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793798476020,
- "updated": "2026-11-04T13:21:16.020Z",
+ "atualizadoEm": 1793798490146,
+ "updated": "2026-11-04T13:21:30.146Z",
  "obras": [
   {
    "id": 1,
@@ -10695,7 +10695,13 @@
    "id": 543,
    "nome": "Tomie",
    "tipo": "serie",
-   "imagem": null,
+   "origem": "nacional",
+   "editora": "Pipoca & Nanquim",
+   "pais": "Japão",
+   "adulto": false,
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
    "volumes": [
     {
      "nome": "Tomie — Vol. 1",
@@ -10720,9 +10726,7 @@
      "nota": 0
     }
    ],
-   "origem": "importado",
-   "editora": "",
-   "pais": "Japão",
+   "imagem": null,
    "roteirista": "",
    "desenhista": "",
    "status": "wishlist",
