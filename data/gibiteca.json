@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793798410606,
- "updated": "2026-11-04T13:20:10.606Z",
+ "atualizadoEm": 1793798432036,
+ "updated": "2026-11-04T13:20:32.036Z",
  "obras": [
   {
    "id": 1,
@@ -4824,14 +4824,18 @@
    "id": 290,
    "nome": "Kraken",
    "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Figura",
+   "pais": "Espanha",
+   "adulto": false,
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
    "imagem": null,
    "roteirista": "Antonio Segura",
    "desenhista": "Jordi Bernet",
-   "origem": "importado",
-   "editora": "",
-   "pais": "Espanha",
-   "urgencia": false,
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
