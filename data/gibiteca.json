@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793798312944,
- "updated": "2026-11-04T13:18:32.944Z",
+ "atualizadoEm": 1793798333505,
+ "updated": "2026-11-04T13:18:53.505Z",
  "obras": [
   {
    "id": 1,
@@ -6889,14 +6889,18 @@
    "id": 414,
    "nome": "Deus em Pessoa",
    "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Comix Zone",
+   "pais": "França",
+   "adulto": false,
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
    "imagem": null,
    "roteirista": "Marc-Antoine Mathieu",
    "desenhista": "Marc-Antoine Mathieu",
-   "origem": "importado",
-   "editora": "",
-   "pais": "França",
-   "urgencia": false,
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
