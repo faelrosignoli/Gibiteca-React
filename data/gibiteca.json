@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793798903924,
- "updated": "2026-11-04T13:28:23.924Z",
+ "atualizadoEm": 1793798966911,
+ "updated": "2026-11-04T13:29:26.911Z",
  "obras": [
   {
    "id": 1,
@@ -13490,6 +13490,26 @@
    "imagem": null,
    "roteirista": "Héctor Oesterheld",
    "desenhista": "Hugo Pratt",
+   "status": "wishlist",
+   "urgencia": false,
+   "valorPago": 0,
+   "lido": false,
+   "nota": 0
+  },
+  {
+   "id": 633,
+   "nome": "Deuses Americanos",
+   "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Intrínseca",
+   "pais": "",
+   "adulto": false,
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
+   "imagem": null,
+   "roteirista": "Neil Gaiman",
+   "desenhista": "P. Craig Russell / Scott Hampton",
    "status": "wishlist",
    "urgencia": false,
    "valorPago": 0,
