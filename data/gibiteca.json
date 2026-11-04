@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793798864947,
- "updated": "2026-11-04T13:27:44.947Z",
+ "atualizadoEm": 1793798903924,
+ "updated": "2026-11-04T13:28:23.924Z",
  "obras": [
   {
    "id": 1,
@@ -7742,14 +7742,18 @@
    "id": 469,
    "nome": "Oblivion Song",
    "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Intrínseca",
+   "pais": "EUA",
+   "adulto": false,
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
    "imagem": null,
    "roteirista": "Robert Kirkman",
    "desenhista": "Robert Kirkman",
-   "origem": "importado",
-   "editora": "",
-   "pais": "EUA",
-   "urgencia": false,
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
