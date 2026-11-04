@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { motion } from 'framer-motion'
 import { useStore } from '../lib/store.jsx'
 import {
@@ -107,15 +108,42 @@ function Ficha({ obra, index, onOpen }) {
   )
 }
 
-function ListView({ items, onOpen }) {
+/* O cabeçalho de um bloco: nome à esquerda, fio atravessando, contagem num
+   círculo à direita. A contagem é a do BLOCO INTEIRO, não a do pedaço que
+   coube nesta página — por isso vem do store, não do que está na tela. */
+function CabecalhoGrupo({ nome, quantas, continua }) {
+  return (
+    <div className="col-span-full flex items-center gap-3 mt-7 first:mt-0 mb-0.5">
+      <span className="font-rotulo text-rotulo uppercase text-acento-texto shrink-0">
+        {nome}{continua && <span className="text-ink-mute"> (continuação)</span>}
+      </span>
+      <span className="flex-1 h-px bg-linha" />
+      <span className="shrink-0 inline-flex items-center justify-center min-w-[30px] h-[30px] px-2
+                       rounded-full border border-contorno font-mono text-rotulo text-ink-soft">
+        {quantas}
+      </span>
+    </div>
+  )
+}
+
+function ListView({ items, onOpen, grupos, tamanhos, continua }) {
   return (
     <div className="flex flex-col gap-2">
-      {items.map((o, i) => <Ficha key={o.id} obra={o} index={i} onOpen={onOpen} />)}
+      {items.map((o, i) => {
+        const grupo = grupos && grupos[i]
+        const abre = grupo && (i === 0 || grupos[i - 1] !== grupo)
+        return (
+          <div key={(grupo || '') + ':' + o.id} className="contents">
+            {abre && <CabecalhoGrupo nome={grupo} quantas={tamanhos.get(grupo)} continua={i === 0 && continua} />}
+            <Ficha obra={o} index={i} onOpen={onOpen} />
+          </div>
+        )
+      })}
     </div>
   )
 }
 export default function Collection({ onOpen }) {
-  const { view, total, pageItems, obras, fixada } = useStore()
+  const { view, total, pageItems, obras, fixada, agrupar, pageGrupos, tamanhosDeGrupo, grupoContinua } = useStore()
 
   if (total === 0) {
     return (
@@ -143,16 +171,21 @@ export default function Collection({ onOpen }) {
         ? <div className="grid gap-2.5 sm:gap-4 xl:gap-5 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
             {pageItems.map((o, i) => {
               // o destaque é a obra FIXADA, e ela foi para o começo da lista
-              // no store. Sem obra fixada, nenhum cartão vira destaque.
-              const feature = fixada != null && o.id === fixada && i === 0
+              // no store. Agrupado ela não sobe, e o destaque não existe.
+              const feature = !agrupar && fixada != null && o.id === fixada && i === 0
+              const grupo = pageGrupos && pageGrupos[i]
+              const abre = grupo && (i === 0 || pageGrupos[i - 1] !== grupo)
               return (
-                <div key={o.id} className={feature ? 'lg:col-span-2 lg:row-span-2' : ''}>
-                  <Card obra={o} index={i} onOpen={onOpen} feature={feature} animarEntrada={pageItems.length <= 60} />
-                </div>
+                <Fragment key={(grupo || '') + ':' + o.id}>
+                  {abre && <CabecalhoGrupo nome={grupo} quantas={tamanhosDeGrupo.get(grupo)} continua={i === 0 && grupoContinua} />}
+                  <div className={feature ? 'lg:col-span-2 lg:row-span-2' : ''}>
+                    <Card obra={o} index={i} onOpen={onOpen} feature={feature} animarEntrada={pageItems.length <= 60} />
+                  </div>
+                </Fragment>
               )
             })}
           </div>
-        : <ListView items={pageItems} onOpen={onOpen} />}
+        : <ListView items={pageItems} onOpen={onOpen} grupos={pageGrupos} tamanhos={tamanhosDeGrupo} continua={grupoContinua} />}
       <Pagination />
     </div>
   )

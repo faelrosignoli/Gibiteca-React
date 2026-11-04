@@ -372,7 +372,7 @@ function SetaOrdem({ dir, onClick }) {
 const GRUPO = 'font-rotulo text-rotulo uppercase text-ink-faint'
 
 export default function FiltersDrawer({ open, onClose }) {
-  const { obras, filters, sort, total, setFilter, setSort, resetFilters } = useStore()
+  const { obras, filters, sort, total, setFilter, setSort, resetFilters, agrupar, setAgrupar } = useStore()
   const reduzido = usaMovimentoReduzido()
   // o arrasto sai só do cabeçalho: a lista de filtros precisa continuar rolando
   const arrasto = useDragControls()
@@ -549,6 +549,15 @@ export default function FiltersDrawer({ open, onClose }) {
                               ['valor', 'Valor'], ['volumes', 'Qtd. volumes'], ['recent', 'Recentes']]} />
                   <SetaOrdem dir={sort.dir} onClick={() => setSort({ ...sort, dir: sort.dir === 'asc' ? 'desc' : 'asc' })} />
                 </div>
+              </div>
+
+              {/* ---- AGRUPAR ----
+                   Depois de Ordenar porque depende dele: o agrupamento monta
+                   os blocos, a ordem continua valendo DENTRO de cada um. */}
+              <div className="flex flex-col gap-2">
+                <span className={GRUPO}>Agrupar</span>
+                <Selecao value={agrupar} onChange={setAgrupar} placeholder="Não agrupar"
+                  options={[['', 'Não agrupar'], ['editora', 'Editora'], ['autor', 'Autor'], ['desenhista', 'Desenhista']]} />
               </div>
             </div>
 

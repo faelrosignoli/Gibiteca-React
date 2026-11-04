@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useMemo, useEffect, useCallback, useRef } from 'react'
-import { passes, sortList, fragmentosDe, chaveFila, itemDaFila, podeEnfileirar, volsOf } from './helpers.js'
+import { passes, sortList, sequenciaAgrupada, fragmentosDe, chaveFila, itemDaFila, podeEnfileirar, volsOf } from './helpers.js'
 import { EDITORAS } from '../data.js'
 import { CONTA_VAZIA, limparCodigo, maiorDeIdade } from './conta.js'
 import { ghCheckRepo, ghGet, ghPut, lerColecao, b64enc, b64dec, guessRepo } from './cloud.js'
@@ -101,6 +101,8 @@ export function StoreProvider({ children }) {
   const [editoras, setEditoras] = useState(init.editoras)
   const [filters, setFilters] = useState(filtrosPadrao)
   const [sort, setSort] = useState({ by: 'nome', dir: 'asc' })
+  // '' | 'editora' | 'autor' | 'desenhista'
+  const [agrupar, setAgruparState] = useState('')
   const [view, setView] = useState('galeria')
   const [page, setPage] = useState(1)
   const [pageSize, setPageSizeState] = useState(() => Number(localStorage.getItem('gibiteca_pagesize')) || 40)
@@ -833,17 +835,45 @@ export function StoreProvider({ children }) {
 
   const filtered = useMemo(() => {
     const lista = sortList(obras.filter(o => passes(o, filters)), sort)
-    if (fixada == null) return lista
+    // agrupado, a fixada NÃO sobe para o topo: ela pertence ao bloco dela, e
+    // puxá-la para fora abriria um buraco no meio da grade
+    if (fixada == null || agrupar) return lista
     const i = lista.findIndex(o => o.id === fixada)
     if (i <= 0) return lista               // não está na lista, ou já é a primeira
     return [lista[i], ...lista.slice(0, i), ...lista.slice(i + 1)]
-  }, [obras, filters, sort, fixada])
-  const total = filtered.length
+  }, [obras, filters, sort, fixada, agrupar])
+
+  /* A sequência de CARTÕES. Sem agrupamento é a própria lista; agrupada, é a
+     lista reordenada em blocos — e maior que ela, porque a obra de dois
+     autores aparece em dois blocos. É sobre ela que a paginação corre. */
+  const sequencia = useMemo(
+    () => (agrupar ? sequenciaAgrupada(filtered, agrupar, sort.dir) : null),
+    [filtered, agrupar, sort.dir])
+
+  const total = filtered.length          // OBRAS, não cartões: é o que o botão conta
+  const cartoes = sequencia ? sequencia.length : total
   const all = pageSize >= 99999
-  const totalPages = all ? 1 : Math.max(1, Math.ceil(total / pageSize))
+  const totalPages = all ? 1 : Math.max(1, Math.ceil(cartoes / pageSize))
   const safePage = Math.min(page, totalPages)
   const start = all ? 0 : (safePage - 1) * pageSize
-  const pageItems = all ? filtered : filtered.slice(start, start + pageSize)
+  const fatia = sequencia
+    ? (all ? sequencia : sequencia.slice(start, start + pageSize))
+    : (all ? filtered : filtered.slice(start, start + pageSize))
+  const pageItems = sequencia ? fatia.map(x => x.obra) : fatia
+
+  /* O que a vitrine precisa para desenhar os cabeçalhos: o grupo de cada
+     cartão da página, o tamanho de cada bloco (o total dele, não o que coube
+     na página) e se o primeiro bloco da página já vinha da página anterior. */
+  const pageGrupos = sequencia ? fatia.map(x => x.grupo) : null
+  const tamanhosDeGrupo = useMemo(() => {
+    const m = new Map()
+    if (sequencia) for (const x of sequencia) m.set(x.grupo, (m.get(x.grupo) || 0) + 1)
+    return m
+  }, [sequencia])
+  const grupoContinua = !!(sequencia && start > 0 && fatia.length
+    && sequencia[start - 1] && sequencia[start - 1].grupo === fatia[0].grupo)
+
+  const setAgrupar = useCallback((v) => { setAgruparState(v); setPage(1) }, [])
 
   const value = {
     obras, editoras, filters, sort, view, page: safePage, pageSize,
@@ -872,6 +902,7 @@ export function StoreProvider({ children }) {
     // listas
     listas, criarLista, renomearLista, apagarLista, alternarNaLista, definirListasDaObra, alternarNumeracao, reordenarLista,
     filtered, total, totalPages, start, pageItems, all,
+    agrupar, setAgrupar, pageGrupos, tamanhosDeGrupo, grupoContinua,
     fixada, fixarObra,
     // nuvem
     cloud, sync, syncErro, semEspaco, falhasAoGuardar, dadoIlegivel, guessRepo, cloudConnect, cloudDisconnect, pullFromCloud, cloudPushNow,

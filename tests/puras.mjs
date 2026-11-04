@@ -121,6 +121,33 @@ eq('fragmentosDe: quantidade', frags.length, 2)
 eq('fragmentosDe: ids novos', frags.map(o => o.id), [11, 12])
 eq('fragmentosDe: obra sem volumes', H.fragmentosDe(avulsa, 10).length, 0)
 
+/* ---------- agrupar a vitrine ---------- */
+const paraAgrupar = [
+  { id: 1, nome: 'Akira', editora: 'JBC', roteirista: 'Katsuhiro Otomo', desenhista: 'Katsuhiro Otomo' },
+  { id: 2, nome: 'Watchmen', editora: 'Panini', roteirista: 'Alan Moore', desenhista: 'Dave Gibbons' },
+  { id: 3, nome: 'Daytripper', editora: 'Pipoca & Nanquim', roteirista: 'Fábio Moon / Gabriel Bá', desenhista: 'Fábio Moon / Gabriel Bá' },
+  { id: 4, nome: 'Sem nada', editora: '', roteirista: '', desenhista: '' },
+  { id: 5, nome: 'Série', editora: 'Panini', volumes: [{ nome: 'v1', roteirista: 'Alan Moore' }] },
+]
+const grupos = (criterio, dir) => {
+  const seq = H.sequenciaAgrupada(paraAgrupar, criterio, dir)
+  const m = new Map()
+  seq.forEach(x => m.set(x.grupo, (m.get(x.grupo) || 0) + 1))
+  return [...m.entries()].map(([k, n]) => k + ':' + n)
+}
+eq('agrupa por editora, sem-valor por último', grupos('editora'),
+  ['JBC:1', 'Panini:2', 'Pipoca & Nanquim:1', 'Sem editora:1'])
+eq('obra com dois autores entra nos dois blocos', grupos('autor'),
+  ['Alan Moore:2', 'Fábio Moon:1', 'Gabriel Bá:1', 'Katsuhiro Otomo:1', 'Sem autor:1'])
+eq('o autor do VOLUME conta para a série', H.nomesDoGrupo(paraAgrupar[4], 'autor'), ['Alan Moore'])
+eq('desenhista é outro campo', grupos('desenhista'),
+  ['Dave Gibbons:1', 'Fábio Moon:1', 'Gabriel Bá:1', 'Katsuhiro Otomo:1', 'Sem desenhista:2'])
+eq('desc inverte os blocos, o sem-valor fica por último', grupos('editora', 'desc'),
+  ['Pipoca & Nanquim:1', 'Panini:2', 'JBC:1', 'Sem editora:1'])
+eq('a ordem de entrada sobrevive dentro do bloco',
+  H.sequenciaAgrupada([paraAgrupar[4], paraAgrupar[1]], 'editora').map(x => x.obra.nome), ['Série', 'Watchmen'])
+eq('obra sem editora cai no bloco certo', H.nomesDoGrupo(paraAgrupar[3], 'editora'), [])
+
 /* ---------- ordenação ---------- */
 const lista = [{ id: 1, nome: 'ñandu' }, { id: 2, nome: 'Abel' }, { id: 3, nome: 'zebra' }]
 eq('sortList por nome (pt)', H.sortList(lista, { by: 'nome', dir: 'asc' }).map(o => o.id), [2, 1, 3])

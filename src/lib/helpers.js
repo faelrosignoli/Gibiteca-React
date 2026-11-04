@@ -227,6 +227,48 @@ function sortKey(o, by){
  * uma instancia por par comparado. */
 const COLACAO = new Intl.Collator('pt', { sensitivity: 'base' });
 
+/* AGRUPAR A VITRINE.
+ *
+ * Os nomes do grupo de uma obra. Editora é um só; autor e desenhista podem
+ * ser vários ("Alan Moore / Dave Gibbons"), e aí a obra entra em todos os
+ * blocos — é como se procura ("o que eu tenho do Gibbons?"). O cartão aparece
+ * duas vezes; a contagem de OBRAS não muda.
+ *
+ * Os volumes entram junto: série sem autor na capa mas com autor nos volumes
+ * cairia em "Sem autor" sem isto. */
+export function nomesDoGrupo(o, criterio){
+  if(criterio==='editora'){ const e=edOf(o); return e?[e]:[]; }
+  const campo = criterio==='desenhista' ? 'desenhista' : 'roteirista';
+  const nomes = splitLista(o[campo]);
+  (Array.isArray(o.volumes)?o.volumes:[]).forEach(v=>{
+    splitLista(v[campo]).forEach(n=>{ if(!nomes.includes(n)) nomes.push(n); });
+  });
+  return nomes;
+}
+
+export const SEM_GRUPO = { editora:'Sem editora', autor:'Sem autor', desenhista:'Sem desenhista' };
+
+/* A lista já ORDENADA vira uma sequência de cartões, bloco a bloco. Dentro de
+ * cada bloco a ordem que veio é mantida — é o "Ordenar" que continua valendo.
+ * O bloco dos sem-valor vai sempre por último, mesmo invertendo a ordem. */
+export function sequenciaAgrupada(lista, criterio, dir='asc'){
+  const vazio = SEM_GRUPO[criterio] || 'Sem valor';
+  const porGrupo = new Map();
+  for(const o of lista){
+    const nomes = nomesDoGrupo(o, criterio);
+    for(const n of (nomes.length?nomes:[vazio])){
+      if(!porGrupo.has(n)) porGrupo.set(n, []);
+      porGrupo.get(n).push(o);
+    }
+  }
+  const nomes = Array.from(porGrupo.keys()).sort((a,b)=>{
+    if(a===vazio) return 1;
+    if(b===vazio) return -1;
+    return dir==='desc' ? COLACAO.compare(b,a) : COLACAO.compare(a,b);
+  });
+  return nomes.flatMap(n => porGrupo.get(n).map(obra => ({ grupo:n, obra })));
+}
+
 export function sortList(arr, sort){
   return arr.slice().sort((a,b)=>{
     const ka=sortKey(a,sort.by), kb=sortKey(b,sort.by);

@@ -1057,6 +1057,37 @@ versão fora de sincronia. "Erro de sincronização" sozinho não diz onde mexer
 Limite conhecido: a comparação é por relógio de aparelho. Para uso pessoal
 resolve; não é um CRDT.
 
+### Agrupar: blocos por editora, autor ou desenhista
+Escolhido um critério, a vitrine vira blocos com cabeçalho — nome à esquerda,
+fio atravessando, contagem num círculo à direita. **Dentro de cada bloco a
+ordem do "Ordenar" continua valendo**: agrupar monta os blocos, ordenar arruma
+o que está dentro.
+
+Quem faz a conta é `sequenciaAgrupada()`, em `helpers.js` — função pura, com
+teste. Ela recebe a lista **já ordenada** e devolve a sequência de CARTÕES.
+
+**Obra com dois autores entra nos dois blocos.** É como se procura ("o que eu
+tenho do Gibbons?"). Por isso a sequência é maior que a lista: na coleção real,
+607 obras viram 657 cartões agrupando por autor e 755 por desenhista. O botão
+continua dizendo "Ver 607 obras", porque obra é obra — cartão é outra coisa.
+
+**O volume conta para a série.** Série sem autor no cadastro mas com autor nos
+volumes cairia em "Sem autor" sem isso.
+
+**O bloco sem valor vai sempre por último**, inclusive com a ordem invertida —
+"Sem editora" não é um nome que se ordene junto dos outros.
+
+**A paginação corre sobre os cartões, não sobre as obras.** Um bloco maior que
+a página atravessa páginas, e no topo da seguinte o cabeçalho reaparece marcado
+como **(continuação)**. Para ver o bloco inteiro de uma vez existe o "Por
+página → Todas".
+
+**Agrupado, a obra fixada não sobe para o topo** e não vira destaque 2×2: ela
+pertence ao bloco dela, e puxá-la para fora abriria um buraco no meio da grade.
+
+O estado mora no store (`agrupar`, `setAgrupar`) e **não é guardado** — como o
+Ordenar, volta ao normal a cada abertura.
+
 ### Filtros em cascata
 As opções de cada campo saem das obras que passam por **todos os outros**
 filtros — nunca por ele mesmo. Com "Tenho" ligado, a lista de editoras mostra
