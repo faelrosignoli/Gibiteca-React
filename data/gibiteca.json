@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793799044602,
- "updated": "2026-11-04T13:30:44.602Z",
+ "atualizadoEm": 1793808052733,
+ "updated": "2026-11-04T16:00:52.733Z",
  "obras": [
   {
    "id": 1,
@@ -2742,13 +2742,15 @@
   },
   {
    "id": 167,
-   "nome": "Gatilho",
+   "nome": "Trilogia Gatilho",
    "tipo": "avulso",
    "origem": "nacional",
    "editora": "Pipoca & Nanquim",
    "pais": "Brasil",
+   "adulto": false,
    "tags": [],
    "resenha": "",
+   "tipoEdicao": "",
    "imagem": null,
    "roteirista": "Carlos Estefan",
    "desenhista": "Pedro Mauro",
