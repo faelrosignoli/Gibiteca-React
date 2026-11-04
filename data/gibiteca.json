@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793798966911,
- "updated": "2026-11-04T13:29:26.911Z",
+ "atualizadoEm": 1793799044602,
+ "updated": "2026-11-04T13:30:44.602Z",
  "obras": [
   {
    "id": 1,
@@ -13499,7 +13499,7 @@
   {
    "id": 633,
    "nome": "Deuses Americanos",
-   "tipo": "avulso",
+   "tipo": "serie",
    "origem": "nacional",
    "editora": "Intrínseca",
    "pais": "",
@@ -13507,9 +13507,33 @@
    "tags": [],
    "resenha": "",
    "tipoEdicao": "",
+   "volumes": [
+    {
+     "nome": "Deuses Americanos",
+     "imagem": null,
+     "roteirista": "Neil Gaiman",
+     "desenhista": "P. Craig Russell / Scott Hampton",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    },
+    {
+     "nome": "Deuses Americanos: Ainsel, Eu Mesmo",
+     "imagem": null,
+     "roteirista": "Neil Gaiman",
+     "desenhista": "P. Craig Russell / Scott Hampton",
+     "status": "wishlist",
+     "urgencia": false,
+     "valorPago": 0,
+     "lido": false,
+     "nota": 0
+    }
+   ],
    "imagem": null,
-   "roteirista": "Neil Gaiman",
-   "desenhista": "P. Craig Russell / Scott Hampton",
+   "roteirista": "",
+   "desenhista": "",
    "status": "wishlist",
    "urgencia": false,
    "valorPago": 0,
