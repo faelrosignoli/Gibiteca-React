@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793798259707,
- "updated": "2026-11-04T13:17:39.707Z",
+ "atualizadoEm": 1793798272289,
+ "updated": "2026-11-04T13:17:52.289Z",
  "obras": [
   {
    "id": 1,
@@ -11273,7 +11273,13 @@
    "id": 551,
    "nome": "Copra",
    "tipo": "serie",
-   "imagem": null,
+   "origem": "nacional",
+   "editora": "Pipoca & Nanquim",
+   "pais": "EUA",
+   "adulto": false,
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
    "volumes": [
     {
      "nome": "Copra — Vol. 1",
@@ -11342,9 +11348,7 @@
      "nota": 0
     }
    ],
-   "origem": "importado",
-   "editora": "",
-   "pais": "EUA",
+   "imagem": null,
    "roteirista": "",
    "desenhista": "",
    "status": "wishlist",
