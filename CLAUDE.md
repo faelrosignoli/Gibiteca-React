@@ -1853,6 +1853,19 @@ A busca das obras casa **título, editora e autor** (`authorsOf`, que já traz
 roteirista e desenhista, inclusive os de cada volume). O placeholder diz os
 três — é o único lugar que conta que dá para procurar por autor.
 
+#### As telas vazias desenham, não explicam
+Duas até agora, com a mesma receita: um SVG inline nos tons do app, a frase de
+estado e **uma linha seca** no lugar do parágrafo que explicava o recurso.
+Explicação em tela vazia é lida por ninguém.
+
+| onde | desenho | frase |
+|---|---|---|
+| Listas | `PilhaNoChao` — três gibis tortos, empilhados | *A pilha no chão também é um sistema.* |
+| Fila | `GibisEmPe` — três gibis de pé, lado a lado | *Não é o mesmo que estante em dia.* |
+
+Em pé e empilhados não é enfeite: pilha é bagunça (não há lista), fila é
+ordem. Tela vazia nova segue a receita e **não repete o desenho de outra**.
+
 #### Sem lista nenhuma: a pilha no chão
 Três gibis tortos (`PilhaNoChao`, SVG inline) e uma frase seca: *"A pilha no
 chão também é um sistema."* Substituiu um parágrafo que explicava o que é uma

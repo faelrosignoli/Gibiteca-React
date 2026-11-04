@@ -31,6 +31,31 @@ import { EstrelasInput } from './Estrelas.jsx'
  * junto, antes de alguém dar a nota. Por isso ele guarda o próprio texto —
  * título e parte — em vez de apontar para a entrada.
  */
+/* A fila sem ninguém: três gibis em pé, lado a lado, esperando a vez.
+   Em pé e não empilhados de propósito — a pilha é a tela vazia das Listas,
+   e fila é outra coisa. */
+const NA_FILA = [
+  { x: 24, y: 16, h: 56, giro: -4 },
+  { x: 51, y: 22, h: 50, giro: 1.5 },
+  { x: 78, y: 18, h: 54, giro: -2 },
+]
+
+function GibisEmPe() {
+  return (
+    <svg viewBox="0 0 120 84" role="img" aria-label="Três gibis em pé, um ao lado do outro"
+         className="w-[132px] h-[92px] mx-auto text-ink-mute"
+         fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
+      {NA_FILA.map(({ x, y, h, giro }) => (
+        <g key={x} transform={`rotate(${giro} ${x + 9} ${y + h})`}>
+          <rect x={x} y={y} width="18" height={h} rx="2.5" />
+          {/* a lombada, que é o que se vê de um gibi em pé */}
+          <path d={`M${x + 5} ${y + 4}v${h - 8}`} />
+        </g>
+      ))}
+    </svg>
+  )
+}
+
 function PopupNota({ alvo, onFechar, onConfirmar }) {
   const [nota, setNota] = useState(0)
   return (
@@ -307,11 +332,9 @@ export default function Fila({ open, onClose, onNotice, onEditar }) {
               <div className="flex-1 overflow-auto px-5 py-2">
                 {itens.length === 0 ? (
                   <div className="py-10 text-center">
-                    <div className="text-corpo text-ink-soft">A fila está vazia.</div>
-                    <p className="mt-2 max-w-[38ch] mx-auto text-apoio text-ink-faint leading-relaxed">
-                      Escolha uma obra e clique no botão <b>Salvar na fila</b> para
-                      incluí-la aqui.
-                    </p>
+                    <GibisEmPe />
+                    <div className="mt-5 text-corpo text-ink-soft">A fila está vazia.</div>
+                    <p className="mt-1 text-apoio text-ink-mute">Não é o mesmo que estante em dia.</p>
                   </div>
                 ) : (
                   <Reorder.Group axis="y" values={vivas} onReorder={reordenarFila} className="flex flex-col">
