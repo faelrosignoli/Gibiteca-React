@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793798272289,
- "updated": "2026-11-04T13:17:52.289Z",
+ "atualizadoEm": 1793798284481,
+ "updated": "2026-11-04T13:18:04.481Z",
  "obras": [
   {
    "id": 1,
@@ -5377,14 +5377,18 @@
    "id": 319,
    "nome": "Corso",
    "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Comix Zone",
+   "pais": "Brasil",
+   "adulto": false,
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
    "imagem": null,
    "roteirista": "Danilo Beyruth",
    "desenhista": "Danilo Beyruth",
-   "origem": "importado",
-   "editora": "",
-   "pais": "Brasil",
-   "urgencia": false,
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
