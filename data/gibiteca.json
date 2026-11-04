@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793798284481,
- "updated": "2026-11-04T13:18:04.481Z",
+ "atualizadoEm": 1793798312944,
+ "updated": "2026-11-04T13:18:32.944Z",
  "obras": [
   {
    "id": 1,
@@ -6340,14 +6340,18 @@
    "id": 378,
    "nome": "Destino Adiado",
    "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Pipoca & Nanquim",
+   "pais": "França",
+   "adulto": false,
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
    "imagem": null,
    "roteirista": "Jean-Pierre Gibrat",
    "desenhista": "Jean-Pierre Gibrat",
-   "origem": "importado",
-   "editora": "",
-   "pais": "França",
-   "urgencia": false,
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
