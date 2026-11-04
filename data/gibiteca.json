@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793798832884,
- "updated": "2026-11-04T13:27:12.884Z",
+ "atualizadoEm": 1793798845416,
+ "updated": "2026-11-04T13:27:25.416Z",
  "obras": [
   {
    "id": 1,
@@ -10553,7 +10553,13 @@
    "id": 539,
    "nome": "Descender",
    "tipo": "serie",
-   "imagem": null,
+   "origem": "nacional",
+   "editora": "Intrínseca",
+   "pais": "Canadá",
+   "adulto": false,
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
    "volumes": [
     {
      "nome": "Descender — Vol. 1",
@@ -10578,9 +10584,7 @@
      "nota": 0
     }
    ],
-   "origem": "importado",
-   "editora": "",
-   "pais": "Canadá",
+   "imagem": null,
    "roteirista": "",
    "desenhista": "",
    "status": "wishlist",
