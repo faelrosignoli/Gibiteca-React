@@ -19,14 +19,23 @@
  */
 export const LADO_FOTO = 256
 
-/* A CAPA, reduzida antes de entrar na coleção.
+/* A CAPA, reduzida antes de entrar na coleção ou de subir para o repositório.
  *
- * A foto de perfil já era reduzida; a capa entrava crua. É a origem do
- * "navegador não conseguiu guardar": 3,78 MB de 3,94 eram capas embutidas.
+ * A REGRA, numa frase: a capa cabe numa caixa de 1080x1080. Maior que isso,
+ * encolhe proporcionalmente; menor, passa intacta — reduzir é bom, ampliar
+ * não (ampliar inventa pixel e borra).
  *
- * 1200px no maior lado, e sem cortar — capa é arte, e o app nunca corta capa.
- * Imagem menor que isso passa do jeito que veio: reduzir é bom, ampliar não. */
-export const LADO_CAPA = 1200
+ * É o MAIOR LADO que manda, não a altura: no cartão a caixa é quadrada e a
+ * capa fica contida dentro, então quem limita o que se vê é o lado maior —
+ * a altura numa capa em pé, a largura numa deitada. Medido na coleção real:
+ * "300", 1500x1100, encolhe para 1080x792; pela altura ele iria a 1473x1080
+ * e carregaria 1473px de largura que o quadrado nunca usa.
+ *
+ * Sem cortar nunca: capa é arte.
+ *
+ * Os números de antes desta regra: 216 capas, 44,2 MB, e 65 delas (30%)
+ * carregavam 32,5 MB. */
+export const LADO_CAPA = 1080
 
 export function reduzirCapa(arquivo) {
   return new Promise((ok, falhou) => {

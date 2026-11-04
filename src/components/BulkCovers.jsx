@@ -4,9 +4,14 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import { canon, slugify } from '../lib/helpers.js'
 import { ghGet, ghPut } from '../lib/cloud.js'
+import { reduzirCapa } from '../lib/foto.js'
 
 const COVER_BASE = 'covers'
-const readDataURL = (f) => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(f) })
+
+/* A extensão sai do que a redução DEVOLVEU, não do nome do arquivo escolhido:
+   um PNG grande volta como JPEG, e salvá-lo como .png guardaria bytes de uma
+   coisa com o nome de outra. Imagem que passou intacta mantém o formato. */
+const extensaoDe = (dataURL) => (dataURL.slice(5, dataURL.indexOf(';')) === 'image/png' ? 'png' : 'jpg')
 
 export default function BulkCovers({ open, onClose, onNotice }) {
   const { obras, cloud, setCovers } = useStore()
@@ -56,9 +61,11 @@ export default function BulkCovers({ open, onClose, onNotice }) {
     for (const it of todo) {
       setProgress({ done, total: todo.length, label: `Enviando ${done + 1}/${todo.length} — ${it.file.name}` })
       try {
-        const dataURL = await readDataURL(it.file)
+        // mesma regra do Editor: cabe numa caixa de 1080. Antes subia o
+        // arquivo original, e é daí que vieram os 44 MB de covers/
+        const dataURL = await reduzirCapa(it.file)
         const b64 = dataURL.split(',')[1]
-        const ext = (it.file.name.match(/\.([a-zA-Z0-9]+)$/)?.[1] || 'jpg').toLowerCase()
+        const ext = extensaoDe(dataURL)
         const path = `${COVER_BASE}/${slugify(it.work.nome)}-${it.work.id}.${ext}`
         let sha = null; try { const ex = await ghGet(cloud, path); if (ex) sha = ex.sha } catch (e) { /* */ }
         await ghPut(cloud, path, b64, 'Capa: ' + it.work.nome, sha)
