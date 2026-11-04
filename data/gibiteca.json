@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793798490146,
- "updated": "2026-11-04T13:21:30.146Z",
+ "atualizadoEm": 1793798497113,
+ "updated": "2026-11-04T13:21:37.113Z",
  "obras": [
   {
    "id": 1,
@@ -10177,7 +10177,13 @@
    "id": 533,
    "nome": "Torpedo 1936",
    "tipo": "serie",
-   "imagem": null,
+   "origem": "importado",
+   "editora": "Figura",
+   "pais": "Espanha",
+   "adulto": false,
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
    "volumes": [
     {
      "nome": "Torpedo 1936 — Vol. 1",
@@ -10213,9 +10219,7 @@
      "nota": 0
     }
    ],
-   "origem": "importado",
-   "editora": "",
-   "pais": "Espanha",
+   "imagem": null,
    "roteirista": "",
    "desenhista": "",
    "status": "wishlist",
