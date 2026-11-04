@@ -3,6 +3,13 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+    # A coleção e as capas moram neste mesmo repositório e mudam o dia
+    # inteiro, mas NÃO entram no build: o app lê a coleção pela API do GitHub
+    # e as capas por raw.githubusercontent. Sem isto, cada obra salva
+    # reconstruía e republicava o site inteiro à toa.
+    paths-ignore:
+      - "data/**"
+      - "covers/**"
   workflow_dispatch:
 
 permissions:
