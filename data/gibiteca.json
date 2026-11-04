@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1793798432036,
- "updated": "2026-11-04T13:20:32.036Z",
+ "atualizadoEm": 1793798476020,
+ "updated": "2026-11-04T13:21:16.020Z",
  "obras": [
   {
    "id": 1,
@@ -5781,14 +5781,18 @@
    "id": 343,
    "nome": "Terror no Inferno Verde",
    "tipo": "avulso",
+   "origem": "nacional",
+   "editora": "Pipoca & Nanquim",
+   "pais": "Brasil",
+   "adulto": false,
+   "tags": [],
+   "resenha": "",
+   "tipoEdicao": "",
    "imagem": null,
    "roteirista": "Flavio Colin",
    "desenhista": "Flavio Colin",
-   "origem": "importado",
-   "editora": "",
-   "pais": "Brasil",
-   "urgencia": false,
    "status": "wishlist",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
    "nota": 0
