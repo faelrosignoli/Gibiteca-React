@@ -8,7 +8,7 @@ const SO_DESKTOP = 'hidden sm:inline-flex'
 import { MOLA_TOQUE } from '../lib/motion.js'
 import {
   coverOf, unidadeVitrine, urgenteNaVitrine, capaVelada, tipoOf, edOf, edicaoDe, ownedCount, unitsOf, avgNota,
-  anyUrg, statusMatch, initials, classeTinta, isImp,
+  anyUrg, statusMatch, initials, classeTinta, isImp, posseDe, SELO_POSSE,
 } from '../lib/helpers.js'
 
 // selo de urgente — quadrado arredondado cor rust + triângulo branco
@@ -68,6 +68,8 @@ export default function Card({ obra, index = 0, onOpen, feature = false, animarE
   const nota = avgNota(obra)
   const hasNote = obra.resenha && obra.resenha.trim()
   const owns = statusMatch(obra, 'biblioteca')
+  // sem nenhum volume na estante, o selo da obra é o do estado que ela tem
+  const posseDaObra = owns ? 'biblioteca' : statusMatch(obra, 'wishlist') ? 'wishlist' : 'tive'
 
   // tilt 3D (sem brilho)
   const px = useMotionValue(0.5), py = useMotionValue(0.5)
@@ -190,12 +192,12 @@ export default function Card({ obra, index = 0, onOpen, feature = false, animarE
               {/* sob filtro o cartão fala de um volume: o selo tem que ser o
                   desse volume, não o da série inteira */}
               {vitrine ? (
-                <span key="status" className={`pill ${vitrine.status === 'biblioteca' ? 'pill-tenho' : 'pill-quero'}`}>
-                  {vitrine.status === 'biblioteca' ? 'Tenho' : 'Quero'}
+                <span key="status" className={`pill ${SELO_POSSE[posseDe(vitrine)].classe}`}>
+                  {SELO_POSSE[posseDe(vitrine)].rotulo}
                 </span>
               ) : (
-                <span key="status" className={`pill ${owns ? 'pill-tenho' : 'pill-quero'}`}>
-                  {multi && owns && owned < total ? `Tenho ${owned}/${total}` : owns ? 'Tenho' : 'Quero'}
+                <span key="status" className={`pill ${SELO_POSSE[posseDaObra].classe}`}>
+                  {multi && owns && owned < total ? `Tenho ${owned}/${total}` : SELO_POSSE[posseDaObra].rotulo}
                 </span>
               )}
               {/* Importado, nota e tipo da edição SÓ no desktop. No celular o

@@ -8,7 +8,7 @@ import { useStore } from '../lib/store.jsx'
 import { linkDoGuia } from '../lib/catalogo.js'
 import { Switch, CheckTile, lbl, box } from './Campos.jsx'
 import { EstrelasInput } from './Estrelas.jsx'
-import { coverOf, tipoOf, edOf, edicaoDe, isImp, authorsOf, capaVelada, unitsForStatus, unitsOf, ownedCount, initials, classeTinta, naFila, podeEnfileirar, moneyFormat, moneyToNumber } from '../lib/helpers.js'
+import { coverOf, tipoOf, edOf, edicaoDe, isImp, authorsOf, capaVelada, unitsForStatus, unitsOf, ownedCount, initials, classeTinta, naFila, podeEnfileirar, moneyFormat, moneyToNumber, posseDe, SELO_POSSE, POSSES, normalizarPosse } from '../lib/helpers.js'
 import { usePergunta } from './Pergunta.jsx'
 
 /* ------------------------------------------------------------------
@@ -31,129 +31,101 @@ import { usePergunta } from './Pergunta.jsx'
    direto no store, cada letra viraria uma gravação no disco e um agendamento
    de envio para a nuvem.
    ------------------------------------------------------------------ */
-function Situacao({ obra }) {
-  const { upsertObra, fila, alternarFila } = useStore()
-  const avulsa = tipoOf(obra) === 'avulso'
-  const tem = obra.status === 'biblioteca'
+/* OS CONTROLES DE SITUAÇÃO DE UMA UNIDADE — a obra avulsa ou um volume.
+ *
+ * Um componente só porque as duas fazem as mesmas perguntas: o que é seu,
+ * quanto custou, já leu, que nota deu, e o que anotou. Duas cópias
+ * divergiriam na primeira mudança de regra.
+ *
+ * Quem grava vem de fora: a avulsa escreve na obra, o volume escreve dentro
+ * do array de volumes. A normalização é a mesma dos dois lados
+ * (`normalizarPosse`, em helpers.js), e é a mesma do Editor.
+ */
+function FichaDeSituacao({ unidade, gravar, id, fila }) {
+  const posse = posseDe(unidade)
+  const saiu = posse === 'tive'
 
-  /* As MESMAS normalizações do editor, de propósito. Obra que não é sua não
-     tem valor pago nem nota; obra que é sua não é "urgente" (urgência é a
-     pressa de comprar). Gravando sem isso, a ficha deixaria para trás
-     combinações que o editor nunca produz — e aí os dois caminhos passariam a
-     gerar obras diferentes a partir da mesma escolha. */
-  const gravar = (partes) => {
-    const d = { ...obra, ...partes }
-    const possui = d.status === 'biblioteca'
-    upsertObra({
-      ...d,
-      urgencia: !possui && !!d.urgencia,
-      valorPago: possui ? (d.valorPago || 0) : 0,
-      lido: possui && !!d.lido,
-      nota: possui ? (d.nota || 0) : 0,
-    })
-  }
-
-  /* Rascunho local da anotação. Sincroniza pela `key` do componente lá fora:
-     trocando de obra, o componente é outro e nasce com o texto certo. */
-  const [nota, setNota] = useState(obra.resenha || '')
-  const guardarNota = () => {
-    if ((obra.resenha || '') !== nota) gravar({ resenha: nota.trim() })
+  /* Rascunho local da anotação: guarda no `blur`, não a cada tecla. Escrevendo
+     direto no store, cada letra viraria uma gravação no disco e um
+     agendamento de envio para a nuvem. */
+  const [texto, setTexto] = useState(unidade.resenha || '')
+  const guardarTexto = () => {
+    if ((unidade.resenha || '') !== texto) gravar({ resenha: texto.trim() })
   }
 
   return (
-    <div className="px-5 pb-5 flex flex-col gap-4">
-      {/* Para SÉRIE e BOX nada disto aparece: ali status, leitura, nota e
-          valor são de cada volume, não do conjunto — e a lista de volumes,
-          logo abaixo, é onde eles moram. Uma "nota da série" seria uma média
-          disfarçada de escolha. */}
-      {avulsa && (
-        <section className="flex flex-col gap-2.5">
-          <h3 className="font-rotulo text-rotulo uppercase font-bold text-acento-texto flex items-center gap-2.5">
-            Situação<span className="flex-1 h-px bg-separador" />
-          </h3>
+    <div className="flex flex-col gap-2.5">
+      <Switch options={POSSES} value={posse} onChange={v => gravar({ status: v })} />
 
-          <Switch
-            options={[['wishlist', 'Quero'], ['biblioteca', 'Tenho']]}
-            value={obra.status}
-            onChange={v => gravar({ status: v })}
-          />
+      {/* Em "Quero" não há dinheiro nem leitura para mostrar: não pagou, e se
+          tivesse lido não estaria só na lista de desejo. */}
+      {posse !== 'wishlist' && (() => {
+        const vaga = unidade.lido
+          ? <CaixaNota valor={unidade.nota || 0} onChange={n => gravar({ nota: n })} />
+          : (fila && fila.cabe
+              ? <BotaoFila naLista={fila.naLista} cabe onClick={fila.onClick} />
+              : null)
+        return (
+          <div className="flex flex-wrap items-end gap-2.5">
+            <div className={`${box} w-[100px] shrink-0`}>
+              <label className={lbl} htmlFor={`valor-${id}`}>Valor pago</label>
+              <CampoValor id={`valor-${id}`} valor={unidade.valorPago || 0}
+                onCommit={v => gravar({ valorPago: v })} />
+            </div>
 
-          {/* Só para quem TEM. Quem só quer não pagou nada, não leu e não
-              enfileira — e a urgência, que era a pergunta deste lado, subiu
-              para o ícone do cabeçalho. */}
-          {/* OS TRÊS NA MESMA LINHA: quanto custou, já leu, e o que falta
-              fazer com isso. São as três perguntas que se fazem de um gibi que
-              já está na estante, e empilhadas viravam três blocos para um
-              assunto só.
-
-              O CAMPO DE VALOR ENCOLHEU PARA 100px. Em largura inteira ele era
-              o elemento mais pesado da ficha para guardar "R$ 29,90" — oito
-              caracteres ocupando 409. Campo de tamanho fixo também diz, só
-              pela forma, que ali cabe pouco.
-
-              `items-end` alinha pela BASE, não pelo meio: o campo de valor tem
-              rótulo em cima e os outros dois não, então alinhar pelo centro
-              deixaria o "Lido" flutuando meio dedo acima da linha de base dos
-              controles.
-
-              A VAGA É `flex-1`, e com isso o "Lido" não anda ao trocar de
-              ocupante — ele vem ANTES do elemento elástico, e quem absorve a
-              diferença é quem vem depois. Era o que a largura fixa de 210px
-              resolvia antes de o campo de valor entrar na linha; com três
-              elementos, o elástico no último faz o mesmo de graça.
-
-              `min-w` + `flex-wrap`: abaixo de uns 400px de linha não há como
-              pôr os três lado a lado sem espremer "Salvar na fila" até sumir.
-              Em vez de escolher um ponto de quebra por tamanho de tela — que
-              erraria, porque a ficha é larga no desktop e estreita no celular
-              com a MESMA janela —, a vaga declara a largura mínima de que
-              precisa e desce sozinha quando não cabe. */}
-          {tem && (() => {
-            const vaga = obra.lido
-              ? <CaixaNota valor={obra.nota || 0} onChange={n => gravar({ nota: n })} />
-              : (podeEnfileirar(obra)
-                  ? <BotaoFila
-                      naLista={naFila(fila, obra.id, null)}
-                      cabe
-                      onClick={() => alternarFila(obra.id, null)}
-                    />
-                  : null)
-            return (
-              <div className="flex flex-wrap items-end gap-2.5">
-                <div className={`${box} w-[100px] shrink-0`}>
-                  <label className={lbl} htmlFor={`valor-${obra.id}`}>Valor pago</label>
-                  <CampoValor
-                    id={`valor-${obra.id}`}
-                    valor={obra.valorPago || 0}
-                    onCommit={v => gravar({ valorPago: v })}
-                  />
-                </div>
-
-                <CheckTile checked={!!obra.lido} onChange={e => gravar({ lido: e.target.checked, ...(e.target.checked ? {} : { nota: 0 }) })}>
-                  Lido
-                </CheckTile>
-
-                {/* Quem some sozinho é a fila: `podeEnfileirar` já exige estar
-                    na estante e NÃO estar lido, que é exatamente a condição do
-                    ternário. Sem vaga nenhuma, o `flex-1` não é desenhado e os
-                    dois primeiros ficam no tamanho que têm. */}
-                {vaga && <div className="flex-1 min-w-[200px]">{vaga}</div>}
+            {/* Retorno: o que voltou da venda, ao lado do que saiu do bolso e
+                nunca subtraído dele — são dois números, não um saldo. */}
+            {saiu && (
+              <div className={`${box} w-[100px] shrink-0`}>
+                <label className={lbl} htmlFor={`retorno-${id}`}>Retorno</label>
+                <CampoValor id={`retorno-${id}`} valor={unidade.valorRetorno || 0}
+                  onCommit={v => gravar({ valorRetorno: v })} />
               </div>
-            )
-          })()}
-        </section>
-      )}
+            )}
 
+            <CheckTile checked={!!unidade.lido}
+              onChange={e => gravar({ lido: e.target.checked, ...(e.target.checked ? {} : { nota: 0 }) })}>
+              Lido
+            </CheckTile>
+
+            {vaga && <div className="flex-1 min-w-[200px]">{vaga}</div>}
+          </div>
+        )
+      })()}
+
+      <textarea
+        className="field-input min-h-[80px] resize-y" rows={3}
+        value={texto}
+        onChange={e => setTexto(e.target.value)}
+        onBlur={guardarTexto}
+        placeholder="Anotação…"
+      />
+    </div>
+  )
+}
+
+/* A situação da obra AVULSA. Série e box não têm: ali status, leitura, nota,
+   valor e anotação são de cada volume, e a lista de volumes é onde eles
+   moram. Uma "nota da série" seria uma média disfarçada de escolha. */
+function Situacao({ obra }) {
+  const { upsertObra, fila, alternarFila } = useStore()
+  if (tipoOf(obra) !== 'avulso') return null
+
+  const gravar = (partes) => upsertObra(normalizarPosse({ ...obra, ...partes }))
+
+  return (
+    <div className="px-5 pb-5">
       <section className="flex flex-col gap-2.5">
         <h3 className="font-rotulo text-rotulo uppercase font-bold text-acento-texto flex items-center gap-2.5">
-          Anotação<span className="flex-1 h-px bg-separador" />
+          Situação<span className="flex-1 h-px bg-separador" />
         </h3>
-        <textarea
-          className="field-input min-h-[80px] resize-y" rows={3}
-          value={nota}
-          onChange={e => setNota(e.target.value)}
-          onBlur={guardarNota}
-          placeholder="Escreva aqui…"
+        <FichaDeSituacao
+          unidade={obra} gravar={gravar} id={obra.id}
+          fila={{
+            naLista: naFila(fila, obra.id, null),
+            cabe: podeEnfileirar(obra),
+            onClick: () => alternarFila(obra.id, null),
+          }}
         />
       </section>
     </div>
@@ -448,7 +420,22 @@ export default function DetailSheet({ obra: obraAberta, onClose, onEdit, onDupli
   // volumes — inclusive o que falta. Agora a lista respeita o filtro.
   const volumes = obra != null ? unitsForStatus(obra, filters.status) : []
   const filtrando = filters.status !== 'todos' && volumes.length !== todosOsVolumes.length
-  const notaDoFiltro = filters.status === 'biblioteca' ? 'só os que você tem' : 'só os que faltam'
+  const notaDoFiltro = filters.status === 'biblioteca' ? 'só os que você tem'
+    : filters.status === 'tive' ? 'só os que saíram' : 'só os que faltam'
+  /* Qual volume está com a ficha aberta (índice na obra, não na lista
+     filtrada). Zera ao trocar de obra: o volume 2 de uma série não é o
+     volume 2 da seguinte. */
+  const [volSel, setVolSel] = useState(null)
+  useEffect(() => { setVolSel(null) }, [obra && obra.id])
+
+  const gravarVolume = (partes) => {
+    if (volSel == null) return
+    upsertObra({
+      ...obra,
+      volumes: todosOsVolumes.map((v, i) => (i === volSel ? normalizarPosse({ ...v, ...partes }) : v)),
+    })
+  }
+
   const ehDesktop = useEhDesktop()
   const reduzido = usaMovimentoReduzido()
   // o arrasto começa só pelo cabeçalho: o corpo precisa continuar rolando
@@ -556,7 +543,7 @@ export default function DetailSheet({ obra: obraAberta, onClose, onEdit, onDupli
                   Só aparece em obra avulsa que você ainda NÃO tem: urgência é
                   a pressa de conseguir, e o que já está na estante não tem
                   pressa nenhuma. Em série, a pressa é de cada volume. */}
-              {tipoOf(obra) === 'avulso' && obra.status !== 'biblioteca' && (
+              {tipoOf(obra) === 'avulso' && posseDe(obra) === 'wishlist' && (
                 <button
                   className={`neo-icon !w-9 !h-9 shrink-0 relative !border !border-rust !text-rust
                     ${obra.urgencia ? '!bg-tinta-rust' : ''}`}
@@ -774,18 +761,27 @@ export default function DetailSheet({ obra: obraAberta, onClose, onEdit, onDupli
                       continuam alinhados na mesma linha de base. */}
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                     {volumes.map((v, i) => {
-                      /* O índice que vai para a fila é o da obra, não o
-                         desta lista: com o filtro em "Tenho", `volumes` é um
-                         recorte, e o 2º da tela pode ser o 5º da série. Os
-                         objetos são os mesmos (unitsForStatus filtra o array
-                         de volsOf sem copiar), então `indexOf` acha o certo. */
+                      /* O índice guardado é o da OBRA, não o desta lista: com
+                         o filtro em "Tenho", `volumes` é um recorte, e o 2º da
+                         tela pode ser o 5º da série. Os objetos são os mesmos
+                         (unitsForStatus filtra o array de volsOf sem copiar),
+                         então `indexOf` acha o certo. */
                       const iReal = todosOsVolumes.indexOf(v)
-                      const owns = v.status === 'biblioteca'
+                      const posseV = posseDe(v)
+                      const owns = posseV === 'biblioteca'
                       const label = v.nome || `Vol. ${i + 1}`
+                      const marcado = volSel === iReal
                       return (
-                        <div key={i} className="flex flex-col gap-2 min-w-0">
-                          {/* mesma caixa quadrada da galeria */}
-                          <div className={`w-full aspect-square relative flex items-center justify-center ${owns ? '' : 'opacity-55'}`}>
+                        <button
+                          key={i} type="button" aria-pressed={marcado}
+                          onClick={() => setVolSel(marcado ? null : iReal)}
+                          title={marcado ? 'Fechar a ficha deste volume' : `Abrir a ficha de ${label}`}
+                          className="flex flex-col gap-2 min-w-0 text-left"
+                        >
+                          {/* mesma caixa quadrada da galeria; o anel diz qual
+                              volume a ficha de baixo está mostrando */}
+                          <div className={`w-full aspect-square relative flex items-center justify-center rounded-pequeno transition
+                            ${marcado ? 'ring-2 ring-moss ring-offset-2 ring-offset-surface' : owns ? '' : 'opacity-55'}`}>
                             {v.imagem
                               ? <img src={v.imagem} alt="" loading="lazy" className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain rounded-pequeno shadow-[0_10px_20px_-10px_rgba(33,33,33,.55)]" />
                               : <div className={`w-full h-full rounded-pequeno flex items-center justify-center shadow-[0_10px_20px_-10px_rgba(33,33,33,.55)] ${classeTinta(label)}`}>
@@ -795,19 +791,39 @@ export default function DetailSheet({ obra: obraAberta, onClose, onEdit, onDupli
                           {/* nome INTEIRO: quebra livre, sem line-clamp */}
                           <div className="text-apoio leading-snug text-ink break-words text-center">{label}</div>
                           <div className="flex items-center justify-center gap-1.5 mt-auto">
-                            <span className={`pill ${owns ? 'pill-tenho' : 'pill-quero'}`}>{owns ? 'Tenho' : 'Quero'}</span>
-                            <BotaoFila
-                              compacto
-                              rotulo={label}
-                              naLista={naFila(fila, obra.id, iReal)}
-                              cabe={podeEnfileirar(v)}
-                              onClick={() => alternarFila(obra.id, iReal)}
-                            />
+                            <span className={`pill ${SELO_POSSE[posseV].classe}`}>{SELO_POSSE[posseV].rotulo}</span>
                           </div>
-                        </div>
+                        </button>
                       )
                     })}
                   </div>
+
+                  {/* A FICHA DO VOLUME ESCOLHIDO, embaixo da grade e não dentro
+                      da célula: a célula tem 90px de largura, e os controles
+                      não cabem ali sem virar sopa. Embaixo eles ficam do
+                      tamanho que precisam, e o anel na capa diz de quem é a
+                      ficha. */}
+                  {volSel != null && todosOsVolumes[volSel] && (
+                    <div className="mt-4 rounded-medio border border-separador bg-surface-2 p-4 flex flex-col gap-2.5">
+                      <h4 className="font-rotulo text-rotulo uppercase font-bold text-acento-texto flex items-center gap-2.5">
+                        {todosOsVolumes[volSel].nome || `Vol. ${volSel + 1}`}
+                        <span className="flex-1 h-px bg-separador" />
+                        <button type="button" className="neo-icon !w-7 !h-7" onClick={() => setVolSel(null)}
+                          title="Fechar a ficha do volume" aria-label="Fechar a ficha do volume">×</button>
+                      </h4>
+                      <FichaDeSituacao
+                        key={volSel}
+                        unidade={todosOsVolumes[volSel]}
+                        gravar={gravarVolume}
+                        id={`v${volSel}`}
+                        fila={{
+                          naLista: naFila(fila, obra.id, volSel),
+                          cabe: podeEnfileirar(todosOsVolumes[volSel]),
+                          onClick: () => alternarFila(obra.id, volSel),
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
             </div>

@@ -121,6 +121,72 @@ eq('fragmentosDe: quantidade', frags.length, 2)
 eq('fragmentosDe: ids novos', frags.map(o => o.id), [11, 12])
 eq('fragmentosDe: obra sem volumes', H.fragmentosDe(avulsa, 10).length, 0)
 
+/* ---------- as três posses ---------- */
+eq("posseDe: sem status é quero", H.posseDe({}), "wishlist")
+eq("posseDe: status desconhecido é quero", H.posseDe({ status: "xpto" }), "wishlist")
+eq("posseDe: não tenho", H.posseDe({ status: "tive" }), "tive")
+
+const vendida = { id: 7, nome: "Ronin", tipo: "avulso", status: "tive", lido: true, nota: 4, valorPago: 50, valorRetorno: 30 }
+const emprestada = { id: 8, nome: "Maus", tipo: "avulso", status: "tive", lido: true, nota: 5 }
+const querida = { id: 9, nome: "Bone", tipo: "avulso", status: "wishlist", urgencia: true }
+
+eq("vendida não aparece em Tenho", H.statusMatch(vendida, "biblioteca"), false)
+eq("vendida não aparece em Quero", H.statusMatch(vendida, "wishlist"), false)
+eq("vendida aparece em Tive", H.statusMatch(vendida, "tive"), true)
+eq("lida mesmo sem ter", H.lidoCount(vendida), 1)
+eq("li emprestada e dei nota", H.avgNota(emprestada), 5)
+eq("urgência só existe em Quero", H.anyUrg(querida), true)
+eq("vendida nunca é urgente", H.anyUrg({ ...vendida, urgencia: true }), false)
+
+/* dinheiro: dois totais, nunca um saldo */
+eq("investimento sobrevive à venda", H.sumValor(vendida), 50)
+eq("retorno é número próprio", H.sumRetorno(vendida), 30)
+eq("sem retorno, zero", H.sumRetorno(emprestada), 0)
+
+/* o filtro de leitura não olha a posse */
+const fl = (extra) => ({ q: "", status: "todos", tipo: "", tipoEdicao: [], editora: [], autor: [], nota: "", importado: false, urgencia: false, leitura: "todos", ...extra })
+eq("filtro Lidos acha a vendida", H.passes(vendida, fl({ leitura: "lido" })), true)
+eq("filtro Não lidos não acha a vendida", H.passes(vendida, fl({ leitura: "naolido" })), false)
+eq("filtro Tive acha a vendida", H.passes(vendida, fl({ status: "tive" })), true)
+
+/* desmembrar carrega leitura e dinheiro */
+const serieMista = { id: 10, nome: "Lone Wolf", tipo: "serie", volumes: [
+  { nome: "v1", status: "tive", lido: true, nota: 4, valorPago: 20, valorRetorno: 12 },
+  { nome: "v2", status: "wishlist", urgencia: true },
+] }
+const partes = H.fragmentosDe(serieMista, 20)
+eq("desmembrar guarda a leitura do vendido", [partes[0].lido, partes[0].nota], [true, 4])
+eq("desmembrar guarda os dois valores", [partes[0].valorPago, partes[0].valorRetorno], [20, 12])
+eq("desmembrar guarda a urgência do querido", partes[1].urgencia, true)
+eq("unitsForStatus separa os três", [
+  H.unitsForStatus(serieMista, "tive").length,
+  H.unitsForStatus(serieMista, "wishlist").length,
+  H.unitsForStatus(serieMista, "biblioteca").length,
+], [1, 1, 0])
+
+/* ---------- a normalização, uma só para as duas portas ---------- */
+eq("normalizarPosse: urgência só em Quero",
+  H.normalizarPosse({ status: "tive", urgencia: true }).urgencia, false)
+eq("normalizarPosse: retorno só enquanto fora",
+  H.normalizarPosse({ status: "biblioteca", valorRetorno: 30 }).valorRetorno, 0)
+eq("normalizarPosse: leitura e valor atravessam",
+  (u => [u.lido, u.nota, u.valorPago])(H.normalizarPosse({ status: "tive", lido: true, nota: 5, valorPago: 40 })),
+  [true, 5, 40])
+eq("normalizarPosse: status desconhecido vira Quero",
+  H.normalizarPosse({ status: "xpto" }).status, "wishlist")
+
+/* a anotação do volume entra na busca e sobrevive ao desmembrar */
+const comNota = { id: 11, nome: "Akira", tipo: "serie", volumes: [
+  { nome: "v1", status: "biblioteca", resenha: "o melhor do Otomo" },
+  { nome: "v2", status: "wishlist" },
+] }
+eq("busca acha pela anotação do volume",
+  H.passes(comNota, fl({ q: "otomo" })), true)
+eq("desmembrar leva a anotação do volume",
+  H.fragmentosDe(comNota, 30)[0].resenha, "o melhor do Otomo")
+eq("volume sem anotação não herda a de outro",
+  H.fragmentosDe(comNota, 30)[1].resenha, "")
+
 /* ---------- agrupar a vitrine ---------- */
 const paraAgrupar = [
   { id: 1, nome: 'Akira', editora: 'JBC', roteirista: 'Katsuhiro Otomo', desenhista: 'Katsuhiro Otomo' },

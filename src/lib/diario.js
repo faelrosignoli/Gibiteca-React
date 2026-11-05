@@ -1,4 +1,4 @@
-import { unitsOf, ownedCount, coverOf, edOf, avgNota, sumValor, fmtBRL, authorsOf } from './helpers.js'
+import { unitsOf, ownedCount, coverOf, edOf, avgNota, sumValor, fmtBRL, authorsOf, posseDe } from './helpers.js'
 
 /* Diário da coleção.
  *
@@ -32,9 +32,11 @@ function alvo(obra, quantos) {
   return quantos + ' volume' + (quantos > 1 ? 's' : '') + ' de ' + nome
 }
 
-const naEstante = (o) => unitsOf(o).filter(u => u && u.status === 'biblioteca')
-const lidos = (o) => naEstante(o).filter(u => u.lido).length
-const urgentes = (o) => unitsOf(o).filter(u => u && u.urgencia && u.status !== 'biblioteca').length
+const naEstante = (o) => unitsOf(o).filter(u => posseDe(u) === 'biblioteca')
+const quantos = (o, posse) => unitsOf(o).filter(u => posseDe(u) === posse).length
+// lido é lido, tenha ou não — vender não desfaz a leitura
+const lidos = (o) => unitsOf(o).filter(u => u && u.lido).length
+const urgentes = (o) => unitsOf(o).filter(u => u && u.urgencia && posseDe(u) === 'wishlist').length
 const nota = (o) => avgNota(o)
 const limpo = (s) => String(s == null ? '' : s).trim()
 
@@ -56,11 +58,22 @@ function mudancasInternas(antes, depois) {
     const d = total - totalAntes
     push('volumes', (d > 0 ? 'Acrescentou ' + d + ' volume' + (d > 1 ? 's' : '') : 'Tirou ' + (-d) + ' volume' + (-d > 1 ? 's' : '')) + ' de ' + nome)
   } else {
-    const tinha = ownedCount(antes), tem = ownedCount(depois)
-    if (tem !== tinha) {
-      const d = tem - tinha
-      push('status', (d > 0 ? 'Marcou como Tenho: ' : 'Voltou para Quero: ') + alvo(depois, Math.abs(d)) +
-        (total > 1 ? ' (' + tem + ' de ' + total + ')' : ''))
+    /* Com três posses a frase não sai mais de um número só: Tenho que cai
+       pode ter virado Quero OU Tive, e dizer "Voltou para Quero" numa
+       venda seria mentira. Quem subiu é quem nomeia a mudança. */
+    const tem = ownedCount(depois), tinha = ownedCount(antes)
+    const saiuAgora = quantos(depois, 'tive'), saiuAntes = quantos(antes, 'tive')
+    const querAgora = quantos(depois, 'wishlist'), querAntes = quantos(antes, 'wishlist')
+    if (tem !== tinha || saiuAgora !== saiuAntes) {
+      const subiu = [
+        ['Marcou como Tenho: ', tem - tinha],
+        ['Marcou como Tive: ', saiuAgora - saiuAntes],
+        ['Voltou para Quero: ', querAgora - querAntes],
+      ].filter(([, d]) => d > 0).sort((a, b) => b[1] - a[1])[0]
+      if (subiu) {
+        push('status', subiu[0] + alvo(depois, subiu[1]) +
+          (total > 1 ? ' (' + tem + ' de ' + total + ' na estante)' : ''))
+      }
     }
   }
 
@@ -288,7 +301,7 @@ const REGRAS = [
   [/^Marcou como (lido|não lido)|^Marcou a leitura/i, 'leitura'],
   [/^(Deu .*estrelas?|Tirou a nota)/i,              'leitura'],
 
-  [/^(Marcou como Tenho|Voltou para Quero|Mudou o status)/i, 'estante'],
+  [/^(Marcou como Tenho|Marcou como Tive|Voltou para Quero|Mudou o status)/i, 'estante'],
   [/como urgente$|^Tirou a urgência/i,              'estante'],
 
   [/^(Anotou .*pago em|Apagou o valor pago|Mudou o valor)/i, 'valor'],

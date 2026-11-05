@@ -39,12 +39,24 @@ export function volsOf(o){
   if(Array.isArray(o.conteudo)) return o.conteudo.map(n=>({nome:n,imagem:null}));
   return [];
 }
-// Os volumes que combinam com um filtro de status. Volume sem status conta
-// como "quero" — mesma convencao de ownedCount/missingVols, para nada sumir.
+/* A POSSE TEM TRÊS ESTADOS, e ler não é um deles.
+ *
+ *   'wishlist'   Quero      — pretendo ter
+ *   'biblioteca' Tenho      — está na estante
+ *   'tive'   Tive  — vendi, doei, devolvi, ou li emprestada
+ *
+ * Antes eram dois, e `!== 'biblioteca'` queria dizer "quero". Com o terceiro
+ * isso passou a mentir, e por isso TODO teste de posse passa por aqui.
+ * Status ausente conta como "quero" — é o dado antigo, e nada pode sumir. */
+export function posseDe(u){
+  const s = u && u.status;
+  return (s==='biblioteca' || s==='tive') ? s : 'wishlist';
+}
+
+// Os volumes que combinam com um filtro de status.
 export function unitsForStatus(o, status){
   const u=unitsOf(o);
-  if(status==='biblioteca') return u.filter(x=>x&&x.status==='biblioteca');
-  if(status==='wishlist')   return u.filter(x=>x&&x.status!=='biblioteca');
+  if(status==='biblioteca'||status==='wishlist'||status==='tive') return u.filter(x=>posseDe(x)===status);
   return u;
 }
 // O volume que representa a obra sob um filtro de status. Capa e titulo do
@@ -66,23 +78,60 @@ export function coverOf(o, status){
   return o.imagem || (v[0]&&v[0].imagem) || null;
 }
 export function unitsOf(o){ return tipoOf(o)==='avulso' ? [o] : volsOf(o); }
-export function ownedCount(o){ return unitsOf(o).filter(u=>u.status==='biblioteca').length; }
-export function anyUrg(o){ return unitsOf(o).some(u=>u.urgencia && u.status!=='biblioteca'); }
+export function ownedCount(o){ return unitsOf(o).filter(u=>posseDe(u)==='biblioteca').length; }
+// Urgência é pressa de COMPRAR: só existe no que você quer. O que saiu da
+// estante não tem pressa nenhuma.
+export function anyUrg(o){ return unitsOf(o).some(u=>u.urgencia && posseDe(u)==='wishlist'); }
 // Urgencia sob um filtro: quem responde e o volume da vitrine. Em "Tenho" ele
 // e um volume que voce ja tem — e volume na estante nunca e urgente.
 export function urgenteNaVitrine(o, status){
   const alvo=unidadeVitrine(o,status);
-  if(alvo) return !!alvo.urgencia && alvo.status!=='biblioteca';
+  if(alvo) return !!alvo.urgencia && posseDe(alvo)==='wishlist';
   return anyUrg(o);
 }
+/* DOIS TOTAIS SEPARADOS, nunca um saldo: investimento é o que saiu do bolso
+   e retorno é o que voltou. Um menos o outro esconderia os dois. O valor pago
+   SOBREVIVE à venda — você pagou, isso não desacontece. */
 export function sumValor(o){ return unitsOf(o).reduce((s,u)=>s+(Number(u.valorPago)||0),0); }
-export function lidoCount(o){ return unitsOf(o).filter(u=>u.status==='biblioteca'&&u.lido).length; }
+export function sumRetorno(o){ return unitsOf(o).reduce((s,u)=>s+(Number(u.valorRetorno)||0),0); }
+// Lida é lida, tenha ou não. Antes exigia estar na estante, e vender a obra
+// apagava que você a leu.
+export function lidoCount(o){ return unitsOf(o).filter(u=>u.lido).length; }
 export function avgNota(o){ const r=unitsOf(o).filter(u=>Number(u.nota)>0); return r.length? Math.round(r.reduce((s,u)=>s+u.nota,0)/r.length*2)/2 : 0; }
-export function statusMatch(o,want){ return unitsOf(o).some(u=>u.status===want); }
+export function statusMatch(o,want){ return unitsOf(o).some(u=>posseDe(u)===want); }
+// "Faltam" é o que não está na estante — inclui o que você vendeu, porque
+// na prateleira o buraco é o mesmo.
 export function missingVols(o){
   if(tipoOf(o)==='avulso') return [];
-  return volsOf(o).map((v,i)=>({i:i+1,own:v.status==='biblioteca'})).filter(x=>!x.own).map(x=>x.i);
+  return volsOf(o).map((v,i)=>({i:i+1,own:posseDe(v)==='biblioteca'})).filter(x=>!x.own).map(x=>x.i);
 }
+/* O selo de cada posse, num lugar só: cartao, ficha e lista de volumes leem
+   daqui. Tres copias divergiriam na primeira mudanca de rotulo. */
+/* A ordem em que se vive: quero, tenho, ja nao tenho. Mesma lista no Editor
+   e na ficha — se divergirem, a mesma obra tera escolhas diferentes dependendo
+   da porta. */
+/* A normalização que vale para QUALQUER unidade — obra avulsa ou volume — e
+   num lugar só: o Editor e a ficha têm de produzir o mesmo resultado a partir
+   da mesma escolha. Sobrou uma trava, a urgência, que é pressa de comprar; e
+   o retorno, que só existe enquanto a obra está fora. */
+export function normalizarPosse(u){
+  const p = posseDe(u);
+  return { ...u, status: p,
+    urgencia: p==='wishlist' && !!u.urgencia,
+    valorPago: Number(u.valorPago)||0,
+    valorRetorno: p==='tive' ? (Number(u.valorRetorno)||0) : 0,
+    lido: !!u.lido,
+    nota: Number(u.nota)||0 };
+}
+
+export const POSSES = [["wishlist","Quero"],["biblioteca","Tenho"],["tive","Tive"]];
+
+export const SELO_POSSE = {
+  biblioteca: { rotulo:'Tenho',     classe:'pill-tenho' },
+  wishlist:   { rotulo:'Quero',     classe:'pill-quero' },
+  tive:   { rotulo:'Tive', classe:'pill-saiu'  },
+};
+
 export function gNorm(s){ return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(); }
 /* ------------------------------------------------------------------
    DESMEMBRAR: uma série (ou box) vira N obras avulsas.
@@ -155,7 +204,7 @@ export function fragmentosDe(obra, ultimoId){
       editora: obra.editora || '',
       pais: obra.pais || '',
       tags: Array.isArray(obra.tags) ? obra.tags.slice() : [],
-      resenha: obra.resenha || '',
+      resenha: v.resenha || obra.resenha || '',
       tipoEdicao: obra.tipoEdicao || '',
 
       /* Do VOLUME: o que já era dele continua dele. Autor e artista caem para
@@ -166,14 +215,14 @@ export function fragmentosDe(obra, ultimoId){
       desenhista: v.desenhista || obra.desenhista || '',
 
       /* Status, valor, leitura e nota saem do volume com as MESMAS travas do
-         editor: urgência só vale no que falta, e valor, lido e nota só no que
-         está na estante. Sem isto, desmembrar criaria obras em estados que o
-         editor não deixa salvar. */
-      status: v.status || 'wishlist',
-      urgencia: !tem && !!v.urgencia,
-      valorPago: tem ? (Number(v.valorPago)||0) : 0,
-      lido: tem && !!v.lido,
-      nota: tem ? (Number(v.nota)||0) : 0,
+         editor — e hoje a única trava é a urgência, que só vale no que você
+         ainda quer. Leitura, nota e valor atravessam qualquer posse. */
+      status: posseDe(v),
+      urgencia: posseDe(v)==='wishlist' && !!v.urgencia,
+      valorPago: Number(v.valorPago)||0,
+      valorRetorno: Number(v.valorRetorno)||0,
+      lido: !!v.lido,
+      nota: Number(v.nota)||0,
     };
   });
 }
@@ -193,14 +242,15 @@ export function passes(o, f){
   if(f.nota && avgNota(o)!==Number(f.nota)) return false;
   if(f.importado && !isImp(o)) return false;
   if(f.urgencia && !anyUrg(o)) return false;
-  if(f.leitura==='lido' && !unitsOf(o).some(u=>u.status==='biblioteca'&&u.lido)) return false;
-  if(f.leitura==='naolido' && !unitsOf(o).some(u=>u.status==='biblioteca'&&!u.lido)) return false;
+  // leitura não depende de posse: "lidos" traz o que você leu, tenha ou não
+  if(f.leitura==='lido' && !unitsOf(o).some(u=>u.lido)) return false;
+  if(f.leitura==='naolido' && !unitsOf(o).some(u=>!u.lido)) return false;
   if(f.q){
     // gNorm nos DOIS lados: tira acento e caixa. Sem isto, procurar "esfera"
     // nao achava "Ésfera" — e ninguem digita acento numa caixa de busca.
     const q=gNorm(f.q);
     const hay=gNorm([o.nome,edOf(o),o.roteirista,o.desenhista,o.resenha,
-      volsOf(o).map(v=>v.nome+' '+(v.roteirista||'')+' '+(v.desenhista||'')).join(' ')].join(' '));
+      volsOf(o).map(v=>v.nome+' '+(v.roteirista||'')+' '+(v.desenhista||'')+' '+(v.resenha||'')).join(' ')].join(' '));
     if(!hay.includes(q)) return false;
   }
   return true;
@@ -356,7 +406,7 @@ export function filaResolvida(obras, fila){
    `lido` só vale com o item na estante — é a mesma trava do Editor, e sem ela
    um volume "quero" com `lido` pendurado de uma edição antiga sairia da fila
    sem nunca ter sido lido. */
-export function unidadeLida(u){ return !!(u && u.status === 'biblioteca' && u.lido); }
+export function unidadeLida(u){ return !!(u && u.lido); }
 
 /* Está na estante? É a trava da fila.
  *
@@ -369,7 +419,7 @@ export function unidadeLida(u){ return !!(u && u.status === 'biblioteca' && u.li
  * o que está na estante (o Editor apaga os dois ao salvar um item de desejo).
  * Deixar um "quero" entrar na fila levaria, no fim, a marcar lido uma coisa
  * que o próprio Editor desmarcaria depois. */
-export function naEstante(u){ return !!(u && u.status === 'biblioteca'); }
+export function naEstante(u){ return posseDe(u) === 'biblioteca'; }
 
 /* Pode entrar (ou continuar) na fila: tem, e ainda não leu.
    As duas regras juntas num lugar só — o botão do detalhe, a poda do store e

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { useStore } from '../lib/store.jsx'
 import {
   edOf, tipoOf, statusMatch, avgNota, isImp, anyUrg, edicaoDe,
-  coverOf, unidadeVitrine, urgenteNaVitrine, capaVelada, unitsOf, ownedCount, sumValor, fmtBRL, initials, classeTinta, missingVols,
+  coverOf, unidadeVitrine, urgenteNaVitrine, capaVelada, unitsOf, ownedCount, sumValor, fmtBRL, initials, classeTinta, missingVols, posseDe, SELO_POSSE,
 } from '../lib/helpers.js'
 import Card from './Card.jsx'
 import Estrelas from './Estrelas.jsx'
@@ -28,6 +28,7 @@ function Ficha({ obra, index, onOpen }) {
   const nota = avgNota(obra)
   const valor = sumValor(obra)
   const possui = statusMatch(obra, 'biblioteca')
+  const posseDaObra = possui ? 'biblioteca' : statusMatch(obra, 'wishlist') ? 'wishlist' : 'tive'
   const falta = multi ? missingVols(obra) : []
   const tipoLabel = { avulso: 'Avulso', serie: 'Série', box: 'Box' }[t] || t
 
@@ -68,9 +69,10 @@ function Ficha({ obra, index, onOpen }) {
           {edOf(obra) && <span className="font-rotulo text-rotulo uppercase text-acento-texto">{edOf(obra)}</span>}
           <span className="font-rotulo text-rotulo uppercase text-ink-faint">{tipoLabel}</span>
           {/* sob filtro a ficha fala de um volume — o selo é o dele */}
-          <span className={`pill ${(vitrine ? vitrine.status === 'biblioteca' : possui) ? 'pill-tenho' : 'pill-quero'}`}>
-            {(vitrine ? vitrine.status === 'biblioteca' : possui) ? 'Tenho' : 'Quero'}
-          </span>
+          {(() => {
+            const p = vitrine ? posseDe(vitrine) : posseDaObra
+            return <span className={`pill ${SELO_POSSE[p].classe}`}>{SELO_POSSE[p].rotulo}</span>
+          })()}
           {/* a fração vira pílula própria — o status não precisa carregá-la */}
           {multi && total > 0 && (
             <span className={`pill ${tem >= total ? 'pill-tenho' : 'pill-quero'}`} title={`${tem} de ${total} na estante`}>

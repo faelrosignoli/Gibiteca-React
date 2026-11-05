@@ -3,7 +3,7 @@ import {
   MOLA_GAVETA, MOLA_TOQUE, FADE, VOLTA_DO_ARRASTO, ELASTICO_DIREITA,
   deveDispensar, usaMovimentoReduzido,
 } from '../lib/motion.js'
-import { useMemo } from 'react'
+import { Fragment, useMemo } from 'react'
 import { useStore } from '../lib/store.jsx'
 import { edOf, authorsOf, tipoOf, passes, comoLista } from '../lib/helpers.js'
 import { TIPOS_EDICAO } from '../data.js'
@@ -173,8 +173,13 @@ const comOsEscolhidos = (lista, atuais) => {
    leva `aria-label`, mesmo sem rótulo visível, e a barra se chama "Todos"
    em voz alta.
    ------------------------------------------------------------------ */
+/* Duas ou três respostas ligadas pela mesma moldura, e um X na frente que
+   limpa o recorte. */
 function ParLigado({ rotuloGrupo, opcoes, valor, neutro, onChange }) {
-  const [esq, dir] = opcoes
+  /* O X abre a fila, sempre: é o botão de desfazer o recorte, e botão de
+     desfazer mora no começo. No meio ele parecia separar as respostas em dois
+     times. */
+  const pedacos = [{ neutro: true, v: null }, ...opcoes]
 
   /* A fatia. `flex-1` nas das pontas e largura fixa na barra: as duas
      respostas dividem o que sobra em partes iguais, e a barra fica do
@@ -202,22 +207,22 @@ function ParLigado({ rotuloGrupo, opcoes, valor, neutro, onChange }) {
       role="radiogroup" aria-label={rotuloGrupo}
       className="flex items-stretch h-10 rounded-full border border-contorno overflow-hidden bg-surface"
     >
-      <Fatia v={esq.v} rotulo={esq.rotulo}>{esq.icone}{esq.rotulo}</Fatia>
+      {/* O X é um GLIFO, não uma palavra: é a única fatia que não nomeia um
+          recorte, e sim a ausência dele — e X diz "limpa isto" sem legenda,
+          que a barra não dizia.
 
-      {/* Os fios finos entre as fatias. Sem eles, duas fatias apagadas lado a
-          lado viram um campo de texto vazio com uma barra perdida no meio. */}
-      <span aria-hidden="true" className="w-px bg-linha shrink-0" />
-
-      {/* A barra é um GLIFO, não uma palavra: é a única fatia que não nomeia
-          um recorte, e sim a ausência dele. `leading-none` e o deslocamento de
-          um pixel porque a barra da fonte senta alta na caixa de texto. */}
-      <Fatia v={neutro} rotulo="Todos" fixa>
-        <span className="text-secao leading-none -translate-y-px font-normal">/</span>
-      </Fatia>
-
-      <span aria-hidden="true" className="w-px bg-linha shrink-0" />
-
-      <Fatia v={dir.v} rotulo={dir.rotulo}>{dir.icone}{dir.rotulo}</Fatia>
+          Os fios finos entre as fatias: sem eles, duas fatias apagadas lado a
+          lado viram um campo de texto vazio com um glifo perdido no meio. */}
+      {pedacos.map((p, i) => (
+        <Fragment key={p.v == null ? 'neutro' : p.v}>
+          {i > 0 && <span aria-hidden="true" className="w-px bg-linha shrink-0" />}
+          {p.neutro
+            ? <Fatia v={neutro} rotulo="Todos" fixa>
+                <span className="text-obra leading-none font-normal">×</span>
+              </Fatia>
+            : <Fatia v={p.v} rotulo={p.rotulo}>{p.icone}{p.rotulo}</Fatia>}
+        </Fragment>
+      ))}
     </div>
   )
 }
@@ -507,13 +512,14 @@ export default function FiltersDrawer({ open, onClose }) {
                 <span className={GRUPO}>Condições</span>
 
                 <ParLigado
-                  rotuloGrupo="Tenho ou quero"
+                  rotuloGrupo="Quero, tenho ou tive"
                   valor={filters.status}
                   neutro={NEUTRO.status}
                   onChange={v => setFilter('status', v)}
                   opcoes={[
                     { v: 'biblioteca', rotulo: 'Tenho' },
                     { v: 'wishlist', rotulo: 'Quero' },
+                    { v: 'tive', rotulo: 'Tive' },
                   ]}
                 />
 

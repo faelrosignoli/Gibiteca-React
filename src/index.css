@@ -101,6 +101,9 @@ body {
   .pill { @apply inline-flex items-center font-mono text-rotulo font-bold uppercase px-2 py-0.5 rounded-full leading-none whitespace-nowrap border border-transparent; }
   .pill-tenho { @apply bg-moss text-sobre-acento; }
   .pill-quero { @apply bg-paper-2 text-ink-soft border border-moss-line; }
+  /* Nao tenho: sem cor propria de proposito. Nao e conquista (moss) nem
+     desejo (contorno) — e ausencia, e ausencia nao chama atencao. */
+  .pill-saiu  { @apply bg-transparent text-ink-mute border border-contorno; }
   .pill-imp   { @apply bg-blue text-white; }
   /* tipo da edicao: cor propria, para nao competir com Tenho (moss) nem com
      Importado (blue) — sao tres coisas diferentes na mesma linha */

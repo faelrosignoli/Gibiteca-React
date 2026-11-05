@@ -3,7 +3,7 @@ import { MOLA_GAVETA, FADE } from '../lib/motion.js'
 import { useMemo, useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import {
-  unitsOf, edOf, isImp, sumValor, tipoOf, anyUrg, ownedCount, fmtBRL,
+  unitsOf, edOf, isImp, sumValor, tipoOf, anyUrg, ownedCount, fmtBRL, posseDe,
 } from '../lib/helpers.js'
 import Ticker from './Ticker.jsx'
 
@@ -84,13 +84,21 @@ export default function Stats({ open, onClose }) {
   const s = useMemo(() => {
     const O = src
     const units = O.flatMap(unitsOf)
-    const owned = units.filter(u => u.status === 'biblioteca')
-    const want = units.filter(u => u.status !== 'biblioteca')
-    const invest = owned.reduce((a, u) => a + (Number(u.valorPago) || 0), 0)
-    const paid = owned.filter(u => Number(u.valorPago) > 0)
+    const owned = units.filter(u => posseDe(u) === 'biblioteca')
+    const want = units.filter(u => posseDe(u) === 'wishlist')
+    const saiu = units.filter(u => posseDe(u) === 'tive')
+
+    /* DOIS TOTAIS, NUNCA UM SALDO. O investido conta tudo que saiu do bolso,
+       inclusive o que você já vendeu — pagar não desacontece. O retorno é o
+       que voltou. Um menos o outro daria um número só, e esconderia os dois. */
+    const invest = units.reduce((a, u) => a + (Number(u.valorPago) || 0), 0)
+    const retorno = units.reduce((a, u) => a + (Number(u.valorRetorno) || 0), 0)
+    const paid = units.filter(u => Number(u.valorPago) > 0)
     const avg = paid.length ? invest / paid.length : 0
-    const lidos = owned.filter(u => u.lido).length
-    const pctLido = owned.length ? Math.round(lidos / owned.length * 100) : 0
+
+    // lido é lido, tenha ou não: a conta é sobre a coleção inteira
+    const lidos = units.filter(u => u.lido).length
+    const pctLido = units.length ? Math.round(lidos / units.length * 100) : 0
     const rated = units.filter(u => Number(u.nota) > 0)
     const notaMed = rated.length ? rated.reduce((a, u) => a + u.nota, 0) / rated.length : 0
 
@@ -107,7 +115,8 @@ export default function Stats({ open, onClose }) {
     const completas = O.filter(o => { const t = tipoOf(o); if (t !== 'serie' && t !== 'box') return false; const tot = unitsOf(o).length; return tot > 0 && ownedCount(o) >= tot }).length
 
     return {
-      invest, tenho: owned.length, quero: want.length, pctLido, lidos, ownedLen: owned.length,
+      invest, retorno, tenho: owned.length, quero: want.length, saiu: saiu.length,
+      pctLido, lidos, ownedLen: units.length,
       avg, notaMed, obras: O.length, itens: units.length,
       importados: O.filter(isImp).length, urgentes: O.filter(anyUrg).length, completas,
       topEd: top(byEd), topInv: top(invEd),
@@ -167,17 +176,22 @@ export default function Stats({ open, onClose }) {
                 <>
                   {/* KPIs principais */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-linha">
-                    <Kpi n={s.invest} l="Investido" money />
+                    <Kpi n={s.invest} l="Investimento" money />
+                    <Kpi n={s.retorno} l="Retorno" money />
                     <Kpi n={s.tenho} l="Tenho" />
                     <Kpi n={s.quero} l="Quero" />
-                    <Kpi n={s.pctLido} l={`Lidos (${s.lidos}/${s.ownedLen})`} sub="%" />
                   </div>
                   {/* KPIs secundários */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-linha border-t border-linha">
+                    <Kpi n={s.saiu} l="Tive" />
+                    <Kpi n={s.pctLido} l={`Lidos (${s.lidos}/${s.ownedLen})`} sub="%" />
                     <Kpi n={s.obras} l="Obras" />
                     <Kpi n={s.itens} l="Itens (volumes)" />
+                  </div>
+                  <div className="grid grid-cols-3 gap-px bg-linha border-t border-linha">
                     <Kpi n={s.importados} l="Importados" />
                     <Kpi n={s.completas} l="Séries completas" />
+                    <Kpi n={s.urgentes} l="Urgentes" />
                   </div>
 
                   {/* médias */}

@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { MOLA_GAVETA, FADE } from '../lib/motion.js'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../lib/store.jsx'
-import { authorsOf, edOf, moneyToNumber, moneyFormat, classeTinta, initials, listasDaObra } from '../lib/helpers.js'
+import { authorsOf, edOf, moneyToNumber, moneyFormat, classeTinta, initials, listasDaObra, posseDe, POSSES, normalizarPosse } from '../lib/helpers.js'
 import { TIPOS_EDICAO } from '../data.js'
 import Combo from './Combo.jsx'
 import Pessoas from './Pessoas.jsx'
@@ -12,14 +12,14 @@ import { linkDoGuia } from '../lib/catalogo.js'
 import { reduzirCapa } from '../lib/foto.js'
 import { usePergunta } from './Pergunta.jsx'
 
-const emptyVol = () => ({ nome: '', imagem: null, roteirista: '', desenhista: '', status: 'wishlist', urgencia: false, valorPago: 0, lido: false, nota: 0, _open: true })
+const emptyVol = () => ({ nome: '', imagem: null, roteirista: '', desenhista: '', resenha: '', status: 'wishlist', urgencia: false, valorPago: 0, valorRetorno: 0, lido: false, nota: 0, _open: true })
 
 function draftFromObra(o) {
   if (!o || !o.id) {
     // 'genres' não tem mais campo na tela. Continua no rascunho só para
     // atravessar uma edição sem apagar o que já estava gravado em obra.tags.
     return { id: null, tipo: 'avulso', nome: '', origem: 'nacional', editora: '', pais: '', adulto: false, genres: [], img: '', resenha: '', tipoEdicao: '',
-      roteirista: '', desenhista: '', status: 'wishlist', urgencia: false, valorPago: 0, lido: false, nota: 0, vols: [], listas: [] }
+      roteirista: '', desenhista: '', status: 'wishlist', urgencia: false, valorPago: 0, valorRetorno: 0, lido: false, nota: 0, vols: [], listas: [] }
   }
   const tipo = o.tipo === 'avulsa' ? 'avulso' : (o.tipo || (o.volumes ? 'serie' : 'avulso'))
   return {
@@ -27,7 +27,7 @@ function draftFromObra(o) {
     editora: edOf(o), pais: o.pais || '', adulto: !!o.adulto, genres: Array.isArray(o.tags) ? o.tags.slice() : [], tipoEdicao: o.tipoEdicao || '',
     img: o.imagem || '', resenha: o.resenha || '',
     roteirista: o.roteirista || '', desenhista: o.desenhista || '',
-    status: o.status || 'wishlist', urgencia: !!o.urgencia, valorPago: Number(o.valorPago) || 0,
+    status: o.status || 'wishlist', urgencia: !!o.urgencia, valorPago: Number(o.valorPago) || 0, valorRetorno: Number(o.valorRetorno) || 0,
     lido: !!o.lido, nota: Number(o.nota) || 0,
     vols: Array.isArray(o.volumes) ? o.volumes.map(v => ({ ...emptyVol(), ...v, _open: false })) : [],
     /* Preenchido por quem chama: `draftFromObra` não enxerga as listas, que
@@ -125,7 +125,9 @@ function Secao({ titulo, children }) {
 
 /* ---------- painel de volume ---------- */
 function VolPanel({ v, i, withCover, autores, onChange, onCopyAll, onCover, onRemover, podeRemover }) {
-  const owned = v.status === 'biblioteca'
+  const posse = posseDe(v)
+  const querendo = posse === 'wishlist'
+  const saiu = posse === 'tive'
   const fileRef = useRef(null)
   const set = (patch) => onChange(i, patch)
   return (
@@ -172,10 +174,12 @@ function VolPanel({ v, i, withCover, autores, onChange, onCopyAll, onCover, onRe
           </div>
           <div className={box}>
             <label className={lbl}>Status</label>
-            <Switch options={[['wishlist', 'Quero'], ['biblioteca', 'Tenho']]} value={v.status}
-              onChange={val => set({ status: val, ...(val === 'biblioteca' ? { urgencia: false } : {}) })} />
+            <Switch options={POSSES} value={posse}
+              onChange={val => set({ status: val, ...(val === 'wishlist' ? {} : { urgencia: false }) })} />
           </div>
-          {!owned ? (
+          {/* Urgência é pressa de comprar: só em "Quero". Nos outros dois o
+              lugar é do dinheiro. */}
+          {querendo ? (
             <div className={box}>
               <label className={lbl}>Urgência</label>
               <CheckTile danger checked={v.urgencia} onChange={e => set({ urgencia: e.target.checked })}>Urgente ⚠️</CheckTile>
@@ -187,20 +191,25 @@ function VolPanel({ v, i, withCover, autores, onChange, onCopyAll, onCover, onRe
                 onChange={e => set({ valorPago: moneyToNumber(e.target.value) })} placeholder="R$ 0,00" />
             </div>
           )}
-          {owned && (
-            <>
-              <div className={box}>
-                <label className={lbl}>Leitura</label>
-                <CheckTile checked={v.lido} onChange={e => set({ lido: e.target.checked, ...(e.target.checked ? {} : { nota: 0 }) })}>Lido</CheckTile>
-              </div>
-              {v.lido ? (
-                <div className={box}>
-                  <label className={lbl}>Nota</label>
-                  <div className="h-[42px] flex items-center"><EstrelasInput value={v.nota} onChange={n => set({ nota: n })} /></div>
-                </div>
-              ) : <div />}
-            </>
+          {saiu && (
+            <div className={box}>
+              <label className={lbl}>Retorno</label>
+              <input className="field-input" inputMode="numeric" value={v.valorRetorno ? moneyFormat(v.valorRetorno) : ''}
+                onChange={e => set({ valorRetorno: moneyToNumber(e.target.value) })} placeholder="R$ 0,00" />
+            </div>
           )}
+          {/* Leitura e nota valem em qualquer posse: vender não desfaz a
+              leitura, e dá para ler emprestado o que nunca foi seu. */}
+          <div className={box}>
+            <label className={lbl}>Leitura</label>
+            <CheckTile checked={v.lido} onChange={e => set({ lido: e.target.checked, ...(e.target.checked ? {} : { nota: 0 }) })}>Lido</CheckTile>
+          </div>
+          {v.lido ? (
+            <div className={box}>
+              <label className={lbl}>Nota</label>
+              <div className="h-[42px] flex items-center"><EstrelasInput value={v.nota} onChange={n => set({ nota: n })} /></div>
+            </div>
+          ) : <div />}
           {/* Uma barra só para as ações do volume: repetir à esquerda, apagar
               à direita, separadas pelo vão. Eram quatro botões de texto em
               duas fileiras, com "copiar roteirista p/ todos" ocupando mais
@@ -369,7 +378,7 @@ export default function Editor({ target, onClose, onSaved }) {
   // volume vazio é o que ninguém encostou: cortar a cauda em branco não pergunta
   const volumeTemConteudo = (v) => !!(
     (v.nome || '').trim() || v.imagem || (v.roteirista || '').trim() || (v.desenhista || '').trim() ||
-    v.status === 'biblioteca' || v.urgencia || v.valorPago || v.lido || v.nota
+    posseDe(v) !== 'wishlist' || v.urgencia || v.valorPago || v.valorRetorno || v.lido || v.nota
   )
 
   const setQtd = async (texto) => {
@@ -397,7 +406,7 @@ export default function Editor({ target, onClose, onSaved }) {
     })
   }
   const setVol = (i, p) => setD(s => { const v = s.vols.slice(); v[i] = { ...v[i], ...p }; return { ...s, vols: v } })
-  const copyAll = (i, f) => setD(s => { const val = s.vols[i][f]; return { ...s, vols: s.vols.map(v => ({ ...v, [f]: val, ...(f === 'status' && val === 'biblioteca' ? { urgencia: false } : {}) })) } })
+  const copyAll = (i, f) => setD(s => { const val = s.vols[i][f]; return { ...s, vols: s.vols.map(v => ({ ...v, [f]: val, ...(f === 'status' && val !== 'wishlist' ? { urgencia: false } : {}) })) } })
   // capa reduzida antes de entrar: crua, ela estourava a cota do navegador
   const lerCapa = async (e, guardar) => {
     const f = e.target.files?.[0]; e.target.value = ''
@@ -429,22 +438,26 @@ export default function Editor({ target, onClose, onSaved }) {
     const base = { id: d.id ?? nextId(), nome: title, tipo: d.tipo, origem: d.origem, editora: d.editora.trim(), pais: d.pais.trim(), adulto: !!d.adulto, tags: d.genres.slice(), resenha: d.resenha.trim(), tipoEdicao: d.tipoEdicao || '' }
     let rec
     if (isMulti) {
-      const volumes = d.vols.map((v, i) => {
-        const owned = v.status === 'biblioteca'
-        return {
-          nome: (v.nome && v.nome.trim()) || ('Vol. ' + (i + 1)),
-          imagem: withCover ? (v.imagem || null) : null,
-          roteirista: v.roteirista || '', desenhista: v.desenhista || '',
-          status: v.status || 'wishlist', urgencia: !owned && !!v.urgencia,
-          valorPago: owned ? (v.valorPago || 0) : 0, lido: owned && !!v.lido, nota: owned ? (v.nota || 0) : 0,
-        }
-      })
+      /* A ÚNICA trava que sobrou é a urgência. Valor, leitura e nota
+         atravessam qualquer posse — vender não desfaz o que você leu nem o
+         que pagou. O retorno só existe enquanto a obra está fora: voltando
+         para a estante ele é zerado, senão a venda antiga ficaria somando. */
+      const volumes = d.vols.map((v, i) => normalizarPosse({
+        nome: (v.nome && v.nome.trim()) || ('Vol. ' + (i + 1)),
+        imagem: withCover ? (v.imagem || null) : null,
+        roteirista: v.roteirista || '', desenhista: v.desenhista || '',
+        resenha: (v.resenha || '').trim(),
+        status: v.status, urgencia: v.urgencia,
+        valorPago: v.valorPago, valorRetorno: v.valorRetorno,
+        lido: v.lido, nota: v.nota,
+      }))
       rec = { ...base, volumes, imagem: withCover ? (volumes[0]?.imagem || null) : (d.img || null),
-        roteirista: '', desenhista: '', status: 'wishlist', urgencia: false, valorPago: 0, lido: false, nota: 0 }
+        roteirista: '', desenhista: '', status: 'wishlist', urgencia: false, valorPago: 0, valorRetorno: 0, lido: false, nota: 0 }
     } else {
-      const owned = d.status === 'biblioteca'
-      rec = { ...base, imagem: d.img || null, roteirista: d.roteirista.trim(), desenhista: d.desenhista.trim(),
-        status: d.status, urgencia: !owned && d.urgencia, valorPago: owned ? d.valorPago : 0, lido: owned && d.lido, nota: owned ? d.nota : 0 }
+      rec = normalizarPosse({ ...base, imagem: d.img || null,
+        roteirista: d.roteirista.trim(), desenhista: d.desenhista.trim(),
+        status: d.status, urgencia: d.urgencia,
+        valorPago: d.valorPago, valorRetorno: d.valorRetorno, lido: d.lido, nota: d.nota })
     }
     fechando.current = true
     upsertObra(rec)
@@ -465,8 +478,6 @@ export default function Editor({ target, onClose, onSaved }) {
     fechando.current = true   // depois da pergunta: um "não" não pode travar o Salvar
     deleteObra(d.id); onSaved?.('Excluído.'); onClose()
   }
-
-  const ownedAvulso = d.status === 'biblioteca'
 
   return (
     <>

@@ -355,6 +355,66 @@ esconder, o aviso não pode. E o item da nuvem no menu diz o estado
 O ☰ vira X animando **só transform e opacity** (animar `top` custaria layout a
 cada quadro). Fecha no Esc, no clique fora e ao escolher um item.
 
+### A posse tem TRÊS estados, e ler não é um deles
+Antes eram dois — Quero e Tenho — e a leitura era um detalhe de ter. Por isso
+tirar a obra de "Tenho" **apagava** que você a leu, a nota e o valor pago:
+
+```js
+lido: owned && !!v.lido,  nota: owned ? v.nota : 0,  valorPago: owned ? d.valorPago : 0
+```
+
+Vender depois de ler, ou ler emprestado, não cabiam no modelo. Hoje:
+
+| estado | código | o que é |
+|---|---|---|
+| Quero | `wishlist` | pretendo ter |
+| Tenho | `biblioteca` | está na estante |
+| Tive | `tive` | vendi, doei, devolvi, ou li emprestada |
+
+**Todo teste de posse passa por `posseDe(u)`.** Antes `!== 'biblioteca'` queria
+dizer "quero"; com o terceiro isso passou a mentir. `posseDe` também é quem trata
+status ausente como "quero" — é o dado antigo, e nada pode sumir.
+
+**Leitura, nota e valor pago atravessam qualquer posse.** Vender não desfaz o
+que você leu nem o que pagou. A **única** trava que sobrou é a urgência, que é
+pressa de comprar e só existe em "Quero".
+
+**Dois totais de dinheiro, nunca um saldo:** `sumValor` (investimento, tudo que
+saiu do bolso, inclusive do que já foi vendido) e `sumRetorno` (o que voltou).
+Um menos o outro daria um número só e esconderia os dois. O campo **Retorno**
+só aparece em "Tive", e é zerado se a obra voltar para a estante — senão
+uma venda antiga ficaria somando para sempre.
+
+**A fila não mudou:** continua exigindo estar na estante e não ter sido lido.
+Fila é "o que leio agora"; enchê-la de wishlist esvaziaria o sentido.
+
+O rótulo e o selo de cada estado vivem em `POSSES` e `SELO_POSSE` (`helpers.js`),
+num lugar só — o Editor, a ficha, o cartão e a lista de volumes leem de lá.
+
+**Nada de migração:** nenhuma obra tinha o valor novo, então o dado antigo
+continua valendo como está.
+
+### A ficha é da UNIDADE: a obra avulsa ou um volume
+Clicar num volume na gaveta **abre a ficha dele** embaixo da grade, e a capa
+ganha um anel dizendo de quem é a ficha. Dentro: posse, valor pago, retorno,
+lido, nota, anotação e o botão da fila — os mesmos controles da obra avulsa,
+no mesmo componente (`FichaDeSituacao`). Duas cópias divergiriam na primeira
+mudança de regra.
+
+**Embaixo da grade, não dentro da célula:** a célula tem 90px de largura, e os
+controles não cabem ali sem virar sopa.
+
+**A anotação é do volume.** Série e box não têm mais anotação no nível da obra:
+ali leitura, nota, valor e recado são de cada volume. O `resenha` do volume
+entra na busca e sobrevive ao desmembrar; o da obra só vale para a avulsa.
+
+**O botão da fila saiu da célula** e vive na ficha. Antes era um botão dentro
+de outro — e a célula precisava virar botão para poder ser escolhida.
+
+**Uma normalização só, em `normalizarPosse()`:** o Editor e a ficha têm de
+produzir o mesmo resultado a partir da mesma escolha. Eram duas cópias da
+mesma regra, uma em cada arquivo.
+
 ### Volumes seguem o filtro de status
 `statusMatch` deixa a obra passar se **qualquer** unidade bater — então uma
 série 1-de-2 aparece tanto em "Tenho" quanto em "Quero". Sob um filtro, o
