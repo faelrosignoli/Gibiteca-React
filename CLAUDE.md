@@ -394,6 +394,16 @@ num lugar só — o Editor, a ficha, o cartão e a lista de volumes leem de lá.
 **Nada de migração:** nenhuma obra tinha o valor novo, então o dado antigo
 continua valendo como está.
 
+### O Editor cadastra; a gaveta administra
+O Editor ficou com o que define a OBRA: tipo, título, editora, origem, país,
++18, tipo da edição, capa, autoria, listas, quantos volumes e o nome e a capa
+de cada um. Saiu dele tudo que muda com o tempo — posse, urgência, valor,
+retorno, lido, nota e anotação —, que agora mora na gaveta, a um clique do
+volume em vez de seis.
+
+O Editor **não apaga** o que a gaveta escreveu: os campos continuam
+atravessando o rascunho, só não têm controle na tela.
+
 ### A ficha é da UNIDADE: a obra avulsa ou um volume
 Clicar num volume na gaveta **abre a ficha dele** embaixo da grade, e a capa
 ganha um anel dizendo de quem é a ficha. Dentro: posse, valor pago, retorno,
@@ -1922,9 +1932,13 @@ Explicação em tela vazia é lida por ninguém.
 |---|---|---|
 | Listas | `PilhaNoChao` — três gibis tortos, empilhados | *A pilha no chão também é um sistema.* |
 | Fila | `GibisEmPe` — três gibis de pé, lado a lado | *Não é o mesmo que estante em dia.* |
+| Coleção vazia | `PrateleiraVazia` — a tábua e o pó | *Toda gibiteca começou com um gibi só.* |
+| Filtro sem resultado | `LupaVazia` — a lente e nada dentro | *O filtro apertou demais.* |
 
-Em pé e empilhados não é enfeite: pilha é bagunça (não há lista), fila é
-ordem. Tela vazia nova segue a receita e **não repete o desenho de outra**.
+Os desenhos não se repetem, e cada um diz o que falta: pilha é bagunça (não
+há lista), fila é ordem, prateleira é começo, lupa é beco. **Estante vazia é
+um convite; filtro sem resultado é um beco** — um manda começar, o outro manda
+mexer no recorte, e por isso nunca compartilham texto.
 
 #### Sem lista nenhuma: a pilha no chão
 Três gibis tortos (`PilhaNoChao`, SVG inline) e uma frase seca: *"A pilha no

@@ -57,8 +57,15 @@ function FichaDeSituacao({ unidade, gravar, id, fila }) {
     <div className="flex flex-col gap-2.5">
       <Switch options={POSSES} value={posse} onChange={v => gravar({ status: v })} />
 
-      {/* Em "Quero" não há dinheiro nem leitura para mostrar: não pagou, e se
-          tivesse lido não estaria só na lista de desejo. */}
+      {/* Em "Quero" a única pergunta é a pressa: não pagou nada, e se tivesse
+          lido não estaria só na lista de desejo. */}
+      {posse === 'wishlist' && (
+        <CheckTile danger checked={!!unidade.urgencia}
+          onChange={e => gravar({ urgencia: e.target.checked })}>
+          Urgente ⚠️
+        </CheckTile>
+      )}
+
       {posse !== 'wishlist' && (() => {
         const vaga = unidade.lido
           ? <CaixaNota valor={unidade.nota || 0} onChange={n => gravar({ nota: n })} />

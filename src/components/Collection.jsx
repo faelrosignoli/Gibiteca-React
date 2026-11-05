@@ -144,24 +144,59 @@ function ListView({ items, onOpen, grupos, tamanhos, continua }) {
     </div>
   )
 }
+/* AS DUAS TELAS VAZIAS DA VITRINE. Mesma receita das outras: um SVG nos tons
+   do app, a frase de estado e uma linha seca. Desenhos diferentes porque os
+   vazios são diferentes — um é começo, o outro é beco. */
+
+/* Coleção vazia: a prateleira ainda sem nada em cima. */
+function PrateleiraVazia() {
+  return (
+    <svg viewBox="0 0 140 84" role="img" aria-label="Uma prateleira vazia"
+         className="w-[150px] h-[90px] mx-auto text-ink-mute"
+         fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 58h112" />
+      <path d="M24 58v12M116 58v12" />
+      {/* o pó da prateleira: três riscos curtos, nada em pé */}
+      <path d="M40 50h14M64 50h22M96 50h10" strokeWidth="1.5" opacity="0.5" />
+    </svg>
+  )
+}
+
+/* Filtro sem resultado: a lupa, e dentro dela nada. */
+function LupaVazia() {
+  return (
+    <svg viewBox="0 0 140 84" role="img" aria-label="Uma lupa sem nada dentro"
+         className="w-[150px] h-[90px] mx-auto text-ink-mute"
+         fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="62" cy="38" r="26" />
+      <path d="M81 57l14 14" />
+      {/* o traço atravessado: a busca passou e não pegou nada */}
+      <path d="M50 38h24" strokeWidth="1.5" opacity="0.5" />
+    </svg>
+  )
+}
+
 export default function Collection({ onOpen }) {
   const { view, total, pageItems, obras, fixada, agrupar, pageGrupos, tamanhosDeGrupo, grupoContinua } = useStore()
 
   if (total === 0) {
     return (
       <div className="mx-auto max-w-[1320px] px-3 sm:px-4 mt-5">
-        <div className="rounded-grande border border-dashed border-separador px-5 py-16 text-center text-ink-faint">
-          {/* DOIS VAZIOS DIFERENTES, e por isso dois títulos.
+        <div className="rounded-grande border border-dashed border-separador px-5 py-12 text-center text-ink-faint">
+          {/* DOIS VAZIOS DIFERENTES, e por isso dois desenhos e dois títulos.
               Estante vazia é um convite — não há o que fazer além de começar.
               Filtro sem resultado é um beco: a coleção existe, o recorte é que
               não achou nada, e o que se faz é mexer no recorte. Um título só
               para os dois mandaria a mesma pessoa fazer coisas opostas. */}
-          <div className="font-display text-secao text-acento-texto mb-1.5 bg-gradient-to-r from-moss via-gold to-moss bg-[length:200%_auto] bg-clip-text text-transparent animate-[shine_3.6s_linear_infinite]">
+          {obras.length === 0 ? <PrateleiraVazia /> : <LupaVazia />}
+          <div className="mt-5 font-display text-secao text-acento-texto bg-gradient-to-r from-moss via-gold to-moss bg-[length:200%_auto] bg-clip-text text-transparent animate-[shine_3.6s_linear_infinite]">
             {obras.length === 0 ? 'Sua coleção está vazia!' : 'Nada por aqui'}
           </div>
-          {obras.length === 0
-            ? <>Adicione uma nova obra por aqui, para organizarmos tudo.</>
-            : <>Nenhuma obra corresponde aos filtros. Ajuste a busca ou os filtros.</>}
+          <p className="mt-1 text-apoio text-ink-mute">
+            {obras.length === 0
+              ? 'Toda gibiteca começou com um gibi só.'
+              : 'O filtro apertou demais.'}
+          </p>
         </div>
       </div>
     )

@@ -2,12 +2,11 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { MOLA_GAVETA, FADE } from '../lib/motion.js'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../lib/store.jsx'
-import { authorsOf, edOf, moneyToNumber, moneyFormat, classeTinta, initials, listasDaObra, posseDe, POSSES, normalizarPosse } from '../lib/helpers.js'
+import { authorsOf, edOf, classeTinta, initials, listasDaObra, posseDe, normalizarPosse } from '../lib/helpers.js'
 import { TIPOS_EDICAO } from '../data.js'
 import Combo from './Combo.jsx'
 import Pessoas from './Pessoas.jsx'
-import { EstrelasInput } from './Estrelas.jsx'
-import { Switch, CheckTile, lbl, box } from './Campos.jsx'
+import { Switch, lbl, box } from './Campos.jsx'
 import { linkDoGuia } from '../lib/catalogo.js'
 import { reduzirCapa } from '../lib/foto.js'
 import { usePergunta } from './Pergunta.jsx'
@@ -125,9 +124,6 @@ function Secao({ titulo, children }) {
 
 /* ---------- painel de volume ---------- */
 function VolPanel({ v, i, withCover, autores, onChange, onCopyAll, onCover, onRemover, podeRemover }) {
-  const posse = posseDe(v)
-  const querendo = posse === 'wishlist'
-  const saiu = posse === 'tive'
   const fileRef = useRef(null)
   const set = (patch) => onChange(i, patch)
   return (
@@ -172,44 +168,6 @@ function VolPanel({ v, i, withCover, autores, onChange, onCopyAll, onCover, onRe
             <Pessoas rotulo="Artista" options={autores} value={v.desenhista}
               onChange={x => set({ desenhista: x })} placeholder="Nome e Enter" />
           </div>
-          <div className={box}>
-            <label className={lbl}>Status</label>
-            <Switch options={POSSES} value={posse}
-              onChange={val => set({ status: val, ...(val === 'wishlist' ? {} : { urgencia: false }) })} />
-          </div>
-          {/* Urgência é pressa de comprar: só em "Quero". Nos outros dois o
-              lugar é do dinheiro. */}
-          {querendo ? (
-            <div className={box}>
-              <label className={lbl}>Urgência</label>
-              <CheckTile danger checked={v.urgencia} onChange={e => set({ urgencia: e.target.checked })}>Urgente ⚠️</CheckTile>
-            </div>
-          ) : (
-            <div className={box}>
-              <label className={lbl}>Valor pago</label>
-              <input className="field-input" inputMode="numeric" value={v.valorPago ? moneyFormat(v.valorPago) : ''}
-                onChange={e => set({ valorPago: moneyToNumber(e.target.value) })} placeholder="R$ 0,00" />
-            </div>
-          )}
-          {saiu && (
-            <div className={box}>
-              <label className={lbl}>Retorno</label>
-              <input className="field-input" inputMode="numeric" value={v.valorRetorno ? moneyFormat(v.valorRetorno) : ''}
-                onChange={e => set({ valorRetorno: moneyToNumber(e.target.value) })} placeholder="R$ 0,00" />
-            </div>
-          )}
-          {/* Leitura e nota valem em qualquer posse: vender não desfaz a
-              leitura, e dá para ler emprestado o que nunca foi seu. */}
-          <div className={box}>
-            <label className={lbl}>Leitura</label>
-            <CheckTile checked={v.lido} onChange={e => set({ lido: e.target.checked, ...(e.target.checked ? {} : { nota: 0 }) })}>Lido</CheckTile>
-          </div>
-          {v.lido ? (
-            <div className={box}>
-              <label className={lbl}>Nota</label>
-              <div className="h-[42px] flex items-center"><EstrelasInput value={v.nota} onChange={n => set({ nota: n })} /></div>
-            </div>
-          ) : <div />}
           {/* Uma barra só para as ações do volume: repetir à esquerda, apagar
               à direita, separadas pelo vão. Eram quatro botões de texto em
               duas fileiras, com "copiar roteirista p/ todos" ocupando mais
