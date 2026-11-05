@@ -74,7 +74,7 @@ function FichaDeSituacao({ unidade, gravar, id, fila }) {
               : null)
         return (
           <div className="flex flex-wrap items-end gap-2.5">
-            <div className={`${box} w-[100px] shrink-0`}>
+            <div className={`${box} w-[92px] shrink-0`}>
               <label className={lbl} htmlFor={`valor-${id}`}>Valor pago</label>
               <CampoValor id={`valor-${id}`} valor={unidade.valorPago || 0}
                 onCommit={v => gravar({ valorPago: v })} />
@@ -83,7 +83,7 @@ function FichaDeSituacao({ unidade, gravar, id, fila }) {
             {/* Retorno: o que voltou da venda, ao lado do que saiu do bolso e
                 nunca subtraído dele — são dois números, não um saldo. */}
             {saiu && (
-              <div className={`${box} w-[100px] shrink-0`}>
+              <div className={`${box} w-[92px] shrink-0`}>
                 <label className={lbl} htmlFor={`retorno-${id}`}>Retorno</label>
                 <CampoValor id={`retorno-${id}`} valor={unidade.valorRetorno || 0}
                   onCommit={v => gravar({ valorRetorno: v })} />
@@ -95,7 +95,7 @@ function FichaDeSituacao({ unidade, gravar, id, fila }) {
               Lido
             </CheckTile>
 
-            {vaga && <div className="flex-1 min-w-[200px]">{vaga}</div>}
+            {vaga && <div className="flex-1 min-w-[136px]">{vaga}</div>}
           </div>
         )
       })()}
@@ -780,7 +780,7 @@ export default function DetailSheet({ obra: obraAberta, onClose, onEdit, onDupli
                       const marcado = volSel === iReal
                       return (
                         <button
-                          key={i} type="button" aria-pressed={marcado}
+                          key={iReal} type="button" aria-pressed={marcado}
                           onClick={() => setVolSel(marcado ? null : iReal)}
                           title={marcado ? 'Fechar a ficha deste volume' : `Abrir a ficha de ${label}`}
                           className="flex flex-col gap-2 min-w-0 text-left"

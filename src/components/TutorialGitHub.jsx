@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
+import Moldura from './Moldura.jsx'
 import { FADE, MOLA_GAVETA } from '../lib/motion.js'
 
 /* O PASSO A PASSO DO GITHUB, num lugar só.
@@ -39,18 +40,7 @@ export function PassosGitHub() {
  */
 export default function PopupTutorialGitHub({ open, onClose }) {
   return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          className="fixed inset-0 z-[70] flex items-start sm:items-center justify-center px-0 sm:px-3 py-0 sm:py-6 veu-canelado"
-          initial={{ '--veu-forca': 0 }} animate={{ '--veu-forca': 1 }} exit={{ '--veu-forca': 0 }} transition={FADE}
-          onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
-        >
-          <motion.div
-            className="w-full sm:max-w-[520px] h-full sm:h-auto sm:max-h-[85vh] flex flex-col bg-surface sm:rounded-grande sm:border sm:border-separador overflow-hidden sm:shadow-[0_40px_90px_-30px_rgba(33,33,33,.5)]"
-            initial={{ y: 24, opacity: 0.4 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 24, opacity: 0 }}
-            transition={MOLA_GAVETA}
-          >
+    <Moldura aberto={open} onFechar={onClose} z="z-[70]" largura="sm:max-w-[520px]" altura="sm:max-h-[85vh]">
             <div className="flex items-center gap-3 px-5 sm:px-6 py-4 border-b border-linha">
               <h3 className="font-cartaz font-semibold uppercase text-secao text-acento-texto flex-1">Conectar ao GitHub</h3>
               <button className="neo-icon !w-9 !h-9" onClick={onClose} aria-label="Fechar">×</button>
@@ -68,9 +58,6 @@ export default function PopupTutorialGitHub({ open, onClose }) {
             <div className="flex justify-end px-5 sm:px-6 py-3.5 border-t border-separador">
               <button type="button" className="neo-btn" onClick={onClose}>Fechar</button>
             </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    </Moldura>
   )
 }

@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
+import Moldura from './Moldura.jsx'
 import { MOLA_GAVETA, FADE } from '../lib/motion.js'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../lib/store.jsx'
@@ -86,18 +87,7 @@ export default function BulkCovers({ open, onClose, onNotice }) {
       : <span className="text-rotulo font-extrabold uppercase px-1.5 py-0.5 rounded-pequeno bg-tinta-rust text-rust">Sem par</span>
 
   return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
- className="fixed inset-0 z-[65] flex items-start sm:items-center justify-center px-0 sm:px-3 py-0 sm:py-6 veu-canelado"
-          initial={{ '--veu-forca': 0 }} animate={{ '--veu-forca': 1 }} exit={{ '--veu-forca': 0 }} transition={FADE}
-          onClick={(e) => { if (e.target === e.currentTarget && !sending) onClose() }}
-        >
-          <motion.div
- className="w-full sm:max-w-[600px] h-full sm:h-auto sm:max-h-[92vh] flex flex-col bg-surface sm:rounded-grande sm:border sm:border-separador overflow-hidden sm:shadow-[0_40px_90px_-30px_rgba(33,33,33,.5)]"
-            initial={{ y: 24, opacity: 0.4 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 24, opacity: 0 }}
-            transition={MOLA_GAVETA}
-          >
+    <Moldura aberto={open} onFechar={onClose} z="z-[65]" largura="sm:max-w-[600px]" altura="sm:max-h-[92vh]" fechaFora={!sending}>
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-separador">
               <h3 className="font-cartaz font-semibold uppercase text-secao text-acento-texto">Capas</h3>
               <button className="neo-icon !w-9 !h-9 disabled:opacity-40" onClick={onClose} disabled={sending}>×</button>
@@ -171,9 +161,6 @@ export default function BulkCovers({ open, onClose, onNotice }) {
                 {sending ? 'Enviando…' : `Enviar ${counts.m || ''} capa(s)`}
               </button>
             </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    </Moldura>
   )
 }

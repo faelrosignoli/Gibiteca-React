@@ -1,8 +1,9 @@
 import { AnimatePresence, motion } from 'framer-motion'
+import Moldura from './Moldura.jsx'
 import { MOLA_GAVETA, FADE } from '../lib/motion.js'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../lib/store.jsx'
-import { authorsOf, edOf, classeTinta, initials, listasDaObra, posseDe, normalizarPosse } from '../lib/helpers.js'
+import { authorsOf, edOf, classeTinta, initials, listasDaObra, posseDe, normalizarPosse, SELO_POSSE } from '../lib/helpers.js'
 import { TIPOS_EDICAO } from '../data.js'
 import Combo from './Combo.jsx'
 import Pessoas from './Pessoas.jsx'
@@ -11,7 +12,14 @@ import { linkDoGuia } from '../lib/catalogo.js'
 import { reduzirCapa } from '../lib/foto.js'
 import { usePergunta } from './Pergunta.jsx'
 
-const emptyVol = () => ({ nome: '', imagem: null, roteirista: '', desenhista: '', resenha: '', status: 'wishlist', urgencia: false, valorPago: 0, valorRetorno: 0, lido: false, nota: 0, _open: true })
+/* Cada volume do rascunho leva uma chave própria, e é ela que vai no
+   `key` do React. Com o índice, apagar o volume do meio fazia o React achar
+   que o 3 virou o 2 — e o painel aberto, o campo em foco e o texto digitado
+   iam parar no volume errado. A chave NÃO é gravada: o save monta o volume
+   campo a campo. */
+let proximaChave = 1
+
+const emptyVol = () => ({ _k: proximaChave++, nome: '', imagem: null, roteirista: '', desenhista: '', resenha: '', status: 'wishlist', urgencia: false, valorPago: 0, valorRetorno: 0, lido: false, nota: 0, _open: true })
 
 function draftFromObra(o) {
   if (!o || !o.id) {
@@ -37,8 +45,8 @@ function draftFromObra(o) {
 
 /* ---------- ícones ----------
    Um traço só para todos: 24 de viewBox, contorno de 2, pontas arredondadas.
-   Todo botão de ícone leva title + aria-label: o desenho dá o substantivo,
-   o rótulo ao lado dá o verbo, e o leitor de tela recebe a frase inteira. */
+   Todo botão de ícone leva title + aria-label: o desenho rascunhoá o substantivo,
+   o rótulo ao lado rascunhoá o verbo, e o leitor de tela recebe a frase inteira. */
 const svg = { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }
 /* A tampa (a barra + a alça) sai num grupo próprio para poder girar sozinha.
    Excluir obra é irreversível, e essa batida de tampa aberta no hover é uma
@@ -131,7 +139,8 @@ function VolPanel({ v, i, withCover, autores, onChange, onCopyAll, onCover, onRe
       <button type="button" onClick={() => set({ _open: !v._open })} className="w-full flex items-center gap-2 px-3 py-2 bg-paper-2 text-left">
         <span className="font-mono text-apoio font-bold text-acento-texto">#{i + 1}</span>
         <span className="text-corpo text-ink truncate flex-1">{v.nome || `Vol. ${i + 1}`}</span>
-        <span className={`pill ${owned ? 'pill-tenho' : 'pill-quero'}`}>{owned ? 'Tenho' : 'Quero'}</span>
+        {/* o selo é só leitura aqui: a posse se muda na gaveta */}
+        <span className={`pill ${SELO_POSSE[posseDe(v)].classe}`}>{SELO_POSSE[posseDe(v)].rotulo}</span>
         <svg className={`w-4 h-4 text-ink-faint transition ${v._open ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6" /></svg>
       </button>
       {v._open && (
@@ -217,18 +226,7 @@ function VolPanel({ v, i, withCover, autores, onChange, onCopyAll, onCover, onRe
  */
 function PopupListas({ aberto, listas, escolhidas, onAlternar, onFechar }) {
   return (
-    <AnimatePresence>
-      {aberto && (
-        <motion.div
-          className="fixed inset-0 z-[80] flex items-start sm:items-center justify-center px-0 sm:px-3 py-0 sm:py-6 veu-canelado"
-          initial={{ '--veu-forca': 0 }} animate={{ '--veu-forca': 1 }} exit={{ '--veu-forca': 0 }} transition={FADE}
-          onClick={(e) => { if (e.target === e.currentTarget) onFechar() }}
-        >
-          <motion.div
-            className="w-full sm:max-w-[460px] h-full sm:h-auto sm:max-h-[82vh] flex flex-col bg-surface sm:rounded-grande sm:border sm:border-separador overflow-hidden sm:shadow-[0_40px_90px_-30px_rgba(33,33,33,.5)]"
-            initial={{ y: 24, opacity: 0.4 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 24, opacity: 0 }}
-            transition={MOLA_GAVETA}
-          >
+    <Moldura aberto={aberto} onFechar={onFechar} z="z-[80]" largura="sm:max-w-[460px]" altura="sm:max-h-[82vh]">
             <div className="flex items-center gap-3 px-5 sm:px-6 py-4 border-b border-linha">
               <h3 className="font-cartaz font-semibold uppercase text-secao text-acento-texto flex-1">Listas</h3>
               <button type="button" className="neo-icon !w-9 !h-9" onClick={onFechar} aria-label="Fechar">×</button>
@@ -278,17 +276,14 @@ function PopupListas({ aberto, listas, escolhidas, onAlternar, onFechar }) {
                 Pronto
               </button>
             </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    </Moldura>
   )
 }
 
 export default function Editor({ target, onClose, onSaved }) {
   const { obras, editoras, nextId, upsertObra, deleteObra, listas, definirListasDaObra } = useStore()
   const open = target != null
-  const [d, setD] = useState(draftFromObra(null))
+  const [rascunho, setRascunho] = useState(draftFromObra(null))
   const coverRef = useRef(null)
   const [listasAberto, setListasAberto] = useState(false)
 
@@ -296,7 +291,7 @@ export default function Editor({ target, onClose, onSaved }) {
      volumes. O efeito o mantém em dia quando a quantidade muda por outro
      caminho (trocar o tipo, excluir um volume, abrir outra obra). */
   const [qtdTexto, setQtdTexto] = useState('')
-  useEffect(() => { setQtdTexto(d.vols.length ? String(d.vols.length) : '') }, [d.vols.length])
+  useEffect(() => { setQtdTexto(rascunho.vols.length ? String(rascunho.vols.length) : '') }, [rascunho.vols.length])
 
   // o modal leva meio segundo saindo de cena: trava para o 2º clique não repetir
   const fechando = useRef(false)
@@ -310,7 +305,7 @@ export default function Editor({ target, onClose, onSaved }) {
   useEffect(() => {
     if (!open) return
     const alvo = target && target.id ? target : null
-    setD({ ...draftFromObra(alvo), listas: alvo ? listasDaObra(listas, alvo.id).map(l => l.id) : [] })
+    setRascunho({ ...draftFromObra(alvo), listas: alvo ? listasDaObra(listas, alvo.id).map(l => l.id) : [] })
     // `listas` fora das dependências de propósito: mexer numa lista com o
     // Editor aberto não pode reconstruir o rascunho e apagar o que foi digitado.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -319,19 +314,19 @@ export default function Editor({ target, onClose, onSaved }) {
   const autores = useMemo(() => Array.from(new Set(obras.flatMap(authorsOf))).sort((a, b) => a.localeCompare(b, 'pt')), [obras])
   const eds = useMemo(() => Array.from(new Set([...(editoras || []), ...obras.map(edOf)].filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt')), [editoras, obras])
 
-  const isMulti = d.tipo === 'box' || d.tipo === 'serie'
-  const withCover = d.tipo === 'serie'
-  const patch = (p) => setD(s => ({ ...s, ...p }))
+  const isMulti = rascunho.tipo === 'box' || rascunho.tipo === 'serie'
+  const withCover = rascunho.tipo === 'serie'
+  const patch = (p) => setRascunho(s => ({ ...s, ...p }))
 
-  const setTipo = (t) => setD(s => {
+  const setTipo = (t) => setRascunho(s => {
     const next = { ...s, tipo: t }
     if ((t === 'box' || t === 'serie') && (!s.vols || !s.vols.length)) next.vols = [emptyVol()]
     return next
   })
   /* Tira UM volume da lista. A quantidade acompanha sozinha — o campo
-     "quantidade de volumes" le d.vols.length —, entao nao ha dois numeros
+     "quantidade de volumes" le rascunho.vols.length —, entao nao ha dois numeros
      para manter em sincronia. */
-  const removerVol = (i) => setD(s => ({ ...s, vols: s.vols.filter((_, j) => j !== i) }))
+  const removerVol = (i) => setRascunho(s => ({ ...s, vols: s.vols.filter((_, j) => j !== i) }))
 
   // volume vazio é o que ninguém encostou: cortar a cauda em branco não pergunta
   const volumeTemConteudo = (v) => !!(
@@ -346,25 +341,25 @@ export default function Editor({ target, onClose, onSaved }) {
     if (String(texto).trim() === '') return
 
     const n = Math.max(0, Math.min(80, Number(texto) || 0))
-    const perdidos = d.vols.slice(n).filter(volumeTemConteudo).length
+    const perdidos = rascunho.vols.slice(n).filter(volumeTemConteudo).length
     if (perdidos && !await perguntar({
       titulo: `Reduzir para ${n} e perder ${perdidos} ${perdidos === 1 ? 'volume preenchido' : 'volumes preenchidos'}?`,
       tom: 'perigo',
       confirmar: 'Reduzir',
     })) {
-      setQtdTexto(String(d.vols.length))   // desistiu: o campo volta ao que era
+      setQtdTexto(String(rascunho.vols.length))   // desistiu: o campo volta ao que era
       return
     }
 
-    setD(s => {
+    setRascunho(s => {
       const cur = s.vols.slice()
       if (n > cur.length) while (cur.length < n) cur.push(emptyVol())
       else cur.length = n
       return { ...s, vols: cur }
     })
   }
-  const setVol = (i, p) => setD(s => { const v = s.vols.slice(); v[i] = { ...v[i], ...p }; return { ...s, vols: v } })
-  const copyAll = (i, f) => setD(s => { const val = s.vols[i][f]; return { ...s, vols: s.vols.map(v => ({ ...v, [f]: val, ...(f === 'status' && val !== 'wishlist' ? { urgencia: false } : {}) })) } })
+  const setVol = (i, p) => setRascunho(s => { const v = s.vols.slice(); v[i] = { ...v[i], ...p }; return { ...s, vols: v } })
+  const copyAll = (i, f) => setRascunho(s => { const val = s.vols[i][f]; return { ...s, vols: s.vols.map(v => ({ ...v, [f]: val, ...(f === 'status' && val !== 'wishlist' ? { urgencia: false } : {}) })) } })
   // capa reduzida antes de entrar: crua, ela estourava a cota do navegador
   const lerCapa = async (e, guardar) => {
     const f = e.target.files?.[0]; e.target.value = ''
@@ -377,10 +372,10 @@ export default function Editor({ target, onClose, onSaved }) {
 
   const save = async () => {
     if (fechando.current) return          // já salvou; o modal ainda está saindo
-    const title = d.nome.trim()
+    const title = rascunho.nome.trim()
     if (!title) {
       await avisar({
-        titulo: d.tipo === 'box' ? 'Dê um título ao box' : d.tipo === 'serie' ? 'Dê um título à série' : 'Dê um título à obra',
+        titulo: rascunho.tipo === 'box' ? 'Dê um título ao box' : rascunho.tipo === 'serie' ? 'Dê um título à série' : 'Dê um título à obra',
         corpo: <p>É por ele que a busca acha e a estante ordena.</p>,
       })
       return
@@ -393,14 +388,14 @@ export default function Editor({ target, onClose, onSaved }) {
     // daqui faria a primeira edição de cada obra antiga apagar, em silêncio,
     // um dado que ninguém pediu para apagar. Invisível não é o mesmo que morto
     // — e se um dia o país voltar, ele está lá.
-    const base = { id: d.id ?? nextId(), nome: title, tipo: d.tipo, origem: d.origem, editora: d.editora.trim(), pais: d.pais.trim(), adulto: !!d.adulto, tags: d.genres.slice(), resenha: d.resenha.trim(), tipoEdicao: d.tipoEdicao || '' }
+    const base = { id: rascunho.id ?? nextId(), nome: title, tipo: rascunho.tipo, origem: rascunho.origem, editora: rascunho.editora.trim(), pais: rascunho.pais.trim(), adulto: !!rascunho.adulto, tags: rascunho.genres.slice(), resenha: rascunho.resenha.trim(), tipoEdicao: rascunho.tipoEdicao || '' }
     let rec
     if (isMulti) {
       /* A ÚNICA trava que sobrou é a urgência. Valor, leitura e nota
          atravessam qualquer posse — vender não desfaz o que você leu nem o
          que pagou. O retorno só existe enquanto a obra está fora: voltando
          para a estante ele é zerado, senão a venda antiga ficaria somando. */
-      const volumes = d.vols.map((v, i) => normalizarPosse({
+      const volumes = rascunho.vols.map((v, i) => normalizarPosse({
         nome: (v.nome && v.nome.trim()) || ('Vol. ' + (i + 1)),
         imagem: withCover ? (v.imagem || null) : null,
         roteirista: v.roteirista || '', desenhista: v.desenhista || '',
@@ -409,52 +404,42 @@ export default function Editor({ target, onClose, onSaved }) {
         valorPago: v.valorPago, valorRetorno: v.valorRetorno,
         lido: v.lido, nota: v.nota,
       }))
-      rec = { ...base, volumes, imagem: withCover ? (volumes[0]?.imagem || null) : (d.img || null),
+      rec = { ...base, volumes, imagem: withCover ? (volumes[0]?.imagem || null) : (rascunho.img || null),
         roteirista: '', desenhista: '', status: 'wishlist', urgencia: false, valorPago: 0, valorRetorno: 0, lido: false, nota: 0 }
     } else {
-      rec = normalizarPosse({ ...base, imagem: d.img || null,
-        roteirista: d.roteirista.trim(), desenhista: d.desenhista.trim(),
-        status: d.status, urgencia: d.urgencia,
-        valorPago: d.valorPago, valorRetorno: d.valorRetorno, lido: d.lido, nota: d.nota })
+      rec = normalizarPosse({ ...base, imagem: rascunho.img || null,
+        roteirista: rascunho.roteirista.trim(), desenhista: rascunho.desenhista.trim(),
+        status: rascunho.status, urgencia: rascunho.urgencia,
+        valorPago: rascunho.valorPago, valorRetorno: rascunho.valorRetorno, lido: rascunho.lido, nota: rascunho.nota })
     }
     fechando.current = true
     upsertObra(rec)
     /* Depois do upsert: numa obra NOVA o id só existe a partir daqui —
        `rec.id` veio de `nextId()` e é com ele que as listas são marcadas. */
-    definirListasDaObra(rec.id, d.listas)
-    onSaved?.(d.id == null ? 'Obra adicionada ✓' : 'Alterações salvas ✓')
+    definirListasDaObra(rec.id, rascunho.listas)
+    onSaved?.(rascunho.id == null ? 'Obra adicionada ✓' : 'Alterações salvas ✓')
     onClose()
   }
   const remove = async () => {
-    if (fechando.current || !d.id) return
+    if (fechando.current || !rascunho.id) return
     const ok = await perguntar({
-      titulo: `Excluir "${d.nome || 'esta obra'}" da coleção?`,
+      titulo: `Excluir "${rascunho.nome || 'esta obra'}" da coleção?`,
       tom: 'perigo',
       confirmar: 'Excluir',
     })
     if (!ok) return
     fechando.current = true   // depois da pergunta: um "não" não pode travar o Salvar
-    deleteObra(d.id); onSaved?.('Excluído.'); onClose()
+    deleteObra(rascunho.id); onSaved?.('Excluído.'); onClose()
   }
 
   return (
     <>
-      <AnimatePresence>
-        {open && (
-          <motion.div
- className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center px-0 sm:px-3 py-0 sm:py-6 veu-canelado"
-            initial={{ '--veu-forca': 0 }} animate={{ '--veu-forca': 1 }} exit={{ '--veu-forca': 0 }} transition={FADE}
-            /* o clique fora NAO fecha: aqui tem formulario preenchido, e perder
-               o cadastro por um clique no vazio custa caro. Só o X, Cancelar
-               ou Salvar fecham. */
-          >
-            <motion.div
- className="w-full sm:max-w-[640px] h-full sm:h-auto sm:max-h-[92vh] flex flex-col bg-surface sm:rounded-grande sm:border sm:border-separador overflow-hidden sm:shadow-[0_40px_90px_-30px_rgba(33,33,33,.5)]"
-              initial={{ y: 24, opacity: 0.4 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 24, opacity: 0 }}
-              transition={MOLA_GAVETA}
-            >
+      {/* fechaFora={false}: aqui tem formulário preenchido, e perder o
+          cadastro por um clique no vazio custa caro. Só o X, Cancelar ou
+          Salvar fecham. */}
+      <Moldura aberto={open} onFechar={onClose} z="z-[60]" largura="sm:max-w-[640px]" altura="sm:max-h-[92vh]" fechaFora={false}>
               <div className="flex items-center justify-between px-5 py-3.5 border-b border-separador">
-                <h3 className="font-cartaz font-semibold uppercase text-secao text-acento-texto">{d.id == null ? 'Nova obra' : 'Editar obra'}</h3>
+                <h3 className="font-cartaz font-semibold uppercase text-secao text-acento-texto">{rascunho.id == null ? 'Nova obra' : 'Editar obra'}</h3>
                 <button className="neo-icon !w-9 !h-9" onClick={onClose}>×</button>
               </div>
 
@@ -462,18 +447,18 @@ export default function Editor({ target, onClose, onSaved }) {
                 <Secao titulo="Cadastro">
                   <div className={`${box} col-span-2`}>
                     <label className={lbl}>Tipo de cadastro</label>
-                    <Switch options={[['avulso', 'Avulso'], ['box', 'Box'], ['serie', 'Série']]} value={d.tipo} onChange={setTipo} />
+                    <Switch options={[['avulso', 'Avulso'], ['box', 'Box'], ['serie', 'Série']]} value={rascunho.tipo} onChange={setTipo} />
                   </div>
 
                   <div className={`${box} col-span-2`}>
-                    <label className={lbl}>{d.tipo === 'box' ? 'Título do box' : d.tipo === 'serie' ? 'Título da série' : 'Título'}</label>
-                    <input className="field-input" value={d.nome} onChange={e => patch({ nome: e.target.value })}
-                      placeholder={d.tipo === 'box' ? 'Nome do box / coleção' : d.tipo === 'serie' ? 'Nome da série' : 'Nome da obra'} />
+                    <label className={lbl}>{rascunho.tipo === 'box' ? 'Título do box' : rascunho.tipo === 'serie' ? 'Título da série' : 'Título'}</label>
+                    <input className="field-input" value={rascunho.nome} onChange={e => patch({ nome: e.target.value })}
+                      placeholder={rascunho.tipo === 'box' ? 'Nome do box / coleção' : rascunho.tipo === 'serie' ? 'Nome da série' : 'Nome da obra'} />
                     {/* O Guia não tem API e fecha CORS: em vez de raspar o site,
                         levamos a pessoa até ele com o título já na busca.
                         Saiu de dentro da linha do título — ali comia metade da
                         largura do campo justamente no celular. */}
-                    <a href={linkDoGuia(d.nome)} target="_blank" rel="noopener noreferrer"
+                    <a href={linkDoGuia(rascunho.nome)} target="_blank" rel="noopener noreferrer"
                       className="self-end text-apoio font-semibold text-acento-texto underline underline-offset-2 hover:opacity-80"
                       title="Abrir no Guia dos Quadrinhos, em aba nova">
                       Ver no Guia dos Quadrinhos ↗
@@ -507,11 +492,11 @@ export default function Editor({ target, onClose, onSaved }) {
                       <span className="text-apoio text-ink-faint">
                         {listas.length === 0
                           ? 'nenhuma lista criada ainda'
-                          : d.listas.length === 0
+                          : rascunho.listas.length === 0
                             ? 'em nenhuma lista'
-                            : d.listas.length === 1
+                            : rascunho.listas.length === 1
                               ? 'em 1 lista'
-                              : 'em ' + d.listas.length + ' listas'}
+                              : 'em ' + rascunho.listas.length + ' listas'}
                       </span>
                     </div>
                   </div>
@@ -520,12 +505,12 @@ export default function Editor({ target, onClose, onSaved }) {
                 <Secao titulo="Publicação">
                   <div className={`${box} col-span-2`}>
                     <label className={lbl}>Origem da edição</label>
-                    <Switch options={[['nacional', 'Nacional'], ['importado', 'Importado']]} value={d.origem} onChange={v => patch({ origem: v })} />
+                    <Switch options={[['nacional', 'Nacional'], ['importado', 'Importado']]} value={rascunho.origem} onChange={v => patch({ origem: v })} />
                   </div>
 
                   <div className={`${box} col-span-2 sm:col-span-1`}>
-                    <label className={lbl}>{d.origem === 'importado' ? 'Editora' : 'Editora no Brasil'}</label>
-                    <Combo options={eds} value={d.editora} onChange={x => patch({ editora: x })} placeholder="Nome da editora" />
+                    <label className={lbl}>{rascunho.origem === 'importado' ? 'Editora' : 'Editora no Brasil'}</label>
+                    <Combo options={eds} value={rascunho.editora} onChange={x => patch({ editora: x })} placeholder="Nome da editora" />
                   </div>
 
                   {/* CONTEÚDO ADULTO.
@@ -546,7 +531,7 @@ export default function Editor({ target, onClose, onSaved }) {
                    * a capa. */}
                   <div className={`${box} col-span-2 sm:col-span-1`}>
                     <label className={lbl}>Conteúdo</label>
-                    <Switch options={[[false, 'Livre'], [true, '+18']]} value={!!d.adulto}
+                    <Switch options={[[false, 'Livre'], [true, '+18']]} value={!!rascunho.adulto}
                       onChange={v => patch({ adulto: v })} />
                   </div>
                   {/* O CAMPO DE PAÍS SAIU DAQUI, e do app inteiro.
@@ -568,7 +553,7 @@ export default function Editor({ target, onClose, onSaved }) {
                     <label className={lbl}>Tipo da edição</label>
                     <div className="flex flex-wrap gap-2">
                       {TIPOS_EDICAO.map(([v, rotulo]) => {
-                        const marcada = d.tipoEdicao === v
+                        const marcada = rascunho.tipoEdicao === v
                         return (
                           <button
                             key={v} type="button"
@@ -587,8 +572,8 @@ export default function Editor({ target, onClose, onSaved }) {
                 {!withCover && (
                   <Secao titulo="Capa">
                     <div className="col-span-2 flex items-center gap-3">
-                      {d.img
-                        ? <img src={d.img} alt="" className="h-[92px] w-auto max-w-[100px] rounded-pequeno shadow-[0_7px_18px_-8px_rgba(33,33,33,.5)] shrink-0" />
+                      {rascunho.img
+                        ? <img src={rascunho.img} alt="" className="h-[92px] w-auto max-w-[100px] rounded-pequeno shadow-[0_7px_18px_-8px_rgba(33,33,33,.5)] shrink-0" />
                         : <div className="w-16 h-[84px] rounded-pequeno border border-dashed border-separador bg-surface-2 flex items-center justify-center text-ink-faint text-rotulo text-center px-1 shrink-0">sem capa</div>}
                       <div className="flex-1 min-w-0">
                         <input ref={coverRef} type="file" accept="image/*" hidden onChange={onCover} />
@@ -596,7 +581,7 @@ export default function Editor({ target, onClose, onSaved }) {
                           <button type="button" className="neo-btn flex-1 justify-center" onClick={() => coverRef.current?.click()}>
                             <IconEnviar />Enviar imagem…
                           </button>
-                          {d.img && (
+                          {rascunho.img && (
                             <BotaoIcone perigo onClick={() => patch({ img: '' })}
                               title="Tirar a capa" aria-label="Tirar a capa"><IconLixeira /></BotaoIcone>
                           )}
@@ -608,15 +593,15 @@ export default function Editor({ target, onClose, onSaved }) {
 
                 {/* multi: volumes */}
                 {isMulti && (
-                  <Secao titulo={d.tipo === 'box' ? 'Livros do box' : 'Volumes da série'}>
+                  <Secao titulo={rascunho.tipo === 'box' ? 'Livros do box' : 'Volumes da série'}>
                     <div className={`${box} col-span-2`}>
-                      <label className={lbl}>Quantidade de {d.tipo === 'box' ? 'livros' : 'volumes'}</label>
+                      <label className={lbl}>Quantidade de {rascunho.tipo === 'box' ? 'livros' : 'volumes'}</label>
                       <input type="number" min="1" max="80" className="field-input max-w-[150px]" value={qtdTexto}
                         onChange={e => setQtd(e.target.value)} placeholder="ex.: 3" />
                     </div>
                     <div className="col-span-2 flex flex-col gap-2">
-                      {d.vols.map((v, i) => (
-                        <VolPanel key={i} v={v} i={i} withCover={withCover} autores={autores} onChange={setVol} onCopyAll={copyAll} onCover={volCover} onRemover={removerVol} podeRemover={d.vols.length > 1} />
+                      {rascunho.vols.map((v, i) => (
+                        <VolPanel key={v._k} v={v} i={i} withCover={withCover} autores={autores} onChange={setVol} onCopyAll={copyAll} onCover={volCover} onRemover={removerVol} podeRemover={rascunho.vols.length > 1} />
                       ))}
                     </div>
                   </Secao>
@@ -627,11 +612,11 @@ export default function Editor({ target, onClose, onSaved }) {
                   <>
                     <Secao titulo="Autoria">
                       <div className="col-span-2 sm:col-span-1">
-                        <Pessoas rotulo="Autor" options={autores} value={d.roteirista}
+                        <Pessoas rotulo="Autor" options={autores} value={rascunho.roteirista}
                           onChange={x => patch({ roteirista: x })} />
                       </div>
                       <div className="col-span-2 sm:col-span-1">
-                        <Pessoas rotulo="Artista" options={autores} value={d.desenhista}
+                        <Pessoas rotulo="Artista" options={autores} value={rascunho.desenhista}
                           onChange={x => patch({ desenhista: x })} />
                       </div>
                     </Secao>
@@ -642,22 +627,19 @@ export default function Editor({ target, onClose, onSaved }) {
               </div>
 
               <div className="flex items-center gap-2 px-5 py-3.5 border-t border-separador">
-                {d.id != null && <button className="neo-btn neo-btn-rust" onClick={remove}><IconLixeira />Excluir</button>}
+                {rascunho.id != null && <button className="neo-btn neo-btn-rust" onClick={remove}><IconLixeira />Excluir</button>}
                 <button className="neo-btn ml-auto" onClick={onClose}>Cancelar</button>
                 <button className="neo-btn neo-btn-moss" onClick={save}>Salvar</button>
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      </Moldura>
 
       {/* Fora da AnimatePresence do Editor: o pop-up precisa viver por cima
           dele (z-80 contra z-60) e sobreviver à própria moldura. */}
       <PopupListas
         aberto={listasAberto}
         listas={listas}
-        escolhidas={d.listas}
-        onAlternar={(id) => patch({ listas: d.listas.includes(id) ? d.listas.filter(x => x !== id) : [...d.listas, id] })}
+        escolhidas={rascunho.listas}
+        onAlternar={(id) => patch({ listas: rascunho.listas.includes(id) ? rascunho.listas.filter(x => x !== id) : [...rascunho.listas, id] })}
         onFechar={() => setListasAberto(false)}
       />
 

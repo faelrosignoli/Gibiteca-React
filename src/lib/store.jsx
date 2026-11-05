@@ -5,6 +5,9 @@ import { CONTA_VAZIA, limparCodigo, maiorDeIdade } from './conta.js'
 import { ghCheckRepo, ghGet, ghPut, lerColecao, b64enc, b64dec, guessRepo } from './cloud.js'
 import { compararColecoes, mensagemDeCommit } from './diario.js'
 import { carimboDe, decidirAoAbrir, haConflitoAoEnviar, ehColecao } from './sync.js'
+import { useTema } from './store/tema.js'
+import { useFila } from './store/fila.js'
+import { useListas } from './store/listas.js'
 
 export { carimboDe }
 
@@ -107,68 +110,28 @@ export function StoreProvider({ children }) {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSizeState] = useState(() => Number(localStorage.getItem('gibiteca_pagesize')) || 40)
 
-  /* O TEMA é o nome de um bloco `[data-tema=...]` do index.css.
-   *
-   * A lista mora aqui porque é ela que diz o que é válido guardar: um
-   * `gibiteca_tema` com lixo dentro — arquivo editado à mão, versão antiga,
-   * sincronia de outro aparelho — cai no padrão em vez de pendurar um
-   * atributo que nenhum CSS atende.
-   *
-   * O PADRÃO não escreve atributo nenhum: ele É o `:root`. O atributo só
-   * existe quando há desvio, então o dia em que o Moss deixar de ser o
-   * padrão nada fica pendurado no html.
-   */
-  const TEMA_PADRAO = 'moss'
-  const TEMAS_VALIDOS = ['moss', 'nockout', 'candy', 'midnight']
-  const [tema, setTemaState] = useState(() => {
-    try {
-      const t = localStorage.getItem('gibiteca_tema')
-      return TEMAS_VALIDOS.includes(t) ? t : TEMA_PADRAO
-    } catch (e) { return TEMA_PADRAO }
-  })
-  /* A TROCA DE TEMA É ANIMADA, e a animação só existe durante a troca.
-   *
-   * Trocar o atributo repinta a página inteira num quadro só: fundo, tinta,
-   * bordas e ícones saltam de uma paleta para a outra. Funciona, e é seco.
-   *
-   * O jeito óbvio — pôr `transition: background-color, color…` no CSS geral —
-   * cobraria caro o ano inteiro para enfeitar um clique por mês: TODO hover,
-   * TODO foco e TODA pastilha que acende passariam a arrastar meio segundo.
-   *
-   * Então a transição é LIGADA SÓ NO MOMENTO da troca, por uma classe no
-   * `<html>` que sai sozinha logo depois (ver `.trocando-tema` no index.css).
-   * Fora desse instante, o CSS é exatamente o que era.
-   *
-   * NÃO ANIMA NA PRIMEIRA PASSADA. Este efeito também roda na montagem, para
-   * pendurar o tema guardado — e ali não houve troca nenhuma: a página
-   * nasceria esmaecendo as próprias cores, como se estivesse carregando.
-   *
-   * O `setTimeout` é mais longo que a transição de propósito. Ele só precisa
-   * não cortar o movimento no meio; sobrar um pouco não custa nada, e deixa
-   * os dois números livres para divergir sem ninguém ter de sincronizá-los.
-   */
-  const primeiraPintura = useRef(true)
-  useEffect(() => {
-    const html = document.documentElement
-    const pintar = () => {
-      if (tema === TEMA_PADRAO) delete html.dataset.tema
-      else html.dataset.tema = tema
-    }
+  /* O CARIMBO E A MARCA DE SUJO SOBEM PARA O ALTO porque as fatias de baixo
+     (fila, listas) precisam de `marcarAlterado` no momento em que são
+     chamadas — e o que o JavaScript ainda não leu, ainda não existe.
 
-    if (primeiraPintura.current) { primeiraPintura.current = false; pintar(); return }
+     `dirty` diz que há alteração local por gravar; `carimbo` é a hora dela,
+     e é por ele que a nuvem decide quem está na frente. O que vem da nuvem
+     herda o carimbo de lá, para os dois lados ficarem comparáveis. */
+  const dirty = useRef(false)
+  const carimbo = useRef(init.carimbo || 0)
+  const marcarAlterado = useCallback(() => { dirty.current = true; carimbo.current = Date.now() }, [])
 
-    html.classList.add('trocando-tema')
-    pintar()
-    const t = setTimeout(() => html.classList.remove('trocando-tema'), 700)
-    /* Trocando de tema duas vezes seguidas, a limpeza da primeira tiraria a
-       classe no meio da segunda — e a segunda troca sairia seca. */
-    return () => clearTimeout(t)
-  }, [tema])
-  const setTema = useCallback((t) => {
-    const valido = TEMAS_VALIDOS.includes(t) ? t : TEMA_PADRAO
-    setTemaState(valido)
-    try { localStorage.setItem('gibiteca_tema', valido) } catch (e) { /* navegador sem storage */ }
-  }, [])
+  const [tema, setTema] = useTema()
+
+  const {
+    fila, setFila, alternarFila, removerDaFila, reordenarFila, marcarLido,
+  } = useFila({ inicial: init.fila, marcarAlterado, setObras })
+
+  const {
+    listas, setListas, criarLista, renomearLista, reordenarLista,
+    alternarNumeracao, apagarLista, alternarNaLista, definirListasDaObra,
+    podarListas, trocarNasListas,
+  } = useListas({ inicial: init.listas, marcarAlterado })
 
   // ---- obra fixada ----
   // Guarda UM id, nunca uma lista: fixar outra troca a anterior, por
@@ -188,207 +151,6 @@ export function StoreProvider({ children }) {
       return nova
     })
     setPage(1)
-  }, [])
-
-  /* ---- fila de leitura ----
-   *
-   * Mora DENTRO de `gibiteca_v1`, junto das obras, e não numa chave própria
-   * como `gibiteca_fixada`. A diferença é o que se perde ao perder: a fixada
-   * é um enfeite da grade, se refaz num clique. A fila é trabalho — uma ordem
-   * escolhida a dedo — e trabalho tem de ir junto no backup e na nuvem.
-   *
-   * O custo é que toda gravação carrega a fila, e um backup antigo não a tem.
-   * Por isso a leitura é sempre defensiva: sem `fila` no arquivo, fila vazia.
-   */
-  const [fila, setFila] = useState(init.fila)
-
-  /* Põe ou tira. Um botão só, nos dois lados — no detalhe da obra e na
-     própria fila —, porque a pergunta é a mesma: está na fila ou não? */
-  const alternarFila = useCallback((id, vol = null) => {
-    marcarAlterado()
-    setFila(lista => {
-      const k = chaveFila(id, vol)
-      const i = lista.findIndex(e => chaveFila(e.id, e.vol) === k)
-      if (i >= 0) return lista.filter((_, n) => n !== i)
-      /* Entra NO FIM. A fila é uma ordem de leitura, e o que se acabou de
-         lembrar não passa na frente do que já estava esperando — quem decide
-         isso é o arrasto. */
-      return [...lista, { id, vol }]
-    })
-  }, [])
-
-  const removerDaFila = useCallback((id, vol = null) => {
-    marcarAlterado()
-    const k = chaveFila(id, vol)
-    setFila(lista => lista.filter(e => chaveFila(e.id, e.vol) !== k))
-  }, [])
-
-  /* A nova ordem chega pronta do arrasto (Reorder do framer-motion), com as
-     MESMAS entradas em ordem diferente. Não se valida nada aqui: validar
-     significaria comparar listas a cada quadro de arrasto. */
-  const reordenarFila = useCallback((nova) => {
-    marcarAlterado()
-    setFila(nova)
-  }, [])
-
-  /* Marcar lido pela fila.
-   *
-   * Grava `lido` e a nota na unidade certa — a obra, se avulsa; o volume, se
-   * for volume — e TIRA da fila. Sair da fila não é efeito colateral: é o fim
-   * do ciclo. O que foi lido não é mais o que vem a seguir.
-   *
-   * Põe na estante (`status: 'biblioteca'`) o que ainda estivesse em
-   * "quero". Hoje isso é cinto de segurança, não caminho normal: desde que
-   * só o que está na estante entra na fila, não deveria haver "quero" aqui.
-   * Mas uma fila guardada ANTES dessa trava — ou vinda da nuvem de um
-   * aparelho mais antigo — pode ter, e marcar lido um item de desejo
-   * duraria até a próxima edição e sumiria sozinho. */
-  const marcarLido = useCallback((id, vol = null, nota = 0) => {
-    marcarAlterado()
-    setObras(lista => lista.map(o => {
-      if (o.id !== id) return o
-      const campos = { status: 'biblioteca', urgencia: false, lido: true, nota: Number(nota) || 0 }
-      if (vol == null) return { ...o, ...campos }
-      const vols = volsOf(o).slice()
-      if (!vols[vol]) return o
-      vols[vol] = { ...vols[vol], ...campos }
-      return { ...o, volumes: vols }
-    }))
-    removerDaFila(id, vol)
-  }, [removerDaFila])
-
-
-  /* ---- listas ----
-   *
-   * Pastas feitas à mão. Moram junto das obras em `gibiteca_v1`, pelo mesmo
-   * motivo da fila: é trabalho, e trabalho vai no backup e na nuvem.
-   *
-   * O id da lista sai do maior em uso + 1, igual ao das obras. Não se
-   * reaproveita id de lista apagada: o Editor guarda, enquanto está aberto,
-   * a quais listas a obra vai entrar, e um id reciclado faria esse rascunho
-   * apontar para a lista errada.
-   */
-  const [listas, setListas] = useState(init.listas)
-
-  const criarLista = useCallback((nome, ids = []) => {
-    const limpo = String(nome || '').trim()
-    if (!limpo) return null
-    let nova = null
-    marcarAlterado()
-    setListas(lista => {
-      const id = lista.reduce((m, l) => Math.max(m, l.id || 0), 0) + 1
-      /* `[...new Set(ids)]`: a tela de escolha não deixa marcar duas vezes,
-         mas quem chama pode vir de outro lugar — e id repetido apareceria
-         duas vezes na galeria, com a mesma capa. */
-      nova = { id, nome: limpo, obras: [...new Set(ids)] }
-      return [...lista, nova]
-    })
-    return nova
-  }, [])
-
-  const renomearLista = useCallback((id, nome) => {
-    const limpo = String(nome || '').trim()
-    if (!limpo) return                       // lista sem nome não se acha depois
-    marcarAlterado()
-    setListas(lista => lista.map(l => (l.id === id ? { ...l, nome: limpo } : l)))
-  }, [])
-
-  /* Apagar a lista NÃO toca nas obras. É pasta, não caixa: desfazer a pasta
-     não joga fora o que estava dentro. */
-  /* Numerar ou não — escolha POR LISTA, não um ajuste global.
-   *
-   * "Para reler" não tem ordem; "Ler nesta ordem" tem. O mesmo app serve os
-   * dois casos, e quem sabe qual é o caso é quem fez a lista.
-   *
-   * Lista antiga não tem o campo, e `undefined` é falso: ela abre sem
-   * numeração, que é como estava. Nada a migrar.
-   */
-  /* A ordem das obras dentro de UMA lista.
-   *
-   * Só a lista numerada usa: na alfabética a ordem é calculada na tela e o
-   * array guardado não importa. Guardar mesmo assim é de propósito — quem
-   * volta de alfabética para numerada reencontra a ordem que tinha montado,
-   * em vez de uma lista remexida.
-   */
-  const reordenarLista = useCallback((id, ids) => {
-    marcarAlterado()
-    setListas(lista => lista.map(l => (l.id === id ? { ...l, obras: ids } : l)))
-  }, [])
-
-  const alternarNumeracao = useCallback((id) => {
-    marcarAlterado()
-    setListas(lista => lista.map(l => (l.id === id ? { ...l, numerada: !l.numerada } : l)))
-  }, [])
-
-  const apagarLista = useCallback((id) => {
-    marcarAlterado()
-    setListas(lista => lista.filter(l => l.id !== id))
-  }, [])
-
-  /* Põe ou tira uma obra de UMA lista. Entra no fim: a ordem da galeria é a
-     ordem em que as coisas foram postas, e quem chega depois não passa na
-     frente. */
-  const alternarNaLista = useCallback((listaId, obraId) => {
-    marcarAlterado()
-    setListas(lista => lista.map(l => {
-      if (l.id !== listaId) return l
-      const dentro = l.obras.includes(obraId)
-      return { ...l, obras: dentro ? l.obras.filter(x => x !== obraId) : [...l.obras, obraId] }
-    }))
-  }, [])
-
-  /* Diz de uma vez EM QUAIS listas a obra está — é como o Editor salva.
-   *
-   * Tem de ser uma operação só, e não um `alternarNaLista` por lista: o
-   * Editor entrega o conjunto final, e aplicar em várias passadas faria cada
-   * uma gravar e disparar envio para a nuvem.
-   *
-   * Remover de onde saiu é tão importante quanto pôr onde entrou: sem isso,
-   * desmarcar uma lista no Editor não desmarcaria nada. */
-  const definirListasDaObra = useCallback((obraId, ids) => {
-    const alvo = new Set(ids || [])
-    marcarAlterado()
-    setListas(lista => lista.map(l => {
-      const dentro = l.obras.includes(obraId)
-      const deveEstar = alvo.has(l.id)
-      if (dentro === deveEstar) return l
-      return { ...l, obras: deveEstar ? [...l.obras, obraId] : l.obras.filter(x => x !== obraId) }
-    }))
-  }, [])
-
-  /* Obra apagada sai de todas as listas.
-   *
-   * A leitura já descarta id morto, então isto é faxina, não correção — mas
-   * faxina que importa: sem ela o arquivo guardado acumularia ids de obras
-   * que não existem mais, e cada backup carregaria esse lixo para a frente. */
-  const podarListas = useCallback((obrasNovas) => {
-    const vivos = new Set((obrasNovas || []).map(o => o.id))
-    setListas(lista => {
-      let mudou = false
-      const nova = lista.map(l => {
-        const obras = l.obras.filter(id => vivos.has(id))
-        if (obras.length === l.obras.length) return l
-        mudou = true
-        return { ...l, obras }
-      })
-      return mudou ? nova : lista
-    })
-  }, [])
-
-  /* Desmembrar: a série sai das listas e os VOLUMES entram no lugar dela.
-   *
-   * Podar e pronto seria perda silenciosa — a obra estava em "Para reler" e
-   * sumiria de lá sem ninguém mexer na lista. Os volumes agora são obras de
-   * verdade, e são eles que herdam o lugar, na posição onde a série estava.
-   *
-   * Sim, uma entrada vira N. Mas isso se VÊ na galeria, e ver é melhor que
-   * descobrir a falta meses depois. */
-  const trocarNasListas = useCallback((idVelho, idsNovos) => {
-    setListas(lista => lista.map(l => {
-      const i = l.obras.indexOf(idVelho)
-      if (i < 0) return l
-      return { ...l, obras: [...l.obras.slice(0, i), ...idsNovos, ...l.obras.slice(i + 1)] }
-    }))
   }, [])
 
   // ---- perfil ----
@@ -472,11 +234,6 @@ export function StoreProvider({ children }) {
 
   const pushTimer = useRef(null), pushing = useRef(false), pushAgain = useRef(false), skipPush = useRef(false)
 
-  // carimbo desta cópia. Toda alteração local o avança; o que vem da nuvem
-  // herda o carimbo de lá, para os dois lados ficarem comparáveis.
-  const carimbo = useRef(init.carimbo || 0)
-  const marcarAlterado = useCallback(() => { dirty.current = true; carimbo.current = Date.now() }, [])
-
   const pushToCloud = useCallback(async (forcar = false) => {
     const c = cloudRef.current
     if (!c.connected) return
@@ -537,7 +294,6 @@ export function StoreProvider({ children }) {
    *
    * Agora a falha é dita em voz alta — e a nuvem vira envio imediato, porque
    * passa a ser a única cópia que sobrevive a fechar a aba. */
-  const dirty = useRef(false)
   const [semEspaco, setSemEspaco] = useState(false)
   // Conta as falhas, não só se há uma. O aviso pode ser dispensado, mas uma
   // falha NOVA o traz de volta: dispensar reconhece o estado de agora, não
@@ -875,7 +631,17 @@ export function StoreProvider({ children }) {
 
   const setAgrupar = useCallback((v) => { setAgruparState(v); setPage(1) }, [])
 
-  const value = {
+  /* O VALOR DO CONTEXTO É MEMORIZADO.
+   *
+   * Sem isto ele era um objeto novo a cada render do provider, e um objeto
+   * novo faz TODA tela que lê o store se redesenhar — inclusive as que não
+   * têm nada a ver com o que mudou. Com 600 obras isso aparece ao digitar.
+   *
+   * A lista de dependências abaixo é literalmente tudo que o objeto lê. Ela
+   * é longa de propósito: esquecer um nome aqui congela a tela com dado
+   * velho, que é um defeito muito pior do que o que isto conserta.
+   * `setRecemCadastrado` é setter do React (estável) e não entra. */
+  const value = useMemo(() => ({
     obras, editoras, filters, sort, view, page: safePage, pageSize,
     setSort, setView, setPage, setPageSize, setFilter, resetFilters, loadBackup, aplicarObras,
     tema, setTema,
@@ -906,6 +672,18 @@ export function StoreProvider({ children }) {
     fixada, fixarObra,
     // nuvem
     cloud, sync, syncErro, semEspaco, falhasAoGuardar, dadoIlegivel, guessRepo, cloudConnect, cloudDisconnect, pullFromCloud, cloudPushNow,
-  }
+  }), [
+    agrupar, all, alternarFila, alternarNaLista, alternarNumeracao, apagarConta,
+    apagarLista, aplicarObras, cloud, cloudConnect, cloudDisconnect, cloudPushNow,
+    conta, criarConta, criarLista, dadoIlegivel, definirListasDaObra, deleteObra,
+    desmembrarObra, duplicarObra, editoras, entrarNaConta, falhasAoGuardar, fila,
+    filtered, filters, fixada, fixarObra, grupoContinua, guessRepo, listas, loadBackup,
+    marcarLido, nextId, obras, pageGrupos, pageItems, pageSize, perfil, pullFromCloud,
+    recemCadastrado, removerDaFila, renomearLista, reordenarFila, reordenarLista,
+    resetFilters, safePage, sairDaConta, semEspaco, sessao, setAgrupar, setConta,
+    setCovers, setFilter, setPage, setPageSize, setPerfil, setSort, setTema, setView,
+    sort, start, sync, syncErro, tamanhosDeGrupo, tema, total, totalPages, upsertObra,
+    view,
+  ])
   return <StoreCtx.Provider value={value}>{children}</StoreCtx.Provider>
 }

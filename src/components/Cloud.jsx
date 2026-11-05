@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
+import Moldura from './Moldura.jsx'
 import { MOLA_GAVETA, FADE } from '../lib/motion.js'
 import { useEffect, useState, useRef } from 'react'
 import { useStore } from '../lib/store.jsx'
@@ -19,11 +20,11 @@ export default function Cloud({ open, onClose, onNotice }) {
   const fotoRef = useRef(null)
 
   const aoEscolherFoto = async (e) => {
-    const f = e.target.files && e.target.files[0]
+    const arquivo = e.target.files && e.target.files[0]
     e.target.value = ''            // permite reescolher o MESMO arquivo depois
-    if (!f) return
+    if (!arquivo) return
     try {
-      setPerfil({ foto: await reduzirFoto(f) })
+      setPerfil({ foto: await reduzirFoto(arquivo) })
     } catch (err) {
       onNotice?.('Não deu para usar essa imagem: ' + (err && err.message))
     }
@@ -42,7 +43,7 @@ export default function Cloud({ open, onClose, onNotice }) {
     onClose()
   }
   const [movendo, setMovendo] = useState(null)   // { feitas, total } enquanto sobe
-  const [f, setF] = useState({ owner: '', repo: '', branch: 'main', path: 'data/gibiteca.json', token: '' })
+  const [form, setForm] = useState({ owner: '', repo: '', branch: 'main', path: 'data/gibiteca.json', token: '' })
   const [help, setHelp] = useState(false)
 
   const [busy, setBusy] = useState(false)
@@ -50,7 +51,7 @@ export default function Cloud({ open, onClose, onNotice }) {
   useEffect(() => {
     if (!open) return
     const g = (!cloud.owner || !cloud.repo) ? guessRepo() : { owner: '', repo: '' }
-    setF({
+    setForm({
       owner: cloud.owner || g.owner || '', repo: cloud.repo || g.repo || '',
       branch: cloud.branch || 'main', path: cloud.path || 'data/gibiteca.json', token: cloud.token || '',
     })
@@ -63,12 +64,12 @@ export default function Cloud({ open, onClose, onNotice }) {
     setHelp(false)
   }, [open, cloud, guessRepo])
 
-  const on = cloud.connected
-  const set = (k, v) => setF(s => ({ ...s, [k]: v }))
+  const conectada = cloud.connected
+  const set = (k, v) => setForm(s => ({ ...s, [k]: v }))
 
   const connect = async () => {
     setBusy(true)
-    const res = await cloudConnect(f)
+    const res = await cloudConnect(form)
     setBusy(false); onNotice?.(res.message)
   }
   const pull = async () => { setBusy(true); const ok = await pullFromCloud(); setBusy(false); onNotice?.(ok ? 'Coleção puxada da nuvem.' : 'Nada para puxar ainda.') }
@@ -93,18 +94,7 @@ export default function Cloud({ open, onClose, onNotice }) {
   }
 
   return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
- className="fixed inset-0 z-[65] flex items-start sm:items-center justify-center px-0 sm:px-3 py-0 sm:py-6 veu-canelado"
-          initial={{ '--veu-forca': 0 }} animate={{ '--veu-forca': 1 }} exit={{ '--veu-forca': 0 }} transition={FADE}
-          onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
-        >
-          <motion.div
- className="w-full sm:max-w-[560px] h-full sm:h-auto sm:max-h-[92vh] flex flex-col bg-surface sm:rounded-grande sm:border sm:border-separador overflow-hidden sm:shadow-[0_40px_90px_-30px_rgba(33,33,33,.5)]"
-            initial={{ y: 24, opacity: 0.4 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 24, opacity: 0 }}
-            transition={MOLA_GAVETA}
-          >
+    <Moldura aberto={open} onFechar={onClose} z="z-[65]" largura="sm:max-w-[560px]" altura="sm:max-h-[92vh]">
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-separador">
               {/* Mesmo título do item que abre este painel. Um nome por
                   assunto: quem clicou em "Seus dados" precisa chegar numa tela
@@ -256,19 +246,19 @@ export default function Cloud({ open, onClose, onNotice }) {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1"><label className={lbl}>Usuário (owner)</label>
-                  <input className="field-input" value={f.owner} onChange={e => set('owner', e.target.value)} placeholder="seu-usuario" autoComplete="off" spellCheck={false} /></div>
+                  <input className="field-input" value={form.owner} onChange={e => set('owner', e.target.value)} placeholder="seu-usuario" autoComplete="off" spellCheck={false} /></div>
                 <div className="flex flex-col gap-1"><label className={lbl}>Repositório</label>
-                  <input className="field-input" value={f.repo} onChange={e => set('repo', e.target.value)} placeholder="minha-gibiteca" autoComplete="off" spellCheck={false} /></div>
+                  <input className="field-input" value={form.repo} onChange={e => set('repo', e.target.value)} placeholder="minha-gibiteca" autoComplete="off" spellCheck={false} /></div>
                 <div className="flex flex-col gap-1"><label className={lbl}>Branch</label>
-                  <input className="field-input" value={f.branch} onChange={e => set('branch', e.target.value)} placeholder="main" autoComplete="off" spellCheck={false} /></div>
+                  <input className="field-input" value={form.branch} onChange={e => set('branch', e.target.value)} placeholder="main" autoComplete="off" spellCheck={false} /></div>
                 <div className="flex flex-col gap-1"><label className={lbl}>Caminho do arquivo</label>
-                  <input className="field-input" value={f.path} onChange={e => set('path', e.target.value)} placeholder="data/gibiteca.json" autoComplete="off" spellCheck={false} /></div>
+                  <input className="field-input" value={form.path} onChange={e => set('path', e.target.value)} placeholder="data/gibiteca.json" autoComplete="off" spellCheck={false} /></div>
                 <div className="flex flex-col gap-1 col-span-2"><label className={lbl}>Token de acesso</label>
-                  <input className="field-input font-mono !text-apoio" type="password" value={f.token} onChange={e => set('token', e.target.value)} placeholder="github_pat_… ou ghp_…" autoComplete="off" spellCheck={false} /></div>
+                  <input className="field-input font-mono !text-apoio" type="password" value={form.token} onChange={e => set('token', e.target.value)} placeholder="github_pat_… ou ghp_…" autoComplete="off" spellCheck={false} /></div>
               </div>
 
               {/* Só aparece quando há o que mover — senão vira ruído fixo. */}
-              {on && capas.quantas > 0 && (
+              {conectada && capas.quantas > 0 && (
                 <div className="rounded-medio border border-gold bg-tinta-gold px-3.5 py-3">
                   <div className="font-display text-obra text-ink">
                     {capas.quantas} capa{capas.quantas > 1 ? 's' : ''} está{capas.quantas > 1 ? 'ão' : ''} dentro da coleção
@@ -303,10 +293,10 @@ export default function Cloud({ open, onClose, onNotice }) {
             </div>
 
             <div className="flex flex-wrap items-center gap-2 px-5 py-3.5 border-t border-separador">
-              {on && <button className="neo-btn neo-btn-rust" onClick={disconnect} disabled={busy}>Desconectar</button>}
-              {on && <button className="neo-btn" onClick={pull} disabled={busy}>Puxar da nuvem</button>}
-              {on && <button className="neo-btn" onClick={push} disabled={busy}>Enviar agora</button>}
-              <button className="neo-btn neo-btn-moss ml-auto" onClick={connect} disabled={busy}>{busy ? 'Aguarde…' : on ? 'Reconectar' : 'Conectar'}</button>
+              {conectada && <button className="neo-btn neo-btn-rust" onClick={disconnect} disabled={busy}>Desconectar</button>}
+              {conectada && <button className="neo-btn" onClick={pull} disabled={busy}>Puxar da nuvem</button>}
+              {conectada && <button className="neo-btn" onClick={push} disabled={busy}>Enviar agora</button>}
+              <button className="neo-btn neo-btn-moss ml-auto" onClick={connect} disabled={busy}>{busy ? 'Aguarde…' : conectada ? 'Reconectar' : 'Conectar'}</button>
             </div>
 
             {/* ---- APAGAR A CONTA ----
@@ -327,9 +317,6 @@ export default function Cloud({ open, onClose, onNotice }) {
               </p>
               <button type="button" className="neo-btn neo-btn-rust" onClick={apagarEstaConta}>Apagar conta</button>
             </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    </Moldura>
   )
 }

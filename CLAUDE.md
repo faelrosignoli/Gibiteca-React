@@ -394,6 +394,57 @@ num lugar só — o Editor, a ficha, o cartão e a lista de volumes leem de lá.
 **Nada de migração:** nenhuma obra tinha o valor novo, então o dado antigo
 continua valendo como está.
 
+### A moldura dos modais mora num lugar só
+`components/Moldura.jsx` tem o véu, o cartão, a entrada e a saída. Eram as
+mesmas trinta linhas copiadas em **dez** lugares, e mudar uma sombra virava
+caçada. O que varia chega como prop — largura, altura e camada, em classe
+pronta (`sm:max-w-[620px]`) porque o Tailwind só gera o que vê escrito.
+
+`fechaFora={false}` é para quem tem formulário preenchido (o Editor).
+
+**As gavetas ficam de fora** (Filtros, Fila, Listas, Detalhe): entram pela
+lateral, se arrastam para fechar e têm controle de arrasto próprio. Forçá-las
+aqui dentro encheria a peça de exceções até ela não explicar mais nada. A
+caixa de pergunta também fica fora: ela não fecha no clique fora e não é tela
+cheia no celular.
+
+### O store deixa de ser nove assuntos
+Três fatias saíram inteiras para `lib/store/`, com as mesmas linhas e os mesmos
+comentários — mudança de endereço, não de comportamento:
+
+| arquivo | o que leva | o que precisa de fora |
+|---|---|---|
+| `store/tema.js` | o tema e a animação da troca | nada |
+| `store/fila.js` | a fila de leitura | `marcarAlterado`, `setObras` |
+| `store/listas.js` | as listas | `marcarAlterado` |
+
+O `store.jsx` caiu de **933 para 689 linhas**. `dirty`, `carimbo` e
+`marcarAlterado` subiram para o alto do provider: as fatias precisam deles no
+momento em que são chamadas, e o que o JavaScript ainda não leu, ainda não
+existe.
+
+**A nuvem continua dentro.** Ela toca em todo o resto — refs, temporizador,
+todos os setters — e a parte que dá para isolar já saiu em `sync.js`, com
+teste. Fatiar o que sobrou renderia um arquivo novo que só sabe funcionar
+recebendo doze argumentos.
+
+### O valor do contexto é memorizado
+Era um objeto novo a cada render, e objeto novo redesenha **toda** tela que lê
+o store. Hoje é `useMemo` com uma lista de 70 dependências — longa de
+propósito: esquecer um nome ali congela a tela com dado velho, defeito muito
+pior do que o que isto conserta.
+
+### Cada volume do rascunho tem chave própria
+O `key` da lista de volumes era o índice. Apagando o volume do meio, o React
+achava que o 3 virou o 2 — e o painel aberto, o campo em foco e o texto
+digitado iam para o volume errado. Agora cada um leva um `_k` criado no
+rascunho, que **não é gravado**: o save monta o volume campo a campo.
+
+### Nomes
+`d` virou `rascunho`, `f` virou `form` (nuvem), `arquivo` (a foto escolhida) e
+`filtros` (App), `on` virou `conectada`. O `d` de `<path d=\"M…\">` ficou onde
+estava.
+
 ### O Editor cadastra; a gaveta administra
 O Editor ficou com o que define a OBRA: tipo, título, editora, origem, país,
 +18, tipo da edição, capa, autoria, listas, quantos volumes e o nome e a capa

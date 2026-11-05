@@ -95,14 +95,14 @@ export default function App() {
 
   const say = (m) => { setToast(m); setTimeout(() => setToast(''), 2400) }
 
-  const f = filters
+  const filtros = filters
   /* Um campo ligado conta 1, mesmo com três valores marcados: o número diz
      quantos filtros estão em uso, não quantas opções. */
   const ligado = (v) => (Array.isArray(v) ? v.length > 0 : !!v)
   const filterCount =
-    (f.status !== 'todos' ? 1 : 0) + (f.leitura !== 'todos' ? 1 : 0) +
+    (filtros.status !== 'todos' ? 1 : 0) + (filtros.leitura !== 'todos' ? 1 : 0) +
     ['tipo', 'tipoEdicao', 'editora', 'autor', 'nota', 'importado', 'urgencia']
-      .reduce((n, k) => n + (ligado(f[k]) ? 1 : 0), 0)
+      .reduce((n, k) => n + (ligado(filtros[k]) ? 1 : 0), 0)
 
   const openEditor = (obra) => { setDetail(null); setEditor(obra || {}) }
 
