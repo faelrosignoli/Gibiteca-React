@@ -4,7 +4,7 @@ import { MOLA_GAVETA, FADE } from '../lib/motion.js'
 import { useMemo, useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import {
-  unitsOf, edOf, isImp, sumValor, tipoOf, anyUrg, ownedCount, fmtBRL, posseDe,
+  unitsOf, edOf, isImp, sumValor, tipoOf, anyUrg, ownedCount, fmtBRL, posseDe, authorsOf,
 } from '../lib/helpers.js'
 import Ticker from './Ticker.jsx'
 
@@ -107,6 +107,13 @@ export default function Stats({ open, onClose }) {
       const m = {}; O.forEach(o => { const k = keyFn(o); if (k) m[k] = (m[k] || 0) + 1 }); return m
     }
     const byEd = tally(o => edOf(o) || (isImp(o) ? 'Importado (s/ editora)' : '—'))
+
+    /* Quem mais aparece. Uma obra com dois autores conta para os dois — é
+       como se procura, e é o mesmo critério do agrupamento. */
+    const porAutor = {}
+    O.forEach(o => authorsOf(o).forEach(n => { porAutor[n] = (porAutor[n] || 0) + 1 }))
+    const autores = Object.entries(porAutor).sort((a, b) => b[1] - a[1])
+    const lideres = autores.length ? autores.filter(([, n]) => n === autores[0][1]) : []
     const invEd = {}; O.forEach(o => { const v = sumValor(o); if (v > 0) { const k = edOf(o) || '—'; invEd[k] = (invEd[k] || 0) + v } })
     const top = (obj, n = 7) => Object.entries(obj).sort((a, b) => b[1] - a[1]).slice(0, n)
 
@@ -121,11 +128,113 @@ export default function Stats({ open, onClose }) {
       avg, notaMed, obras: O.length, itens: units.length,
       importados: O.filter(isImp).length, urgentes: O.filter(anyUrg).length, completas,
       topEd: top(byEd), topInv: top(invEd),
+      editorasDistintas: Object.keys(byEd).length,
+      autoresDistintos: autores.length, lideres,
       buckets, counts,
     }
   }, [src])
 
-  const Kpi = ({ n, l, money, sub }) => (
+/* A CAPA DA EDIÇÃO.
+ *
+ * A tela abre como capa de revista porque a capa existe exatamente para
+ * dizer, em três ou quatro linhas, o que vale a pena nesta edição — que é o
+ * trabalho de uma tela de estatísticas. Despejar vinte números com o mesmo
+ * peso é o contrário disso.
+ *
+ * AS CHAMADAS TÊM REGRA, senão viram enfeite. São quatro vagas fixas, cada
+ * uma respondendo a uma pergunta própria, e a vaga SOME quando não há número
+ * para ela. Nada de escolher o fato mais "interessante" na hora: ordem fixa
+ * é previsível, e previsível é o que deixa comparar a capa de hoje com a
+ * lembrança da de um mês atrás.
+ *
+ * 1. o tamanho      — quantas obras, quantos itens
+ * 2. a editora      — quem mais publica na sua estante
+ * 3. o autor        — quem mais aparece, empate incluído
+ * 4. a posse        — o que é seu contra o que ainda é desejo
+ */
+const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+  'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
+
+// barras de larguras irregulares: código de barras é desenho, não dado
+const BARRAS = [1, 2, 1, 3, 1, 1, 2, 1, 2, 3, 1, 1, 3, 2, 1, 1, 2, 1, 3, 1, 2, 2, 1, 3, 1, 1, 2]
+
+function Chamada({ n, children, grande }) {
+  return (
+    <div className="flex gap-3 items-baseline">
+      <span className="font-mono text-rotulo font-bold text-gold pt-1 shrink-0 tracking-wider">
+        {String(n).padStart(2, '0')}
+      </span>
+      <span className={grande
+        ? 'font-display font-extrabold text-titulo sm:text-display leading-[0.98] text-sobre-acento'
+        : 'font-display font-semibold text-obra sm:text-secao leading-tight text-sobre-acento'}>
+        {children}
+      </span>
+    </div>
+  )
+}
+
+const Realce = ({ children }) => <span className="text-[#F2D98B]">{children}</span>
+
+function Capa({ s, escopo }) {
+  const agora = new Date()
+  const chamadas = []
+
+  chamadas.push(<>A coleção bate <Realce>{s.obras} obras</Realce>{s.itens !== s.obras ? <> e {s.itens} itens</> : null}</>)
+
+  const [edLider, edQtd] = s.topEd[0] || []
+  if (edLider && edLider !== '—') chamadas.push(<>{edLider} lidera com <Realce>{edQtd}</Realce></>)
+
+  if (s.lideres.length) {
+    const nomes = s.lideres.slice(0, 2).map(([n]) => n)
+    const qtd = s.lideres[0][1]
+    chamadas.push(s.lideres.length > 1
+      ? <>{nomes.join(' e ')} empatam em <Realce>{qtd}</Realce> cada</>
+      : <>{nomes[0]} aparece em <Realce>{qtd}</Realce></>)
+  }
+
+  if (s.tenho || s.quero) {
+    chamadas.push(s.quero > s.tenho
+      ? <>Só <Realce>{s.tenho}</Realce> na estante — {s.quero} ainda são desejo</>
+      : <><Realce>{s.tenho}</Realce> na estante, {s.lidos} já {s.lidos === 1 ? 'lido' : 'lidos'}</>)
+  }
+
+  return (
+    <div className="relative overflow-hidden bg-moss text-sobre-acento px-5 sm:px-6 py-5 sm:py-6 flex flex-col gap-6">
+      {/* o brilho do papel couché, no canto de cima */}
+      <div aria-hidden="true" className="absolute inset-0 pointer-events-none"
+        style={{ background: 'radial-gradient(120% 70% at 85% 0%, rgba(255,253,248,.16), transparent 60%)' }} />
+
+      <div className="relative flex items-start justify-between gap-3">
+        <div className="font-cartaz font-extrabold uppercase text-titulo sm:text-display leading-[0.85] tracking-tighter">
+          Gibiteca
+        </div>
+        <div className="font-mono text-rotulo uppercase tracking-widest text-right leading-relaxed opacity-85 shrink-0">
+          {escopo === 'filtered'
+            ? <>Edição especial<br />Filtro atual</>
+            : <>Nº {agora.getMonth() + 1}<br />{MESES[agora.getMonth()]} {agora.getFullYear()}</>}
+        </div>
+      </div>
+
+      <div className="relative flex flex-col gap-3.5">
+        {chamadas.map((c, i) => <Chamada key={i} n={i + 1} grande={i === 0}>{c}</Chamada>)}
+      </div>
+
+      <div className="relative flex items-end justify-between gap-3 pt-3 border-t border-sobre-acento/25">
+        <div aria-hidden="true" className="flex items-end gap-[2px] h-[30px]">
+          {BARRAS.map((l, i) => (
+            <span key={i} className="block bg-sobre-acento/90" style={{ width: l + 'px', height: (l === 1 ? 22 : 30) + 'px' }} />
+          ))}
+        </div>
+        <div className="font-mono text-rotulo text-right leading-relaxed whitespace-nowrap">
+          {fmtBRL(s.invest)}<br />
+          <span className="opacity-75">{s.retorno > 0 ? `investido · ${fmtBRL(s.retorno)} de volta` : 'investido até aqui'}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const Kpi = ({ n, l, money, sub }) => (
     <div className="bg-surface px-5 py-6">
       <div className={`font-mono font-medium tabular-nums whitespace-nowrap ${money ? 'text-secao text-acento-texto' : 'text-titulo text-ink'}`}>
         {money ? fmtBRL(n) : <Ticker value={n} />}{!money && sub ? <span className="text-corpo text-ink-faint font-sans font-semibold">{sub}</span> : null}
@@ -164,20 +273,24 @@ export default function Stats({ open, onClose }) {
                 </div>
               ) : (
                 <>
-                  {/* KPIs principais */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-linha">
+                  <Capa s={s} escopo={scope} />
+
+                  {/* O MIOLO. A capa já deu os destaques; aqui vem o resto,
+                      todos com o mesmo peso entre si porque nenhum é manchete. */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-linha border-t border-linha">
                     <Kpi n={s.invest} l="Investimento" money />
                     <Kpi n={s.retorno} l="Retorno" money />
-                    <Kpi n={s.tenho} l="Tenho" />
-                    <Kpi n={s.quero} l="Quero" />
-                  </div>
-                  {/* KPIs secundários */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-linha border-t border-linha">
                     <Kpi n={s.saiu} l="Tive" />
                     <Kpi n={s.pctLido} l={`Lidos (${s.lidos}/${s.ownedLen})`} sub="%" />
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-linha border-t border-linha">
                     <Kpi n={s.obras} l="Obras" />
                     <Kpi n={s.itens} l="Itens (volumes)" />
+                    <Kpi n={s.autoresDistintos} l="Autores" />
+                    <Kpi n={s.editorasDistintas} l="Editoras" />
                   </div>
+                  {/* três colunas, não quatro: com quatro sobrava uma célula
+                      vazia, que lê como dado que não carregou */}
                   <div className="grid grid-cols-3 gap-px bg-linha border-t border-linha">
                     <Kpi n={s.importados} l="Importados" />
                     <Kpi n={s.completas} l="Séries completas" />

@@ -394,6 +394,31 @@ num lugar só — o Editor, a ficha, o cartão e a lista de volumes leem de lá.
 **Nada de migração:** nenhuma obra tinha o valor novo, então o dado antigo
 continua valendo como está.
 
+### As estatísticas abrem como uma capa de revista
+A capa existe para dizer em três ou quatro linhas o que vale a pena nesta
+edição — que é o trabalho de uma tela de estatísticas. Despejar vinte números
+com o mesmo peso é o contrário disso. Então a tela abre com uma **capa**
+(logo, número da edição, chamadas, código de barras e o investido no rodapé) e
+o resto vira **miolo**.
+
+**As chamadas têm REGRA, senão viram enfeite.** Quatro vagas fixas, cada uma
+respondendo a uma pergunta própria, e a vaga **some** quando não há número
+para ela:
+
+| vaga | pergunta |
+|---|---|
+| 01 | o tamanho — quantas obras, quantos itens |
+| 02 | a editora que mais publica na sua estante |
+| 03 | o autor que mais aparece, empate incluído |
+| 04 | a posse — o que é seu contra o que ainda é desejo |
+
+Nada de escolher o fato mais "interessante" na hora. **Ordem fixa é
+previsível**, e previsível é o que deixa comparar a capa de hoje com a
+lembrança da de um mês atrás.
+
+Com o escopo em "Filtro atual" o número da edição vira **EDIÇÃO ESPECIAL**:
+aquela capa não é a do mês, é a do recorte.
+
 ### A busca lembra: buscas recentes e vistos por último
 Antes de digitar, a busca mostra um painel com as últimas buscas à esquerda e
 as capas das últimas fichas abertas à direita. Com texto no campo ele some —

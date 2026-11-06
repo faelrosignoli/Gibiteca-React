@@ -14,13 +14,17 @@ function Miniatura({ obra, velada, onAbrir }) {
     <button
       type="button" onClick={() => onAbrir(obra)}
       title={obra.nome} aria-label={`Abrir ${obra.nome}`}
-      className="relative w-full aspect-square rounded-pequeno overflow-hidden border border-linha
-                 bg-surface flex items-center justify-center transition hover:border-moss-3"
+      /* Sem moldura: a capa é a arte, e um fio em volta de cada uma vira
+         grade. O canto é o mesmo do cartão da grade (rounded-pequeno), e o
+         hover cresce um tico — nada de engrossar borda. */
+      className="relative w-full aspect-square flex items-center justify-center
+                 transition-transform duration-200 hover:scale-[1.06]"
     >
       {capa
         ? <img src={capa} alt="" loading="lazy"
-            className={`absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain ${velada ? 'capa-velada' : ''}`} />
-        : <div className={`w-full h-full flex items-center justify-center ${classeTinta(edOf(obra) || obra.nome)}`}>
+            className={`absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain
+                        rounded-pequeno shadow-[0_8px_16px_-10px_rgba(33,33,33,.5)] ${velada ? 'capa-velada' : ''}`} />
+        : <div className={`w-full h-full rounded-pequeno flex items-center justify-center ${classeTinta(edOf(obra) || obra.nome)}`}>
             <span className="font-display font-semibold text-obra text-sobre-tinta">{initials(obra.nome)}</span>
           </div>}
       {velada && (
@@ -84,10 +88,14 @@ export default function SearchOverlay({ open, onClose, onAbrirObra }) {
           onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
         >
           <motion.div
- className="w-full max-w-[620px] relative"
+ className="w-full max-w-[620px]"
             initial={{ y: -12, opacity: 0, scale: 0.98 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: -12, opacity: 0, scale: 0.98 }}
             transition={MOLA_CALMA}
           >
+            {/* O `relative` é do CAMPO, não do conjunto. Com o painel de
+                recentes embaixo, um `relative` por fora fazia a lupa e o ×,
+                que são `top-1/2`, descerem para o meio dos dois. */}
+            <div className="relative">
             <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ink-faint pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
             <input
               ref={inputRef}
@@ -106,6 +114,7 @@ export default function SearchOverlay({ open, onClose, onAbrirObra }) {
               title="Limpar a busca e fechar"
  className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-toque hover:bg-toque text-ink-soft flex items-center justify-center text-obra"
             >✕</button>
+            </div>
 
             {/* O PAINEL SÓ EXISTE ANTES DE DIGITAR. Com texto no campo quem
                 responde é a coleção atrás, e manter histórico à frente dela
