@@ -416,6 +416,27 @@ Nada de escolher o fato mais "interessante" na hora. **Ordem fixa é
 previsível**, e previsível é o que deixa comparar a capa de hoje com a
 lembrança da de um mês atrás.
 
+#### O miolo são as partes da revista
+Cada tipo de informação foi para a parte onde aquele tipo já mora:
+
+**O expediente** — a caixa de letra miúda da página 2, onde uma revista põe
+tiragem, endereço e ISSN. Leva as contagens secas (obras, itens, autores,
+editoras, importadas, séries completas, urgentes, já tive, lidos). Estavam em
+**onze caixas do tamanho de manchete**, todas gritando no mesmo volume — e são
+fatos que ninguém lê em sequência, mas que alguém um dia precisa achar. A
+linha pontilhada entre rótulo e número é a do índice de revista: é ela que
+deixa o olho correr pela coluna sem se perder de linha.
+
+**O cupom** — o destacável, com linha tracejada e tesourinha. Leva investido,
+média por item, a mais cara e o retorno. Dinheiro pede um lugar fechado e
+sério, não um número solto no meio de contagens de obra — e o cupom é o único
+objeto de revista que fala de dinheiro.
+
+**A nota média nunca aparece sozinha:** ao lado dela vai quantos itens foram
+avaliados. Média 5 de um item só não é a nota da coleção.
+
+O histograma e as duas barras por editora **ficaram como estavam**.
+
 Com o escopo em "Filtro atual" o número da edição vira **EDIÇÃO ESPECIAL**:
 aquela capa não é a do mês, é a do recorte.
 

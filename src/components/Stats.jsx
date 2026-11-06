@@ -95,12 +95,14 @@ export default function Stats({ open, onClose }) {
     const invest = units.reduce((a, u) => a + (Number(u.valorPago) || 0), 0)
     const retorno = units.reduce((a, u) => a + (Number(u.valorRetorno) || 0), 0)
     const paid = units.filter(u => Number(u.valorPago) > 0)
+    const maisCara = paid.reduce((m, u) => Math.max(m, Number(u.valorPago) || 0), 0)
     const avg = paid.length ? invest / paid.length : 0
 
     // lido é lido, tenha ou não: a conta é sobre a coleção inteira
     const lidos = units.filter(u => u.lido).length
     const pctLido = units.length ? Math.round(lidos / units.length * 100) : 0
     const rated = units.filter(u => Number(u.nota) > 0)
+    const avaliados = rated.length
     const notaMed = rated.length ? rated.reduce((a, u) => a + u.nota, 0) / rated.length : 0
 
     const tally = (keyFn) => {
@@ -127,7 +129,7 @@ export default function Stats({ open, onClose }) {
       pctLido, lidos, ownedLen: units.length,
       avg, notaMed, obras: O.length, itens: units.length,
       importados: O.filter(isImp).length, urgentes: O.filter(anyUrg).length, completas,
-      topEd: top(byEd), topInv: top(invEd),
+      topEd: top(byEd), topInv: top(invEd), maisCara, pagos: paid.length, avaliados,
       editorasDistintas: Object.keys(byEd).length,
       autoresDistintos: autores.length, lideres,
       buckets, counts,
@@ -234,6 +236,84 @@ function Capa({ s, escopo }) {
   )
 }
 
+/* O EXPEDIENTE — a caixa de letra miúda da página 2.
+ *
+ * É onde uma revista põe tiragem, endereço e ISSN: fatos que ninguém lê em
+ * sequência, mas que alguém um dia precisa achar. As contagens da coleção são
+ * exatamente isso, e estavam em onze caixas do tamanho de manchete, todas
+ * gritando no mesmo volume.
+ *
+ * A linha pontilhada entre o rótulo e o número é a do índice de revista, e é
+ * ela que deixa o olho correr pela coluna sem se perder de linha. */
+function Linha({ rotulo, valor }) {
+  return (
+    <div className="flex items-baseline gap-1.5 break-inside-avoid py-[3px]">
+      <span className="text-ink-faint whitespace-nowrap">{rotulo}</span>
+      <span className="flex-1 border-b border-dotted border-moss-line -translate-y-[3px]" />
+      <span className="font-bold tabular-nums whitespace-nowrap">{valor}</span>
+    </div>
+  )
+}
+
+function Expediente({ s }) {
+  return (
+    <div className="px-5 sm:px-6 py-5 border-t border-linha">
+      <div className="font-rotulo text-rotulo uppercase tracking-[.14em] text-ink-mute flex items-center gap-2.5 mb-3">
+        Expediente<span className="flex-1 h-px bg-moss-line" />
+      </div>
+      {/* duas colunas de verdade (CSS columns), para a lista quebrar sozinha
+          no meio e não precisar de um número fixo por coluna */}
+      <div className="columns-1 sm:columns-2 gap-x-9 font-mono text-apoio">
+        <Linha rotulo="obras" valor={s.obras} />
+        <Linha rotulo="itens (volumes)" valor={s.itens} />
+        <Linha rotulo="autores e artistas" valor={s.autoresDistintos} />
+        <Linha rotulo="editoras" valor={s.editorasDistintas} />
+        <Linha rotulo="edições importadas" valor={s.importados} />
+        <Linha rotulo="séries completas" valor={s.completas} />
+        <Linha rotulo="marcados como urgentes" valor={s.urgentes} />
+        <Linha rotulo="já tive" valor={s.saiu} />
+        <Linha rotulo="lidos" valor={`${s.lidos} de ${s.itens}`} />
+      </div>
+    </div>
+  )
+}
+
+/* O CUPOM — o destacável com a linha pontilhada e a tesourinha.
+ *
+ * O dinheiro pede um lugar fechado e sério, e não um número solto no meio de
+ * contagens de obra. O cupom é o único objeto de revista que fala de dinheiro,
+ * e por isso é onde ele cabe. */
+function Cupom({ s }) {
+  return (
+    <div className="px-5 sm:px-6 py-5 border-t border-linha">
+      <div className="relative rounded-medio border-2 border-dashed border-moss-3 bg-paper px-5 py-4">
+        <span aria-hidden="true" className="absolute -top-[11px] left-4 bg-surface px-1.5 leading-none text-moss-3 text-obra">✂</span>
+
+        <div className="font-rotulo text-rotulo uppercase tracking-[.12em] text-ink-faint mb-2">Assinatura em curso</div>
+        <div className="font-display font-extrabold text-display leading-none tabular-nums">{fmtBRL(s.invest)}</div>
+        <div className="text-corpo text-ink-faint mt-1">
+          em {s.pagos} {s.pagos === 1 ? 'item' : 'itens'} com valor anotado, de {s.itens}
+        </div>
+
+        <div className="flex flex-wrap gap-x-8 gap-y-3 mt-4 pt-3 border-t border-moss-line">
+          <div className="flex flex-col">
+            <span className="font-rotulo text-rotulo uppercase text-ink-mute">Média por item</span>
+            <span className="font-display font-bold text-obra tabular-nums">{fmtBRL(s.avg)}</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="font-rotulo text-rotulo uppercase text-ink-mute">A mais cara</span>
+            <span className="font-display font-bold text-obra tabular-nums">{fmtBRL(s.maisCara)}</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="font-rotulo text-rotulo uppercase text-ink-mute">Retorno</span>
+            <span className="font-display font-bold text-obra tabular-nums">{fmtBRL(s.retorno)}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const Kpi = ({ n, l, money, sub }) => (
     <div className="bg-surface px-5 py-6">
       <div className={`font-mono font-medium tabular-nums whitespace-nowrap ${money ? 'text-secao text-acento-texto' : 'text-titulo text-ink'}`}>
@@ -275,37 +355,22 @@ const Kpi = ({ n, l, money, sub }) => (
                 <>
                   <Capa s={s} escopo={scope} />
 
-                  {/* O MIOLO. A capa já deu os destaques; aqui vem o resto,
-                      todos com o mesmo peso entre si porque nenhum é manchete. */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-linha border-t border-linha">
-                    <Kpi n={s.invest} l="Investimento" money />
-                    <Kpi n={s.retorno} l="Retorno" money />
-                    <Kpi n={s.saiu} l="Tive" />
-                    <Kpi n={s.pctLido} l={`Lidos (${s.lidos}/${s.ownedLen})`} sub="%" />
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-linha border-t border-linha">
-                    <Kpi n={s.obras} l="Obras" />
-                    <Kpi n={s.itens} l="Itens (volumes)" />
-                    <Kpi n={s.autoresDistintos} l="Autores" />
-                    <Kpi n={s.editorasDistintas} l="Editoras" />
-                  </div>
-                  {/* três colunas, não quatro: com quatro sobrava uma célula
-                      vazia, que lê como dado que não carregou */}
-                  <div className="grid grid-cols-3 gap-px bg-linha border-t border-linha">
-                    <Kpi n={s.importados} l="Importados" />
-                    <Kpi n={s.completas} l="Séries completas" />
-                    <Kpi n={s.urgentes} l="Urgentes" />
-                  </div>
+                  {/* O MIOLO. A capa deu os destaques; o resto vem nas partes
+                      da revista onde cada tipo de informação já mora. */}
+                  <Expediente s={s} />
+                  <Cupom s={s} />
 
-                  {/* médias */}
+                  {/* A nota média fica ao lado de quantos foram avaliados: um
+                      número sem o outro mente. Média 5 de um item só não é a
+                      nota da coleção. */}
                   <div className="grid grid-cols-2 gap-4 px-5 sm:px-6 py-6 border-t border-linha">
                     <div className="rounded-medio border border-moss/15 bg-tinta-moss px-5 py-6">
                       <div className="font-mono text-titulo font-medium tabular-nums whitespace-nowrap text-acento-texto">{s.notaMed ? s.notaMed.toFixed(1) : '—'}{s.notaMed ? <span className="text-gold text-obra ml-1">★</span> : null}</div>
                       <div className="font-rotulo text-rotulo uppercase text-acento-texto/70 mt-2">Nota média</div>
                     </div>
                     <div className="rounded-medio border border-moss/15 bg-tinta-moss px-5 py-6">
-                      <div className="font-mono text-secao font-medium tabular-nums whitespace-nowrap text-acento-texto">{fmtBRL(s.avg)}</div>
-                      <div className="font-rotulo text-rotulo uppercase text-acento-texto/70 mt-2">Valor médio por item</div>
+                      <div className="font-mono text-titulo font-medium tabular-nums whitespace-nowrap text-acento-texto">{s.avaliados}</div>
+                      <div className="font-rotulo text-rotulo uppercase text-acento-texto/70 mt-2">Itens avaliados</div>
                     </div>
                   </div>
 
