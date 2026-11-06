@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useStore } from './lib/store.jsx'
+import { guardarVisto } from './lib/recentes.js'
 import Header from './components/Header.jsx'
 import Abertura from './components/Abertura.jsx'
 import { usaMovimentoReduzido } from './lib/motion.js'
@@ -104,6 +105,13 @@ export default function App() {
     ['tipo', 'tipoEdicao', 'editora', 'autor', 'nota', 'importado', 'urgencia']
       .reduce((n, k) => n + (ligado(filtros[k]) ? 1 : 0), 0)
 
+  /* Abrir a FICHA é o que conta como "visto". O cartão na grade não conta:
+     rolar a coleção encheria a lista sem ninguém ter olhado nada. */
+  const abrirDetalhe = (obra) => {
+    setDetail(obra)
+    if (obra && obra.id != null) guardarVisto(obra.id)
+  }
+
   const openEditor = (obra) => { setDetail(null); setEditor(obra || {}) }
 
   /* Duplicar já grava a cópia e abre o editor nela: o nome vem com "(cópia)"
@@ -184,7 +192,7 @@ export default function App() {
           filterCount={filterCount}
           aberturaNoAr={abrindo}
       />
-      <Collection onOpen={setDetail} />
+      <Collection onOpen={abrirDetalhe} />
       <Divisoria />
       <Footer onAbrirFicha={() => setMovimentacao(true)} fichaAberta={movimentacao} />
 
@@ -207,7 +215,7 @@ export default function App() {
       <Listas open={listasAbertas} onClose={() => setListasAbertas(false)} onNotice={say} onEditar={setEditor} />
       <FiltersDrawer open={showFilters} onClose={() => setShowFilters(false)} />
       <DetailSheet obra={detail} onClose={() => setDetail(null)} onEdit={openEditor} onDuplicar={duplicar} onDesmembrar={desmembrar} />
-      <SearchOverlay open={search} onClose={() => setSearch(false)} />
+      <SearchOverlay open={search} onClose={() => setSearch(false)} onAbrirObra={abrirDetalhe} />
       <Stats open={stats} onClose={() => setStats(false)} />
       <FichaAtividades open={movimentacao} onClose={() => setMovimentacao(false)} />
       <Configuracoes

@@ -1,11 +1,60 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { MOLA_CALMA } from '../lib/motion.js'
-import { useEffect, useRef } from 'react'
+import { MOLA_CALMA, FADE } from '../lib/motion.js'
+import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../lib/store.jsx'
+import { coverOf, capaVelada, initials, classeTinta, edOf } from '../lib/helpers.js'
+import { lerBuscas, guardarBusca, lerVistos, obrasVistas } from '../lib/recentes.js'
 
-export default function SearchOverlay({ open, onClose }) {
-  const { filters, setFilter } = useStore()
+/* UMA MINIATURA DO QUE FOI VISTO.
+   A capa +18 continua velada aqui, e com o selo: a busca não pode ser a
+   brecha por onde passa o que a trava de idade esconde no resto do app. */
+function Miniatura({ obra, velada, onAbrir }) {
+  const capa = coverOf(obra)
+  return (
+    <button
+      type="button" onClick={() => onAbrir(obra)}
+      title={obra.nome} aria-label={`Abrir ${obra.nome}`}
+      className="relative w-full aspect-square rounded-pequeno overflow-hidden border border-linha
+                 bg-surface flex items-center justify-center transition hover:border-moss-3"
+    >
+      {capa
+        ? <img src={capa} alt="" loading="lazy"
+            className={`absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain ${velada ? 'capa-velada' : ''}`} />
+        : <div className={`w-full h-full flex items-center justify-center ${classeTinta(edOf(obra) || obra.nome)}`}>
+            <span className="font-display font-semibold text-obra text-sobre-tinta">{initials(obra.nome)}</span>
+          </div>}
+      {velada && (
+        <span className="absolute inset-0 flex items-center justify-center">
+          <span className="inline-flex items-center justify-center w-8 h-8 rounded-full border-2 border-rust
+                           bg-surface/85 text-rust font-rotulo text-rotulo font-bold tracking-tight">+18</span>
+        </span>
+      )}
+    </button>
+  )
+}
+
+function IconRelogio() {
+  return (
+    <svg className="w-[14px] h-[14px] shrink-0 text-ink-mute" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+      <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />
+    </svg>
+  )
+}
+
+export default function SearchOverlay({ open, onClose, onAbrirObra }) {
+  const { filters, setFilter, obras, verAdulto } = useStore()
   const inputRef = useRef(null)
+
+  /* Os dois históricos são lidos ao ABRIR, não a cada tecla: são cache, e
+     reler o localStorage a cada letra digitada não paga nada. */
+  const [buscas, setBuscas] = useState([])
+  const [vistos, setVistos] = useState([])
+  useEffect(() => {
+    if (!open) return
+    setBuscas(lerBuscas())
+    setVistos(obrasVistas(lerVistos(), obras))
+  }, [open, obras])
 
   /* O × é "cancelar a busca", não "sair da tela": apaga o termo e fecha.
      Antes ele só fechava, e a coleção continuava filtrada por um texto que
@@ -44,7 +93,11 @@ export default function SearchOverlay({ open, onClose }) {
               ref={inputRef}
               value={filters.q}
               onChange={e => setFilter('q', e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') onClose() }}
+              /* O Enter é o que transforma o que foi digitado em busca
+                 recente: é ali que a pessoa diz "era isto que eu queria".
+                 Guardar a cada tecla encheria a lista com os pedaços de uma
+                 palavra só. */
+              onKeyDown={e => { if (e.key === 'Enter') { guardarBusca(filters.q); onClose() } }}
               placeholder="Buscar por título, editora, roteirista ou desenhista…"
  className="w-full rounded-full border border-separador bg-surface shadow-amb pl-12 pr-14 py-4 text-obra text-ink outline-none shadow-[0_24px_54px_-20px_rgba(0,0,0,.55)]"
             />
@@ -53,6 +106,51 @@ export default function SearchOverlay({ open, onClose }) {
               title="Limpar a busca e fechar"
  className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-toque hover:bg-toque text-ink-soft flex items-center justify-center text-obra"
             >✕</button>
+
+            {/* O PAINEL SÓ EXISTE ANTES DE DIGITAR. Com texto no campo quem
+                responde é a coleção atrás, e manter histórico à frente dela
+                seria competir com o próprio resultado.
+
+                No celular empilha: duas colunas em 375px dariam miniaturas do
+                tamanho de um selo. */}
+            {!filters.q.trim() && (buscas.length > 0 || vistos.length > 0) && (
+              <motion.div
+                initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={FADE}
+                className="mt-3 rounded-grande border border-separador bg-surface shadow-amb
+                           px-5 py-4 grid gap-5 sm:grid-cols-2"
+              >
+                {buscas.length > 0 && (
+                  <div className="flex flex-col gap-2 min-w-0">
+                    {buscas.map(termo => (
+                      <button
+                        key={termo} type="button"
+                        onClick={() => { setFilter('q', termo); guardarBusca(termo); onClose() }}
+                        className="flex items-center gap-2.5 text-left text-corpo text-ink-soft
+                                   hover:text-ink transition min-w-0"
+                      >
+                        <IconRelogio />
+                        <span className="truncate">{termo}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {vistos.length > 0 && (
+                  <div className="min-w-0">
+                    <div className="font-rotulo text-rotulo uppercase text-ink-mute mb-2">Vistos por último</div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {vistos.map(obra => (
+                        <Miniatura
+                          key={obra.id} obra={obra}
+                          velada={capaVelada(obra, verAdulto)}
+                          onAbrir={(o) => { onAbrirObra?.(o); onClose() }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            )}
           </motion.div>
         </motion.div>
       )}

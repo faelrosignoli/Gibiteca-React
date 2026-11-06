@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
+import { limparRecentes } from '../lib/recentes.js'
 import Moldura from './Moldura.jsx'
 import { useState } from 'react'
 import { FADE, MOLA_GAVETA } from '../lib/motion.js'
@@ -101,6 +102,7 @@ export default function Configuracoes({ open, onClose, onBulk, onBackup, onNotic
     if (!ok) return
 
     esquecerFicha()
+    limparRecentes()   // buscas e vistos por último também são cache
     try { localStorage.removeItem('gibiteca_aviso_servidor') } catch (e) { /* modo privado */ }
     try {
       if (typeof caches !== 'undefined') {

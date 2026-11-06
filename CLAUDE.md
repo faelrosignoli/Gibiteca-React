@@ -394,6 +394,32 @@ num lugar só — o Editor, a ficha, o cartão e a lista de volumes leem de lá.
 **Nada de migração:** nenhuma obra tinha o valor novo, então o dado antigo
 continua valendo como está.
 
+### A busca lembra: buscas recentes e vistos por último
+Antes de digitar, a busca mostra um painel com as últimas buscas à esquerda e
+as capas das últimas fichas abertas à direita. Com texto no campo ele some —
+quem responde ali é a coleção atrás, e histórico na frente competiria com o
+próprio resultado.
+
+**O Enter é o que vira busca recente.** O filtro já roda a cada tecla; gravar
+a cada tecla encheria a lista com os pedaços de uma palavra só. Clicar numa
+busca antiga também a reempilha.
+
+**"Visto" é ter aberto a FICHA**, não ter passado o cartão na grade — senão
+rolar a coleção encheria a lista sem ninguém ter olhado nada.
+
+**As duas listas são CACHE**, em chave própria do aparelho (`gibiteca_buscas`,
+`gibiteca_vistos`), fora de `gibiteca_v1`: não vão no backup nem sobem para a
+nuvem. Histórico de busca viajando num arquivo restaurado deixaria numa
+máquina as pesquisas feitas em outra. Somem no **Limpar cache**, com o resto
+do que é conveniência.
+
+**A capa +18 continua velada, e com o selo.** A busca não pode ser a brecha
+por onde passa o que a trava de idade esconde no resto do app.
+
+Teto de 5 buscas e 6 miniaturas. Obra apagada sai sozinha da lista — id morto
+não vira miniatura quebrada. A conta das duas listas é a mesma e está isolada
+em `comORecente()`, que tem teste.
+
 ### A moldura dos modais mora num lugar só
 `components/Moldura.jsx` tem o véu, o cartão, a entrada e a saída. Eram as
 mesmas trinta linhas copiadas em **dez** lugares, e mudar uma sombra virava

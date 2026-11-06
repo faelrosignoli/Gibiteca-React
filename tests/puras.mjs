@@ -2,6 +2,7 @@
 import * as H from '../src/lib/helpers.js'
 import * as C from '../src/lib/conta.js'
 import * as S from '../src/lib/sync.js'
+import * as R from '../src/lib/recentes.js'
 
 let ok = 0
 const falhas = []
@@ -120,6 +121,17 @@ const frags = H.fragmentosDe(serie, 10)
 eq('fragmentosDe: quantidade', frags.length, 2)
 eq('fragmentosDe: ids novos', frags.map(o => o.id), [11, 12])
 eq('fragmentosDe: obra sem volumes', H.fragmentosDe(avulsa, 10).length, 0)
+
+/* ---------- buscas e vistos recentes ---------- */
+eq("o novo vai para a frente", R.comORecente(["b", "c"], "a", 5), ["a", "b", "c"])
+eq("repetido sobe, não duplica", R.comORecente(["b", "a", "c"], "a", 5), ["a", "b", "c"])
+eq("o teto corta o fim", R.comORecente(["b", "c", "d"], "a", 3), ["a", "b", "c"])
+eq("lista vazia aceita o primeiro", R.comORecente([], "a", 5), ["a"])
+eq("obrasVistas respeita a ordem dos ids",
+  R.obrasVistas([3, 1], [{ id: 1, nome: "Akira" }, { id: 3, nome: "Maus" }]).map(o => o.nome),
+  ["Maus", "Akira"])
+eq("id de obra apagada some da lista",
+  R.obrasVistas([9, 1], [{ id: 1, nome: "Akira" }]).map(o => o.nome), ["Akira"])
 
 /* ---------- as três posses ---------- */
 eq("posseDe: sem status é quero", H.posseDe({}), "wishlist")
