@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import Moldura from './Moldura.jsx'
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useStore } from '../lib/store.jsx'
 import {
   unitsOf, edOf, isImp, tipoOf, anyUrg, ownedCount, fmtBRL, posseDe, authorsOf,
@@ -46,12 +46,13 @@ function Notas({ s }) {
 }
 
 export default function Stats({ open, onClose }) {
-  const { obras, filtered } = useStore()
-  const [scope, setScope] = useState('all')
-  const src = scope === 'all' ? obras : filtered
+  /* A TELA É SEMPRE A COLEÇÃO INTEIRA. Havia um seletor "Coleção · Filtro
+     atual" na capa: uma edição de estatísticas que mudava conforme o filtro
+     que ficou ligado lá atrás não é comparável com a de ontem. */
+  const { obras } = useStore()
 
   const s = useMemo(() => {
-    const O = src
+    const O = obras
     const units = O.flatMap(unitsOf)
     const owned = units.filter(u => posseDe(u) === 'biblioteca')
     const want = units.filter(u => posseDe(u) === 'wishlist')
@@ -100,7 +101,7 @@ export default function Stats({ open, onClose }) {
       autoresDistintos: autores.length, lideres,
       buckets, counts,
     }
-  }, [src])
+  }, [obras])
 
 /* A CAPA DA EDIÇÃO.
  *
@@ -140,7 +141,7 @@ function Chamada({ n, children, grande }) {
 
 const Realce = ({ children }) => <span className="text-[#F2D98B]">{children}</span>
 
-function Capa({ s, escopo, setEscopo, onFechar }) {
+function Capa({ s, onFechar }) {
   const chamadas = []
 
   chamadas.push(<>A coleção bate <Realce>{s.obras} obras</Realce>{s.itens !== s.obras ? <> e {s.itens} itens</> : null}</>)
@@ -169,23 +170,14 @@ function Capa({ s, escopo, setEscopo, onFechar }) {
         style={{ background: 'radial-gradient(120% 70% at 85% 0%, rgba(255,253,248,.16), transparent 60%)' }} />
 
       {/* A capa é o cabeçalho. Uma barra de título em cima dela repetia a
-          palavra "estatísticas" duas vezes em 60px de altura; o seletor de
-          escopo e o fechar vieram para cá, e a data saiu para o × ocupar a
-          vaga do canto. */}
+          palavra "estatísticas" duas vezes em 60px de altura; o fechar veio
+          para cá, e a data saiu para o × ocupar a vaga do canto. */}
       <div className="relative flex items-start justify-between gap-3">
-        <div className="flex flex-col items-start gap-3 min-w-0">
-          {/* No celular a palavra não cabe ao lado do ×: 309px de logotipo em
-              287 de linha. Cai para 22px, e aí sobra folga mesmo com o texto
-              ampliado nas configurações. */}
-          <div className="font-cartaz font-extrabold uppercase text-[calc(22px*var(--escala))] sm:text-display leading-[0.85] tracking-tighter">
-            Estatísticas
-          </div>
-          <div className="flex rounded-pequeno border border-sobre-acento/30 overflow-hidden text-apoio font-medium">
-            {[['all', 'Coleção'], ['filtered', 'Filtro atual']].map(([v, l]) => (
-              <button key={v} onClick={() => setEscopo(v)}
-                className={`px-3 py-1 transition-colors ${escopo === v ? 'bg-sobre-acento text-moss' : 'text-sobre-acento/70 hover:text-sobre-acento'}`}>{l}</button>
-            ))}
-          </div>
+        {/* No celular a palavra não cabe ao lado do ×: 309px de logotipo em
+            287 de linha. Cai para 22px, e aí sobra folga mesmo com o texto
+            ampliado nas configurações. */}
+        <div className="font-cartaz font-extrabold uppercase text-[calc(22px*var(--escala))] sm:text-display leading-[0.85] tracking-tighter min-w-0">
+          Estatísticas
         </div>
         <button onClick={onFechar} aria-label="Fechar"
           className="shrink-0 w-9 h-9 rounded-pequeno border border-sobre-acento/40 text-sobre-acento text-secao leading-none hover:bg-sobre-acento/15 transition-colors">×</button>
@@ -283,12 +275,16 @@ function Cupom({ s }) {
     <Moldura aberto={open} onFechar={onClose} z="z-[60]" largura="sm:max-w-[720px]" altura="sm:max-h-[92vh]">
             <div className="flex-1 overflow-auto sem-barra">
               {s.obras === 0 ? (
-                <div className="px-6 py-16 text-center text-ink-faint">
-                  Sem dados neste escopo. {scope === 'filtered' ? 'Ajuste os filtros' : 'Carregue sua coleção pelo Backup'}.
+                <div className="relative px-6 py-16 text-center text-ink-faint">
+                  {/* o × desta tela é o único: sem capa não há canto onde
+                      ele more, e no celular o modal ocupa a tela toda —
+                      não há "fora" para clicar */}
+                  <button className="neo-icon !w-9 !h-9 absolute top-4 right-4" onClick={onClose} aria-label="Fechar">×</button>
+                  Sem dados ainda. Carregue sua coleção pelo Backup.
                 </div>
               ) : (
                 <>
-                  <Capa s={s} escopo={scope} setEscopo={setScope} onFechar={onClose} />
+                  <Capa s={s} onFechar={onClose} />
 
                   {/* O MIOLO. A capa deu os destaques; o resto vem nas partes
                       da revista onde cada tipo de informação já mora. */}

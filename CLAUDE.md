@@ -56,7 +56,7 @@ src/
     FiltersDrawer.jsx      # gaveta de filtros (grid content-start para não esticar as linhas)
     DetailSheet.jsx        # painel de detalhe; botão Editar; grade de capas por volume
     Editor.jsx             # cadastro/edição/exclusão (avulso, box, série) + VolPanel + CheckTile
-    Stats.jsx              # painel de estatísticas (capa, expediente, cupom, notas) com escopo
+    Stats.jsx              # painel de estatísticas: capa, expediente, cupom, notas
     Cloud.jsx              # modal de conexão/sincronização com o GitHub
     BulkCovers.jsx         # envio de capas em massa (casa por nome, sobe p/ covers/)
     Welcome.jsx            # a capa: uma imagem por visita (a pasta assets/capas É a lista), celular/desktop por <picture>
@@ -177,8 +177,7 @@ alternador dá alvo grande para o polegar nos dois cantos.
 uma instância só, um lugar de verdade. (Ao contrário do que esta nota dizia
 antes: `display:none` REMOVE o elemento da árvore de acessibilidade, então
 duplicar por CSS não causaria leitura dobrada. O motivo aqui é manter um nó
-só. O seletor de escopo do painel de estatísticas usa o caminho do CSS, e
-está correto.)
+só.)
 
 **O alternador fica sempre no mesmo embrulho**, em qualquer largura — ele
 carrega `layoutId`, e trocá-lo de pai ao cruzar o corte remontaria a pastilha
@@ -398,10 +397,14 @@ continua valendo como está.
 A capa existe para dizer em três ou quatro linhas o que vale a pena nesta
 edição — que é o trabalho de uma tela de estatísticas. Despejar vinte números
 com o mesmo peso é o contrário disso. Então a tela abre com uma **capa**
-(título, escopo, chamadas, código de barras e o investido no rodapé) e
-o resto vira **miolo**. **A capa É o cabeçalho**: o seletor de escopo e o ×
-moram nela, e a data saiu para o × ocupar a vaga do canto. Uma barra de
-título por cima repetia a palavra "estatísticas" duas vezes em 60px.
+(título, chamadas, código de barras e o investido no rodapé) e o resto vira
+**miolo**. **A capa É o cabeçalho**: o × mora nela, na vaga que era da data.
+Uma barra de título por cima repetia a palavra "estatísticas" duas vezes em
+60px de altura.
+
+**A tela é sempre a coleção inteira.** Havia um seletor "Coleção · Filtro
+atual": uma edição de estatísticas que muda conforme o filtro que ficou
+ligado lá atrás não dá para comparar com a de ontem.
 
 **As chamadas têm REGRA, senão viram enfeite.** Quatro vagas fixas, cada uma
 respondendo a uma pergunta própria, e a vaga **some** quando não há número
@@ -2641,13 +2644,6 @@ abria o seletor. Foi removida. Restaurar mora num lugar só.
 **As linhas do menu encolheram** de `text-titulo` para `text-obra`. Em Lexend
 e no tamanho de título, "ESTATÍSTICAS" e "NUVEM E BACKUP" dominavam a tela
 inteira do celular.
-
-### O painel de estatísticas
-Título **ESTATÍSTICAS**, fixo — antes trocava para "N de M itens na estante",
-e o cabeçalho do painel mudava de assunto conforme o conteúdo.
-
-No celular o seletor **Coleção / Filtro atual** desce para uma faixa própria
-abaixo do título. Na mesma linha ele espremia a palavra em três linhas.
 
 ### A nuvem: "Como fazer?"
 A explicação do token ficava sempre aberta no topo do painel. Quem já conectou
