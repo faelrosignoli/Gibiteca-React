@@ -1093,8 +1093,8 @@ button:hover .ico-lixo__tampa { transform: rotate(-18deg) translateY(-1px) }
 
 /* A BARRIGA: onde o vidro é mais grosso e quase nada passa. */
 .veu-canelado::before {
-  -webkit-backdrop-filter: blur(26px) saturate(1.12);
-          backdrop-filter: blur(26px) saturate(1.12);
+  -webkit-backdrop-filter: blur(40px) saturate(1.12);
+          backdrop-filter: blur(40px) saturate(1.12);
   -webkit-mask-image: repeating-linear-gradient(90deg,
     #000 0, #000 4px, transparent 9px, transparent 10px, #000 14px);
           mask-image: repeating-linear-gradient(90deg,
@@ -1106,8 +1106,8 @@ button:hover .ico-lixo__tampa { transform: rotate(-18deg) translateY(-1px) }
    do backdrop-filter desta mesma camada, que é a única forma de a sombra não
    ser borrada pela camada de baixo. */
 .veu-canelado::after {
-  -webkit-backdrop-filter: blur(7px) saturate(1.04);
-          backdrop-filter: blur(7px) saturate(1.04);
+  -webkit-backdrop-filter: blur(12px) saturate(1.04);
+          backdrop-filter: blur(12px) saturate(1.04);
   background: repeating-linear-gradient(90deg,
     rgba(255, 255, 255, .055) 0, rgba(255, 255, 255, 0) 3px,
     rgba(0, 0, 0, .05) 7px, rgba(255, 255, 255, 0) 11px, rgba(255, 255, 255, .055) 14px);

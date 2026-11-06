@@ -125,7 +125,10 @@ export default function SearchOverlay({ open, onClose, onAbrirObra }) {
             {!filters.q.trim() && (buscas.length > 0 || vistos.length > 0) && (
               <motion.div
                 initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={FADE}
-                className="mt-3 rounded-grande border border-separador bg-surface shadow-amb
+                /* Translúcido: o painel é o segundo ator da tela, e o campo
+                   acima continua sólido. O que aparece atrás dele já vem
+                   borrado pelo véu, então o texto continua legível. */
+                className="mt-3 rounded-grande border border-separador bg-surface/70 backdrop-blur-xl shadow-amb
                            px-5 py-4 grid gap-5 sm:grid-cols-2"
               >
                 {buscas.length > 0 && (
