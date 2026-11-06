@@ -126,6 +126,11 @@ body {
   .field-linha:focus { @apply border-moss; }
 }
 
+/* Rola, mas sem a barra à mostra — para painéis que são uma página
+   inteira de conteúdo e onde o fio cinza encostado na borda vira moldura. */
+.sem-barra { scrollbar-width: none; -ms-overflow-style: none; }
+.sem-barra::-webkit-scrollbar { display: none; }
+
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-thumb { background: rgb(var(--moss-line)); border-radius: 99px; border: 2px solid rgb(var(--paper)); }
 

@@ -1,60 +1,28 @@
-import { AnimatePresence, motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import Moldura from './Moldura.jsx'
-import { MOLA_GAVETA, FADE } from '../lib/motion.js'
 import { useMemo, useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import {
-  unitsOf, edOf, isImp, sumValor, tipoOf, anyUrg, ownedCount, fmtBRL, posseDe, authorsOf,
+  unitsOf, edOf, isImp, tipoOf, anyUrg, ownedCount, fmtBRL, posseDe, authorsOf,
 } from '../lib/helpers.js'
-import Ticker from './Ticker.jsx'
 
-/* ---------- barra horizontal (itens ou dinheiro) ---------- */
-function BarRow({ nm, v, max, money, i }) {
+/* ---------- o campo das notas ----------
+   A média mora no cabeçalho do histograma, e não numa caixa própria: é a
+   mesma informação resumida, e separada ela virava um número solto. */
+function Notas({ s }) {
+  const max = Math.max(1, ...s.counts)
+  const counts = s.counts, buckets = s.buckets
   return (
-    /* EMPILHA SEMPRE: rótulo em cima, barra e número embaixo.
-     *
-     * Em linha, as duas larguras fixas (120 do rótulo + 86 do número + gaps)
-     * comiam 206px. No celular sobravam ~100px para a barra; no desktop,
-     * MENOS — 78px — porque a partir de `sm:` os gráficos ficam em duas
-     * colunas e a coluna nunca passa de ~316px. O gráfico era a menor parte
-     * da linha nos dois tamanhos.
-     *
-     * Empilhado, a barra fica com ~70% da largura em qualquer tela e o rótulo
-     * ganha a linha toda — nome de editora longo para de ser cortado. */
-    <div className="flex flex-col gap-1.5">
-      <span className="text-apoio text-ink-soft truncate" title={nm}>{nm}</span>
-      <div className="flex items-center gap-3 flex-1 min-w-0">
-      <span className="flex-1 h-[8px] rounded-pequeno bg-linha overflow-hidden">
-        <motion.span
- className="block h-full rounded-pequeno bg-moss"
-          initial={{ width: 0 }} animate={{ width: `${Math.max(4, Math.round(v / max * 100))}%` }}
-          transition={{ duration: 0.6, delay: 0.05 + i * 0.05, ease: [0.2, 0.8, 0.3, 1] }}
-        />
-      </span>
-      <span className="w-[86px] shrink-0 text-right font-mono text-apoio font-medium tabular-nums whitespace-nowrap text-ink">{money ? fmtBRL(v) : v}</span>
+    <div className="rounded-medio border border-linha bg-paper px-5 py-4">
+      <div className="flex items-baseline justify-between gap-3 mb-4">
+        <h4 className="font-display text-obra text-ink">Distribuição de notas</h4>
+        <span className="flex items-baseline gap-1.5 shrink-0">
+          <span className="font-rotulo text-rotulo uppercase text-ink-mute">média</span>
+          <span className="font-mono text-obra font-medium tabular-nums text-acento-texto whitespace-nowrap">
+            {s.notaMed ? <>{s.notaMed.toFixed(1)}<span className="text-gold ml-0.5">★</span></> : '—'}
+          </span>
+        </span>
       </div>
-    </div>
-  )
-}
-
-function Bars({ title, data, money }) {
-  const max = Math.max(1, ...data.map(d => d[1]))
-  return (
-    <div>
-      <h4 className="font-display text-obra text-ink mb-4">{title}</h4>
-      {data.length
-        ? <div className="flex flex-col gap-2.5">{data.map(([nm, v], i) => <BarRow key={nm} nm={nm} v={v} max={max} money={money} i={i} />)}</div>
-        : <p className="text-apoio text-ink-faint">Sem dados ainda.</p>}
-    </div>
-  )
-}
-
-/* ---------- histograma de notas ---------- */
-function Histogram({ counts, buckets }) {
-  const max = Math.max(1, ...counts)
-  return (
-    <div>
-      <h4 className="font-display text-obra text-ink mb-4">Distribuição de notas</h4>
       <div className="flex items-end gap-1.5 h-[120px]">
         {buckets.map((b, i) => {
           const c = counts[i]
@@ -102,7 +70,6 @@ export default function Stats({ open, onClose }) {
     const lidos = units.filter(u => u.lido).length
     const pctLido = units.length ? Math.round(lidos / units.length * 100) : 0
     const rated = units.filter(u => Number(u.nota) > 0)
-    const avaliados = rated.length
     const notaMed = rated.length ? rated.reduce((a, u) => a + u.nota, 0) / rated.length : 0
 
     const tally = (keyFn) => {
@@ -116,7 +83,6 @@ export default function Stats({ open, onClose }) {
     O.forEach(o => authorsOf(o).forEach(n => { porAutor[n] = (porAutor[n] || 0) + 1 }))
     const autores = Object.entries(porAutor).sort((a, b) => b[1] - a[1])
     const lideres = autores.length ? autores.filter(([, n]) => n === autores[0][1]) : []
-    const invEd = {}; O.forEach(o => { const v = sumValor(o); if (v > 0) { const k = edOf(o) || '—'; invEd[k] = (invEd[k] || 0) + v } })
     const top = (obj, n = 7) => Object.entries(obj).sort((a, b) => b[1] - a[1]).slice(0, n)
 
     const buckets = []; for (let v = 0.5; v <= 5.0001; v += 0.5) buckets.push(Math.round(v * 10) / 10)
@@ -129,7 +95,7 @@ export default function Stats({ open, onClose }) {
       pctLido, lidos, ownedLen: units.length,
       avg, notaMed, obras: O.length, itens: units.length,
       importados: O.filter(isImp).length, urgentes: O.filter(anyUrg).length, completas,
-      topEd: top(byEd), topInv: top(invEd), maisCara, pagos: paid.length, avaliados,
+      topEd: top(byEd), maisCara, pagos: paid.length,
       editorasDistintas: Object.keys(byEd).length,
       autoresDistintos: autores.length, lideres,
       buckets, counts,
@@ -154,9 +120,6 @@ export default function Stats({ open, onClose }) {
  * 3. o autor        — quem mais aparece, empate incluído
  * 4. a posse        — o que é seu contra o que ainda é desejo
  */
-const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
-  'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
-
 // barras de larguras irregulares: código de barras é desenho, não dado
 const BARRAS = [1, 2, 1, 3, 1, 1, 2, 1, 2, 3, 1, 1, 3, 2, 1, 1, 2, 1, 3, 1, 2, 2, 1, 3, 1, 1, 2]
 
@@ -177,8 +140,7 @@ function Chamada({ n, children, grande }) {
 
 const Realce = ({ children }) => <span className="text-[#F2D98B]">{children}</span>
 
-function Capa({ s, escopo }) {
-  const agora = new Date()
+function Capa({ s, escopo, setEscopo, onFechar }) {
   const chamadas = []
 
   chamadas.push(<>A coleção bate <Realce>{s.obras} obras</Realce>{s.itens !== s.obras ? <> e {s.itens} itens</> : null}</>)
@@ -206,15 +168,27 @@ function Capa({ s, escopo }) {
       <div aria-hidden="true" className="absolute inset-0 pointer-events-none"
         style={{ background: 'radial-gradient(120% 70% at 85% 0%, rgba(255,253,248,.16), transparent 60%)' }} />
 
+      {/* A capa é o cabeçalho. Uma barra de título em cima dela repetia a
+          palavra "estatísticas" duas vezes em 60px de altura; o seletor de
+          escopo e o fechar vieram para cá, e a data saiu para o × ocupar a
+          vaga do canto. */}
       <div className="relative flex items-start justify-between gap-3">
-        <div className="font-cartaz font-extrabold uppercase text-titulo sm:text-display leading-[0.85] tracking-tighter">
-          Gibiteca
+        <div className="flex flex-col items-start gap-3 min-w-0">
+          {/* No celular a palavra não cabe ao lado do ×: 309px de logotipo em
+              287 de linha. Cai para 22px, e aí sobra folga mesmo com o texto
+              ampliado nas configurações. */}
+          <div className="font-cartaz font-extrabold uppercase text-[calc(22px*var(--escala))] sm:text-display leading-[0.85] tracking-tighter">
+            Estatísticas
+          </div>
+          <div className="flex rounded-pequeno border border-sobre-acento/30 overflow-hidden text-apoio font-medium">
+            {[['all', 'Coleção'], ['filtered', 'Filtro atual']].map(([v, l]) => (
+              <button key={v} onClick={() => setEscopo(v)}
+                className={`px-3 py-1 transition-colors ${escopo === v ? 'bg-sobre-acento text-moss' : 'text-sobre-acento/70 hover:text-sobre-acento'}`}>{l}</button>
+            ))}
+          </div>
         </div>
-        <div className="font-mono text-rotulo uppercase tracking-widest text-right leading-relaxed opacity-85 shrink-0">
-          {escopo === 'filtered'
-            ? <>Edição especial<br />Filtro atual</>
-            : <>Nº {agora.getMonth() + 1}<br />{MESES[agora.getMonth()]} {agora.getFullYear()}</>}
-        </div>
+        <button onClick={onFechar} aria-label="Fechar"
+          className="shrink-0 w-9 h-9 rounded-pequeno border border-sobre-acento/40 text-sobre-acento text-secao leading-none hover:bg-sobre-acento/15 transition-colors">×</button>
       </div>
 
       <div className="relative flex flex-col gap-3.5">
@@ -285,100 +259,46 @@ function Expediente({ s }) {
  * e por isso é onde ele cabe. */
 function Cupom({ s }) {
   return (
-    <div className="px-5 sm:px-6 py-5 border-t border-linha">
-      <div className="relative rounded-medio border-2 border-dashed border-moss-3 bg-paper px-5 py-4">
-        <span aria-hidden="true" className="absolute -top-[11px] left-4 bg-surface px-1.5 leading-none text-moss-3 text-obra">✂</span>
+    <div className="relative rounded-medio border-2 border-dashed border-moss-3 bg-paper px-5 py-4">
+      <span aria-hidden="true" className="absolute -top-[11px] left-4 bg-surface px-1.5 leading-none text-moss-3 text-obra">✂</span>
 
-        <div className="font-rotulo text-rotulo uppercase tracking-[.12em] text-ink-faint mb-2">Assinatura em curso</div>
-        <div className="font-display font-extrabold text-display leading-none tabular-nums">{fmtBRL(s.invest)}</div>
-        <div className="text-corpo text-ink-faint mt-1">
-          em {s.pagos} {s.pagos === 1 ? 'item' : 'itens'} com valor anotado, de {s.itens}
-        </div>
+      <div className="font-rotulo text-rotulo uppercase tracking-[.12em] text-ink-faint mb-2">Investimento</div>
+      <div className="font-display font-extrabold text-titulo sm:text-display leading-none tabular-nums">{fmtBRL(s.invest)}</div>
+      <div className="text-corpo text-ink-faint mt-1">
+        em {s.pagos} {s.pagos === 1 ? 'item' : 'itens'}
+      </div>
 
-        <div className="flex flex-wrap gap-x-8 gap-y-3 mt-4 pt-3 border-t border-moss-line">
-          <div className="flex flex-col">
-            <span className="font-rotulo text-rotulo uppercase text-ink-mute">Média por item</span>
-            <span className="font-display font-bold text-obra tabular-nums">{fmtBRL(s.avg)}</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="font-rotulo text-rotulo uppercase text-ink-mute">A mais cara</span>
-            <span className="font-display font-bold text-obra tabular-nums">{fmtBRL(s.maisCara)}</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="font-rotulo text-rotulo uppercase text-ink-mute">Retorno</span>
-            <span className="font-display font-bold text-obra tabular-nums">{fmtBRL(s.retorno)}</span>
-          </div>
-        </div>
+      {/* os três em linha pontilhada, como no expediente: em meia largura os
+          cartõezinhos lado a lado quebravam no meio de um valor */}
+      <div className="mt-4 pt-2 border-t border-moss-line font-mono text-apoio">
+        <Linha rotulo="média por item" valor={fmtBRL(s.avg)} />
+        <Linha rotulo="a mais cara" valor={fmtBRL(s.maisCara)} />
+        <Linha rotulo="retorno" valor={fmtBRL(s.retorno)} />
       </div>
     </div>
   )
 }
 
-const Kpi = ({ n, l, money, sub }) => (
-    <div className="bg-surface px-5 py-6">
-      <div className={`font-mono font-medium tabular-nums whitespace-nowrap ${money ? 'text-secao text-acento-texto' : 'text-titulo text-ink'}`}>
-        {money ? fmtBRL(n) : <Ticker value={n} />}{!money && sub ? <span className="text-corpo text-ink-faint font-sans font-semibold">{sub}</span> : null}
-      </div>
-      <div className="font-rotulo text-rotulo uppercase text-ink-faint mt-2">{l}</div>
-    </div>
-  )
-
   return (
     <Moldura aberto={open} onFechar={onClose} z="z-[60]" largura="sm:max-w-[720px]" altura="sm:max-h-[92vh]">
-            {/* No celular o seletor de escopo DESCE para uma faixa própria: na
-                mesma linha do título ele espremia a palavra em três linhas, e
-                um título de uma palavra não deveria quebrar. No desktop sobra
-                largura, então ele continua ao lado. */}
-            <div className="flex items-center gap-3 px-5 sm:px-6 py-4 border-b border-linha">
-              <h3 className="font-cartaz font-semibold uppercase text-secao text-ink flex-1">Estatísticas</h3>
-              <div className="hidden sm:flex rounded-pequeno border border-separador overflow-hidden text-apoio font-medium">
-                {[['all', 'Coleção'], ['filtered', 'Filtro atual']].map(([v, l]) => (
-                  <button key={v} onClick={() => setScope(v)} className={`px-3.5 py-1.5 transition-colors ${scope === v ? 'bg-ink text-paper' : 'bg-transparent text-ink-soft hover:text-ink'}`}>{l}</button>
-                ))}
-              </div>
-              <button className="neo-icon !w-9 !h-9" onClick={onClose} aria-label="Fechar">×</button>
-            </div>
-            <div className="sm:hidden px-5 py-3 border-b border-linha">
-              <div className="flex rounded-pequeno border border-separador overflow-hidden text-apoio font-medium">
-                {[['all', 'Coleção'], ['filtered', 'Filtro atual']].map(([v, l]) => (
-                  <button key={v} onClick={() => setScope(v)} className={`flex-1 px-3.5 py-2 transition-colors ${scope === v ? 'bg-ink text-paper' : 'bg-transparent text-ink-soft hover:text-ink'}`}>{l}</button>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex-1 overflow-auto">
+            <div className="flex-1 overflow-auto sem-barra">
               {s.obras === 0 ? (
                 <div className="px-6 py-16 text-center text-ink-faint">
                   Sem dados neste escopo. {scope === 'filtered' ? 'Ajuste os filtros' : 'Carregue sua coleção pelo Backup'}.
                 </div>
               ) : (
                 <>
-                  <Capa s={s} escopo={scope} />
+                  <Capa s={s} escopo={scope} setEscopo={setScope} onFechar={onClose} />
 
                   {/* O MIOLO. A capa deu os destaques; o resto vem nas partes
                       da revista onde cada tipo de informação já mora. */}
                   <Expediente s={s} />
-                  <Cupom s={s} />
 
-                  {/* A nota média fica ao lado de quantos foram avaliados: um
-                      número sem o outro mente. Média 5 de um item só não é a
-                      nota da coleção. */}
-                  <div className="grid grid-cols-2 gap-4 px-5 sm:px-6 py-6 border-t border-linha">
-                    <div className="rounded-medio border border-moss/15 bg-tinta-moss px-5 py-6">
-                      <div className="font-mono text-titulo font-medium tabular-nums whitespace-nowrap text-acento-texto">{s.notaMed ? s.notaMed.toFixed(1) : '—'}{s.notaMed ? <span className="text-gold text-obra ml-1">★</span> : null}</div>
-                      <div className="font-rotulo text-rotulo uppercase text-acento-texto/70 mt-2">Nota média</div>
-                    </div>
-                    <div className="rounded-medio border border-moss/15 bg-tinta-moss px-5 py-6">
-                      <div className="font-mono text-titulo font-medium tabular-nums whitespace-nowrap text-acento-texto">{s.avaliados}</div>
-                      <div className="font-rotulo text-rotulo uppercase text-acento-texto/70 mt-2">Itens avaliados</div>
-                    </div>
-                  </div>
-
-                  <div className="px-5 sm:px-6 py-8 border-t border-linha"><Histogram counts={s.counts} buckets={s.buckets} /></div>
-
-                  <div className="px-5 sm:px-6 pt-8 pb-10 border-t border-linha grid sm:grid-cols-2 gap-x-10 gap-y-9">
-                    <Bars title="Itens por editora" data={s.topEd} />
-                    <Bars title="Investimento por editora" data={s.topInv} money />
+                  {/* dinheiro e notas lado a lado: são os dois juízos sobre a
+                      mesma coleção, um do bolso e um do gosto */}
+                  <div className="px-5 sm:px-6 pt-6 pb-8 border-t border-linha grid sm:grid-cols-2 gap-5 items-start">
+                    <Cupom s={s} />
+                    <Notas s={s} />
                   </div>
                 </>
               )}

@@ -56,7 +56,7 @@ src/
     FiltersDrawer.jsx      # gaveta de filtros (grid content-start para não esticar as linhas)
     DetailSheet.jsx        # painel de detalhe; botão Editar; grade de capas por volume
     Editor.jsx             # cadastro/edição/exclusão (avulso, box, série) + VolPanel + CheckTile
-    Stats.jsx              # painel de estatísticas (KPIs, médias, histograma, barras) com escopo
+    Stats.jsx              # painel de estatísticas (capa, expediente, cupom, notas) com escopo
     Cloud.jsx              # modal de conexão/sincronização com o GitHub
     BulkCovers.jsx         # envio de capas em massa (casa por nome, sobe p/ covers/)
     Welcome.jsx            # a capa: uma imagem por visita (a pasta assets/capas É a lista), celular/desktop por <picture>
@@ -398,8 +398,10 @@ continua valendo como está.
 A capa existe para dizer em três ou quatro linhas o que vale a pena nesta
 edição — que é o trabalho de uma tela de estatísticas. Despejar vinte números
 com o mesmo peso é o contrário disso. Então a tela abre com uma **capa**
-(logo, número da edição, chamadas, código de barras e o investido no rodapé) e
-o resto vira **miolo**.
+(título, escopo, chamadas, código de barras e o investido no rodapé) e
+o resto vira **miolo**. **A capa É o cabeçalho**: o seletor de escopo e o ×
+moram nela, e a data saiu para o × ocupar a vaga do canto. Uma barra de
+título por cima repetia a palavra "estatísticas" duas vezes em 60px.
 
 **As chamadas têm REGRA, senão viram enfeite.** Quatro vagas fixas, cada uma
 respondendo a uma pergunta própria, e a vaga **some** quando não há número
@@ -430,15 +432,18 @@ deixa o olho correr pela coluna sem se perder de linha.
 **O cupom** — o destacável, com linha tracejada e tesourinha. Leva investido,
 média por item, a mais cara e o retorno. Dinheiro pede um lugar fechado e
 sério, não um número solto no meio de contagens de obra — e o cupom é o único
-objeto de revista que fala de dinheiro.
+objeto de revista que fala de dinheiro. Os três valores do pé usam a mesma
+linha pontilhada do expediente: em meia largura os cartõezinhos lado a lado
+quebravam no meio de um valor.
 
-**A nota média nunca aparece sozinha:** ao lado dela vai quantos itens foram
-avaliados. Média 5 de um item só não é a nota da coleção.
+**O campo das notas** fica ao LADO do cupom — são os dois juízos sobre a mesma
+coleção, um do bolso e um do gosto. A **nota média** mora no cabeçalho do
+histograma: é o resumo dele, e numa caixa própria virava um número solto.
 
-O histograma e as duas barras por editora **ficaram como estavam**.
+As duas barras por editora **saíram**: `Bars`, `BarRow` e o `Kpi` foram junto.
 
-Com o escopo em "Filtro atual" o número da edição vira **EDIÇÃO ESPECIAL**:
-aquela capa não é a do mês, é a do recorte.
+O painel rola sem barra à mostra (`.sem-barra`): é uma página inteira de
+conteúdo, e o fio cinza encostado na borda virava moldura.
 
 ### A busca lembra: buscas recentes e vistos por último
 Antes de digitar, a busca mostra um painel com as últimas buscas à esquerda e
@@ -755,12 +760,11 @@ só olha o volume 1, então mover a capa dos outros caía no genérico "Editou" 
 foi o que encheu o histórico de 110 linhas iguais. E `data:` → endereço é tipo
 próprio (`capa-nuvem`): é arrumação, não capa nova.
 
-### Barras das estatísticas empilham sempre
-O rótulo tinha 120px fixos e o número 86px. Sobravam ~100px de barra no
-celular e **78px no desktop** — pior lá, porque a partir de `sm:` os gráficos
-ficam em duas colunas e a coluna nunca passa de ~316px. Empilhado (rótulo em
-cima, barra e número embaixo) a barra fica com ~70% em qualquer tela, e nome
-de editora longo para de ser cortado.
+### O título das estatísticas encolhe no celular
+"ESTATÍSTICAS" em `font-cartaz` a 28px mede **309px**, e ao lado do × sobram
+**287**. A palavra não quebra, então a saída é o tamanho: `calc(22px *
+var(--escala))` no celular, que ainda cabe com o texto ampliado nas
+configurações. No desktop volta a `text-display`.
 
 ### Alvo de toque do Galeria/Lista
 No celular o rótulo some e sobra só o ícone; sem `min-w-[44px] min-h-[40px]`
