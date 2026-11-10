@@ -3,7 +3,7 @@ import Moldura from './Moldura.jsx'
 import { useMemo } from 'react'
 import { useStore } from '../lib/store.jsx'
 import {
-  unitsOf, edOf, isImp, tipoOf, anyUrg, ownedCount, fmtBRL, posseDe, authorsOf,
+  unitsOf, edOf, isImp, fmtBRL, posseDe, authorsOf,
 } from '../lib/helpers.js'
 
 /* ---------- o campo das notas ----------
@@ -56,7 +56,6 @@ export default function Stats({ open, onClose }) {
     const units = O.flatMap(unitsOf)
     const owned = units.filter(u => posseDe(u) === 'biblioteca')
     const want = units.filter(u => posseDe(u) === 'wishlist')
-    const saiu = units.filter(u => posseDe(u) === 'tive')
 
     /* DOIS TOTAIS, NUNCA UM SALDO. O investido conta tudo que saiu do bolso,
        inclusive o que você já vendeu — pagar não desacontece. O retorno é o
@@ -69,7 +68,6 @@ export default function Stats({ open, onClose }) {
 
     // lido é lido, tenha ou não: a conta é sobre a coleção inteira
     const lidos = units.filter(u => u.lido).length
-    const pctLido = units.length ? Math.round(lidos / units.length * 100) : 0
     const rated = units.filter(u => Number(u.nota) > 0)
     const notaMed = rated.length ? rated.reduce((a, u) => a + u.nota, 0) / rated.length : 0
 
@@ -89,16 +87,10 @@ export default function Stats({ open, onClose }) {
     const buckets = []; for (let v = 0.5; v <= 5.0001; v += 0.5) buckets.push(Math.round(v * 10) / 10)
     const counts = buckets.map(b => units.filter(u => Number(u.nota) === b).length)
 
-    const completas = O.filter(o => { const t = tipoOf(o); if (t !== 'serie' && t !== 'box') return false; const tot = unitsOf(o).length; return tot > 0 && ownedCount(o) >= tot }).length
-
     return {
-      invest, retorno, tenho: owned.length, quero: want.length, saiu: saiu.length,
-      pctLido, lidos, ownedLen: units.length,
+      invest, retorno, tenho: owned.length, quero: want.length, lidos,
       avg, notaMed, obras: O.length, itens: units.length,
-      importados: O.filter(isImp).length, urgentes: O.filter(anyUrg).length, completas,
-      topEd: top(byEd), maisCara, pagos: paid.length,
-      editorasDistintas: Object.keys(byEd).length,
-      autoresDistintos: autores.length, lideres,
+      topEd: top(byEd), maisCara, pagos: paid.length, lideres,
       buckets, counts,
     }
   }, [obras])
@@ -202,44 +194,14 @@ function Capa({ s, onFechar }) {
   )
 }
 
-/* O EXPEDIENTE — a caixa de letra miúda da página 2.
- *
- * É onde uma revista põe tiragem, endereço e ISSN: fatos que ninguém lê em
- * sequência, mas que alguém um dia precisa achar. As contagens da coleção são
- * exatamente isso, e estavam em onze caixas do tamanho de manchete, todas
- * gritando no mesmo volume.
- *
- * A linha pontilhada entre o rótulo e o número é a do índice de revista, e é
- * ela que deixa o olho correr pela coluna sem se perder de linha. */
+/* A LINHA PONTILHADA do índice de revista: é ela que deixa o olho correr
+ * pela coluna sem se perder de linha. */
 function Linha({ rotulo, valor }) {
   return (
     <div className="flex items-baseline gap-1.5 break-inside-avoid py-[3px]">
       <span className="text-ink-faint whitespace-nowrap">{rotulo}</span>
       <span className="flex-1 border-b border-dotted border-moss-line -translate-y-[3px]" />
       <span className="font-bold tabular-nums whitespace-nowrap">{valor}</span>
-    </div>
-  )
-}
-
-function Expediente({ s }) {
-  return (
-    <div className="px-5 sm:px-6 py-5 border-t border-linha">
-      <div className="font-rotulo text-rotulo uppercase tracking-[.14em] text-ink-mute flex items-center gap-2.5 mb-3">
-        Expediente<span className="flex-1 h-px bg-moss-line" />
-      </div>
-      {/* duas colunas de verdade (CSS columns), para a lista quebrar sozinha
-          no meio e não precisar de um número fixo por coluna */}
-      <div className="columns-1 sm:columns-2 gap-x-9 font-dado text-apoio">
-        <Linha rotulo="obras" valor={s.obras} />
-        <Linha rotulo="itens (volumes)" valor={s.itens} />
-        <Linha rotulo="autores e artistas" valor={s.autoresDistintos} />
-        <Linha rotulo="editoras" valor={s.editorasDistintas} />
-        <Linha rotulo="edições importadas" valor={s.importados} />
-        <Linha rotulo="séries completas" valor={s.completas} />
-        <Linha rotulo="marcados como urgentes" valor={s.urgentes} />
-        <Linha rotulo="já tive" valor={s.saiu} />
-        <Linha rotulo="lidos" valor={`${s.lidos} de ${s.itens}`} />
-      </div>
     </div>
   )
 }
@@ -260,7 +222,7 @@ function Cupom({ s }) {
         em {s.pagos} {s.pagos === 1 ? 'item' : 'itens'}
       </div>
 
-      {/* os três em linha pontilhada, como no expediente: em meia largura os
+      {/* os três em linha pontilhada de índice de revista: em meia largura os
           cartõezinhos lado a lado quebravam no meio de um valor */}
       <div className="mt-4 pt-2 border-t border-moss-line font-dado text-apoio">
         <Linha rotulo="média por item" valor={fmtBRL(s.avg)} />
@@ -287,12 +249,11 @@ function Cupom({ s }) {
                   <Capa s={s} onFechar={onClose} />
 
                   {/* O MIOLO. A capa deu os destaques; o resto vem nas partes
-                      da revista onde cada tipo de informação já mora. */}
-                  <Expediente s={s} />
+                      da revista onde cada tipo de informação já mora.
 
-                  {/* dinheiro e notas lado a lado: são os dois juízos sobre a
-                      mesma coleção, um do bolso e um do gosto */}
-                  <div className="px-5 sm:px-6 pt-6 pb-8 border-t border-linha grid sm:grid-cols-2 gap-5 items-start">
+                      Dinheiro e notas lado a lado: são os dois juízos sobre a
+                      mesma coleção, um do bolso e um do gosto. */}
+                  <div className="px-5 sm:px-6 pt-6 pb-8 grid sm:grid-cols-2 gap-5 items-start">
                     <Cupom s={s} />
                     <Notas s={s} />
                   </div>

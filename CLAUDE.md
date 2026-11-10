@@ -56,7 +56,7 @@ src/
     FiltersDrawer.jsx      # gaveta de filtros (grid content-start para não esticar as linhas)
     DetailSheet.jsx        # painel de detalhe; botão Editar; grade de capas por volume
     Editor.jsx             # cadastro/edição/exclusão (avulso, box, série) + VolPanel + CheckTile
-    Stats.jsx              # painel de estatísticas: capa, expediente, cupom, notas
+    Stats.jsx              # painel de estatísticas: capa, cupom, notas
     Cloud.jsx              # modal de conexão/sincronização com o GitHub
     BulkCovers.jsx         # envio de capas em massa (casa por nome, sobe p/ covers/)
     Welcome.jsx            # a capa: uma imagem por visita (a pasta assets/capas É a lista), celular/desktop por <picture>
@@ -435,26 +435,27 @@ lembrança da de um mês atrás.
 #### O miolo são as partes da revista
 Cada tipo de informação foi para a parte onde aquele tipo já mora:
 
-**O expediente** — a caixa de letra miúda da página 2, onde uma revista põe
-tiragem, endereço e ISSN. Leva as contagens secas (obras, itens, autores,
-editoras, importadas, séries completas, urgentes, já tive, lidos). Estavam em
-**onze caixas do tamanho de manchete**, todas gritando no mesmo volume — e são
-fatos que ninguém lê em sequência, mas que alguém um dia precisa achar. A
-linha pontilhada entre rótulo e número é a do índice de revista: é ela que
-deixa o olho correr pela coluna sem se perder de linha.
-
 **O cupom** — o destacável, com linha tracejada e tesourinha. Leva investido,
 média por item, a mais cara e o retorno. Dinheiro pede um lugar fechado e
 sério, não um número solto no meio de contagens de obra — e o cupom é o único
-objeto de revista que fala de dinheiro. Os três valores do pé usam a mesma
-linha pontilhada do expediente: em meia largura os cartõezinhos lado a lado
+objeto de revista que fala de dinheiro. Os três valores do pé usam a linha
+pontilhada do índice de revista: em meia largura os cartõezinhos lado a lado
 quebravam no meio de um valor.
 
 **O campo das notas** fica ao LADO do cupom — são os dois juízos sobre a mesma
 coleção, um do bolso e um do gosto. A **nota média** mora no cabeçalho do
 histograma: é o resumo dele, e numa caixa própria virava um número solto.
 
-As duas barras por editora **saíram**: `Bars`, `BarRow` e o `Kpi` foram junto.
+**O expediente saiu depois** — era uma terceira seção com nove contagens
+secas (obras, itens, autores, editoras, importadas, séries completas,
+urgentes, já tive, lidos) em linha pontilhada. A capa já diz o tamanho da
+coleção, e o resto eram fatos que ninguém procurava ali. Com ele foram as
+contas que só ele lia: `completas`, `importados`, `urgentes`, `saiu`,
+`pctLido`, `autoresDistintos` e `editorasDistintas`.
+
+As duas barras por editora **saíram** antes: `Bars`, `BarRow` e o `Kpi` foram
+junto. **O painel inteiro hoje é capa + cupom + notas**, e cabe numa tela de
+celular sem rolar.
 
 O painel rola sem barra à mostra (`.sem-barra`): é uma página inteira de
 conteúdo, e o fio cinza encostado na borda virava moldura.
