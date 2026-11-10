@@ -233,7 +233,7 @@ function TiraDeCapas({ obras, onAbrir }) {
 /* Os dois modos de ordem, em letras de verdade e não em desenho.
  *
  * "ABC" e "123" dizem o que fazem sem precisar de legenda, e nenhum ícone
- * desenhado chega perto disso. Vão em `font-mono` porque ali os três sinais
+ * desenhado chega perto disso. Vão em `font-dado` porque ali os três sinais
  * têm a mesma largura: em fonte proporcional o "1" é estreito e o bloco
  * "123" fica menor que o "ABC", desalinhando os dois lados do seletor. */
 const ORDENS = [
@@ -265,7 +265,7 @@ function SeletorOrdem({ valor, onChange }) {
                 ? 'bg-surface-pure text-acento-texto shadow-amb ring-1 ring-moss-2'
                 : 'text-ink-soft hover:bg-toque')}
           >
-            <span className="font-mono text-rotulo font-bold tracking-tight" aria-hidden="true">{sigla}</span>
+            <span className="font-dado text-rotulo font-bold tracking-tight" aria-hidden="true">{sigla}</span>
           </button>
         )
       })}
@@ -338,7 +338,7 @@ function CelulaLista({ obra, indice, numerada, arrastavel, aoSoltar, aoEditar, a
         {numerada && (
           <span
             aria-hidden="true"
-            className="absolute bottom-1 left-1 min-w-[22px] h-[22px] px-1.5 rounded-full bg-ink text-paper font-mono text-rotulo font-bold tabular-nums inline-flex items-center justify-center shadow-amb"
+            className="absolute bottom-1 left-1 min-w-[22px] h-[22px] px-1.5 rounded-full bg-ink text-paper font-dado text-rotulo font-bold tabular-nums inline-flex items-center justify-center shadow-amb"
           >
             {indice + 1}
           </span>

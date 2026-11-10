@@ -324,7 +324,7 @@ export default function Fila({ open, onClose, onNotice, onEditar }) {
               >
                 <h3 className="font-cartaz font-semibold uppercase text-secao text-acento-texto flex-1">Fila de leitura</h3>
                 {itens.length > 0 && (
-                  <span className="font-mono text-rotulo text-ink-faint tabular-nums">{itens.length}</span>
+                  <span className="font-dado text-rotulo text-ink-faint tabular-nums">{itens.length}</span>
                 )}
                 <button className="neo-icon !w-9 !h-9" onClick={onClose} aria-label="Fechar">×</button>
               </div>

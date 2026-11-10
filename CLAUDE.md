@@ -105,21 +105,32 @@ corrido e positiva só no rótulo. **Não escrever `tracking-*` à mão** — a 
   e existe como token justamente para ninguém escrever `ink/10` avulso.
 - Famílias: `font-display` (Bricolage) para conteúdo · `font-sans` (Inter) para
   corpo · `font-rotulo` (**Montserrat**) para rótulo em caixa alta ·
-  `font-mono` (Space Mono) para o que PRECISA de largura fixa · `font-cartaz`
+  `font-dado` (**Montserrat**) para número, código e string literal ·
+  `font-cartaz`
   (Lexend Zetta) para **títulos de painel**, sempre em CAIXA ALTA, e palavra
   grande. A Lexend entra em dois pesos: **600** nos títulos e **900** na
   marca-d'água — título em Black competiria com o conteúdo do painel.
 
-  **A Space Mono não saiu de cena, encolheu de papel.** Ela cobria três usos:
-  rótulo, número e string literal. Rótulo não precisa de monoespaçada — precisa
-  de legibilidade em corpo pequeno, e foi o que migrou (31 ocorrências). Ficam
-  em Space Mono os números com `tabular-nums`, que alinham em coluna, e as
-  strings literais (`100 Balas.jpg`, `data/gibiteca.json`), onde a largura fixa
-  sinaliza "isto é texto de máquina".
+  **A Space Mono saiu.** Ela cobria três usos: rótulo, número e string
+  literal. O rótulo migrou primeiro (31 ocorrências) porque rótulo precisa de
+  legibilidade em corpo pequeno, não de largura fixa. Agora foram os outros
+  dois, e a fonte saiu do `@import`.
 
-  Ela é larguíssima: medido, "Sincronizar com o GitHub" ocupa 405px num modal
-  de 560 no desktop, e **quebra em duas linhas a 375px** — sem estouro, mas é
-  o custo de usá-la em frase, não em palavra.
+  **`rotulo` e `dado` são a mesma fonte e dois papéis.** Não é desperdício:
+  o call site diz o que aquilo É, e se um dia eles se separarem de novo nada
+  muda nos 78 lugares.
+
+  **A largura fixa não se perdeu — virou `tnum`.** A Montserrat tem figuras
+  tabulares, e `.font-dado` já liga `font-variant-numeric: tabular-nums` no
+  papel. Sem isso o "1" tem metade da largura do "0" (medido: 148 contra 267
+  em 100px), o que desalinha coluna de número e faz a linha pular quando o
+  valor muda. Agora a largura fixa existe só nos dígitos, que é onde ela
+  tinha função.
+
+  **O tamanho não mudou em lugar nenhum, e foi medido:** a altura de caixa
+  alta das duas é IDÊNTICA (70 em 100px), a de caixa baixa da Montserrat é 6%
+  maior e os dígitos são 4% mais estreitos. O que muda de verdade é a
+  largura de frase — a Space Mono é 22% mais larga, por ser monoespaçada.
 
 - **A capa (`.welcome`) crava `#212121`** no botão e na sombra do logo.
   Houve um tempo em que isso era um preto DIFERENTE do `ink` do app
@@ -2163,9 +2174,10 @@ São **duas opções lado a lado**, não um interruptor de liga/desliga:
 alfabética não é "numerada desligada", é outra ordem. Um interruptor diria que
 uma delas é a ausência da outra.
 
-As siglas vão em `font-mono` porque ali os três sinais têm largura igual: em
-fonte proporcional o "1" é estreito, o bloco "123" fica menor que o "ABC" e os
-dois lados do seletor desalinham.
+As siglas vão em `font-dado`, que carrega `tnum`: sem ele o "1" é estreito, o
+bloco "123" fica menor que o "ABC" e os dois lados do seletor desalinham. (O
+`w-11` de cada botão também segura o alinhamento — são duas garantias, e é de
+propósito: a largura fixa centraliza, o `tnum` deixa o bloco simétrico.)
 
 **A alfabética não é gravada.** Ela se calcula na tela, com o colator do
 projeto (`sortList`, então "é" vale "e"). Gravar apagaria a ordem montada à
@@ -3239,12 +3251,13 @@ Casca e núcleo mudam **sempre juntos** — o cartão usa
 celular o cartão é pequeno, e 28px de raio deixava a casca com cara de pastilha.
 
 ### Família
-`font-display` (Bricolage Grotesque) · `font-sans` (Inter) · `font-mono` (Space Mono).
+`font-display` (Bricolage Grotesque) · `font-sans` (Inter) · `font-rotulo` e
+`font-dado` (Montserrat) · `font-cartaz` (Lexend Zetta).
 **`font-serif` não existe mais** — era mentira, Bricolage é uma grotesca.
 
 ### Informação de apoio
 Dado **categórico** (contagem de volumes, tipo, editora, status) vira
-`font-mono text-rotulo uppercase`. Nome de pessoa **não** — roteirista e
+`font-dado text-rotulo uppercase`. Nome de pessoa **não** — roteirista e
 desenhista continuam em `text-apoio`.
 
 ## Design system (tokens — de tailwind.config.js e index.css)
@@ -3256,7 +3269,7 @@ desenhista continuam em `text-apoio`.
   `moss-line`. No tema **Moss**: `#4B5D3A`, `#5E7146`, `#879266`, `#c4cbaf`.
   Os nomes dos tokens continuam `moss` nos dois temas — é o papel, não a cor.
 - Destaques: `gold #B0862B`, `rust #9C4A2E`, `blue #2f5aa8` (Importado), `box #8a6a45` (Box).
-- Fontes: serif `Bricolage Grotesque` (títulos), sans `Inter` (texto), mono `Space Mono` (rótulos/pills).
+- Fontes: `Bricolage Grotesque` (títulos), `Inter` (texto), `Montserrat` (rótulos, selos e números), `Lexend Zetta` (títulos de painel).
 - **Uma linguagem só, em todo o app** (tela principal e modais):
   - Sombra **ambiente**: `shadow-amb`, `shadow-amb-lg`, `shadow-island`.
     A sombra dura `3px 3px 0` foi **aposentada** — não reintroduzir.

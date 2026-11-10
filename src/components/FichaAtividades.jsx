@@ -134,13 +134,13 @@ function Linha({ item, carimbada, filtro }) {
              entorta. */
           <span className="inline-flex flex-col items-center rounded-pequeno border-2 border-rust
                            px-1.5 py-1 text-rust -rotate-3 origin-left">
-            <span className="font-mono text-apoio font-bold leading-none">{diaDe(item.quando)}</span>
-            <span className="font-mono text-rotulo leading-none mt-1 opacity-80">{horaDe(item.quando)}</span>
+            <span className="font-dado text-apoio font-bold leading-none">{diaDe(item.quando)}</span>
+            <span className="font-dado text-rotulo leading-none mt-1 opacity-80">{horaDe(item.quando)}</span>
           </span>
         ) : (
           <>
-            <div className="font-mono text-apoio text-ink-soft leading-none">{diaDe(item.quando)}</div>
-            <div className="font-mono text-rotulo text-ink-mute leading-none mt-1.5">{horaDe(item.quando)}</div>
+            <div className="font-dado text-apoio text-ink-soft leading-none">{diaDe(item.quando)}</div>
+            <div className="font-dado text-rotulo text-ink-mute leading-none mt-1.5">{horaDe(item.quando)}</div>
           </>
         )}
       </div>
@@ -322,7 +322,7 @@ export default function FichaAtividades({ open, onClose }) {
                 Ficha de atividades
               </h3>
               {pronto && comQuando.length > 0 && (
-                <span className="font-mono text-apoio text-ink-faint shrink-0">
+                <span className="font-dado text-apoio text-ink-faint shrink-0">
                   {comQuando.length}{comQuando.length >= 40 ? '+' : ''} reg.
                 </span>
               )}
@@ -337,7 +337,7 @@ export default function FichaAtividades({ open, onClose }) {
                 dados são de onde?" antes de alguém perguntar. */}
             {pronto && comQuando.length > 0 && (
               <div className="shrink-0 px-5 sm:px-6 py-2 border-b border-ink/15">
-                <span className="font-mono text-rotulo text-ink-faint truncate block">{cloud.owner}/{cloud.repo}</span>
+                <span className="font-dado text-rotulo text-ink-faint truncate block">{cloud.owner}/{cloud.repo}</span>
               </div>
             )}
 
@@ -558,7 +558,7 @@ export function FichaPrevia({ onAbrir, aberta }) {
         <div className="flex items-baseline justify-between gap-3 pb-1.5 border-b-2 border-ink/80">
           <span className="font-rotulo text-rotulo uppercase font-bold tracking-wider">Ficha de atividades</span>
           {linhas.length > 0 && (
-            <span className="font-mono text-rotulo text-ink-faint shrink-0">
+            <span className="font-dado text-rotulo text-ink-faint shrink-0">
               {itens.length}{itens.length >= 40 ? '+' : ''} reg.
             </span>
           )}
@@ -576,11 +576,11 @@ export function FichaPrevia({ onAbrir, aberta }) {
                   {i === 0 ? (
                     <span className="inline-flex justify-center rounded-pequeno border-2 border-rust
                                      px-1 py-0.5 text-rust -rotate-3 origin-left
-                                     font-mono text-rotulo font-bold leading-none">
+                                     font-dado text-rotulo font-bold leading-none">
                       {diaDe(it.quando)}
                     </span>
                   ) : (
-                    <span className="font-mono text-rotulo text-ink-faint leading-none">{diaDe(it.quando)}</span>
+                    <span className="font-dado text-rotulo text-ink-faint leading-none">{diaDe(it.quando)}</span>
                   )}
                   <span className="text-apoio text-ink-soft leading-snug truncate">{assunto}</span>
                 </li>

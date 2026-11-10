@@ -18,7 +18,7 @@ function Notas({ s }) {
         <h4 className="font-display text-obra text-ink">Distribuição de notas</h4>
         <span className="flex items-baseline gap-1.5 shrink-0">
           <span className="font-rotulo text-rotulo uppercase text-ink-mute">média</span>
-          <span className="font-mono text-obra font-medium tabular-nums text-acento-texto whitespace-nowrap">
+          <span className="font-dado text-obra font-medium tabular-nums text-acento-texto whitespace-nowrap">
             {s.notaMed ? <>{s.notaMed.toFixed(1)}<span className="text-gold ml-0.5">★</span></> : '—'}
           </span>
         </span>
@@ -127,7 +127,7 @@ const BARRAS = [1, 2, 1, 3, 1, 1, 2, 1, 2, 3, 1, 1, 3, 2, 1, 1, 2, 1, 3, 1, 2, 2
 function Chamada({ n, children, grande }) {
   return (
     <div className="flex gap-3 items-baseline">
-      <span className="font-mono text-rotulo font-bold text-gold pt-1 shrink-0 tracking-wider">
+      <span className="font-dado text-rotulo font-bold text-gold pt-1 shrink-0 tracking-wider">
         {String(n).padStart(2, '0')}
       </span>
       <span className={grande
@@ -193,7 +193,7 @@ function Capa({ s, onFechar }) {
             <span key={i} className="block bg-sobre-acento/90" style={{ width: l + 'px', height: (l === 1 ? 22 : 30) + 'px' }} />
           ))}
         </div>
-        <div className="font-mono text-rotulo text-right leading-relaxed whitespace-nowrap">
+        <div className="font-dado text-rotulo text-right leading-relaxed whitespace-nowrap">
           {fmtBRL(s.invest)}<br />
           <span className="opacity-75">{s.retorno > 0 ? `investido · ${fmtBRL(s.retorno)} de volta` : 'investido até aqui'}</span>
         </div>
@@ -229,7 +229,7 @@ function Expediente({ s }) {
       </div>
       {/* duas colunas de verdade (CSS columns), para a lista quebrar sozinha
           no meio e não precisar de um número fixo por coluna */}
-      <div className="columns-1 sm:columns-2 gap-x-9 font-mono text-apoio">
+      <div className="columns-1 sm:columns-2 gap-x-9 font-dado text-apoio">
         <Linha rotulo="obras" valor={s.obras} />
         <Linha rotulo="itens (volumes)" valor={s.itens} />
         <Linha rotulo="autores e artistas" valor={s.autoresDistintos} />
@@ -262,7 +262,7 @@ function Cupom({ s }) {
 
       {/* os três em linha pontilhada, como no expediente: em meia largura os
           cartõezinhos lado a lado quebravam no meio de um valor */}
-      <div className="mt-4 pt-2 border-t border-moss-line font-mono text-apoio">
+      <div className="mt-4 pt-2 border-t border-moss-line font-dado text-apoio">
         <Linha rotulo="média por item" valor={fmtBRL(s.avg)} />
         <Linha rotulo="a mais cara" valor={fmtBRL(s.maisCara)} />
         <Linha rotulo="retorno" valor={fmtBRL(s.retorno)} />

@@ -167,7 +167,7 @@ export default function Configuracoes({ open, onClose, onBulk, onBackup, onNotic
                   cravada aqui: número de versão escrito à mão é número de
                   versão que um dia mente. */}
               <Linha rotulo="Versão">
-                <span className="font-mono text-corpo text-ink-faint tabular-nums">v{__VERSAO__}</span>
+                <span className="font-dado text-corpo text-ink-faint tabular-nums">v{__VERSAO__}</span>
               </Linha>
 
               <Linha

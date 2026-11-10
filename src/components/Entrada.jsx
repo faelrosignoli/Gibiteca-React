@@ -162,9 +162,10 @@ function CampoCodigo({ valor, onChange, onCompleto, invalido }) {
             const v = valorRef.current                 // o presente, não o render anterior
             if (i > v.length) refs.current[Math.min(v.length, DIGITOS - 1)]?.focus()
           }}
-          /* `font-mono` e largura fixa: dígito a dígito, as caixas não podem
-             mudar de tamanho conforme o número que caiu dentro. */
-          className={`w-11 h-14 sm:w-12 sm:h-16 text-center font-mono text-secao rounded-medio
+          /* `tabular-nums` e largura fixa: dígito a dígito, as caixas não
+             podem mudar de tamanho conforme o número que caiu dentro. Na
+             Montserrat o "1" é metade do "0" sem o `tnum`. */
+          className={`w-11 h-14 sm:w-12 sm:h-16 text-center font-dado text-secao rounded-medio
             border bg-paper text-ink outline-none transition-colors
             ${invalido ? 'border-rust' : 'border-contorno focus:border-moss'}
             focus:shadow-[0_0_0_3px_rgb(var(--moss-2)/.14)]`}
@@ -466,7 +467,7 @@ export default function Entrada() {
                     <p className="font-rotulo text-rotulo uppercase text-ink-soft">Ainda sem servidor</p>
                     <p className="text-apoio text-ink-faint leading-relaxed mt-1">
                       Nenhum e-mail foi enviado. O código desta vez é{' '}
-                      <strong className="font-mono text-corpo text-ink">{demo}</strong>.
+                      <strong className="font-dado text-corpo text-ink">{demo}</strong>.
                     </p>
                   </div>
                 )}

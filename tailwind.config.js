@@ -93,13 +93,21 @@ export default {
         // O papel é display, e o nome agora diz isso.
         display: ['"Bricolage Grotesque"', 'Georgia', 'serif'],
         sans:    ['Inter', 'system-ui', 'sans-serif'],
-        mono:    ['"Space Mono"', 'ui-monospace', 'monospace'],
-        /* Rótulo em caixa alta. Era Space Mono por tabela, mas rótulo não
-           precisa de monoespaçada — precisa de legibilidade em corpo pequeno.
-           A Space Mono fica onde a largura fixa TEM função: números com
-           `tabular-nums` (que alinham em coluna) e strings literais como
-           nome de arquivo e caminho. */
+        /* DOIS PAPÉIS, UMA FONTE. A Montserrat atende os dois, e ter dois
+           nomes não é desperdício: o papel é que decide onde cada um entra,
+           e se um dia eles se separarem de novo o call site não muda.
+
+           `rotulo` — rótulo em caixa alta. Precisa de legibilidade em corpo
+           pequeno, não de largura fixa.
+
+           `dado`  — número, código e string literal (`100 Balas.jpg`,
+           `data/gibiteca.json`). Era Space Mono: a largura fixa alinhava
+           coluna de número e sinalizava "isto é texto de máquina". A
+           Montserrat tem `tnum`, e os sites que alinham coluna já pedem
+           `tabular-nums` — é de lá que vem a largura fixa agora, e só nos
+           dígitos, que é onde ela tinha função. */
         rotulo:  ['Montserrat', 'Inter', 'system-ui', 'sans-serif'],
+        dado:    ['Montserrat', 'Inter', 'system-ui', 'sans-serif'],
         /* Lexend Zetta Black: larga e pesadíssima, só serve para palavra
            grande usada como elemento gráfico — hoje a marca-d'água COLEÇÃO.
            Nome pelo PAPEL, não pela fonte, como as outras três. */

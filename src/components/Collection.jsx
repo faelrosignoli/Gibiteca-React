@@ -96,14 +96,14 @@ function Ficha({ obra, index, onOpen }) {
 
         {/* no celular o valor desce para cá, já que não há terceira coluna */}
         {valor > 0 && (
-          <div className="sm:hidden mt-2 font-mono text-corpo tabular-nums text-ink">
+          <div className="sm:hidden mt-2 font-dado text-corpo tabular-nums text-ink">
             {fmtBRL(valor)} <span className="font-rotulo text-rotulo uppercase text-ink-faint">investido</span>
           </div>
         )}
       </div>
 
       <div className="hidden sm:block text-right self-center">
-        <div className="font-mono text-obra tabular-nums text-ink">{valor > 0 ? fmtBRL(valor) : '—'}</div>
+        <div className="font-dado text-obra tabular-nums text-ink">{valor > 0 ? fmtBRL(valor) : '—'}</div>
         <div className="font-rotulo text-rotulo uppercase text-ink-faint mt-1">investido</div>
       </div>
     </motion.button>
@@ -121,7 +121,7 @@ function CabecalhoGrupo({ nome, quantas, continua }) {
       </span>
       <span className="flex-1 h-px bg-linha" />
       <span className="shrink-0 inline-flex items-center justify-center min-w-[30px] h-[30px] px-2
-                       rounded-full border border-contorno font-mono text-rotulo text-ink-soft">
+                       rounded-full border border-contorno font-dado text-rotulo text-ink-soft">
         {quantas}
       </span>
     </div>

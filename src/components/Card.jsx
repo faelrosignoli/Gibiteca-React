@@ -149,7 +149,7 @@ export default function Card({ obra, index = 0, onOpen, feature = false, animarE
               embaixo do bloco — vira respiro, não vão morto. */}
           <div className="flex flex-col gap-1 sm:gap-1.5 min-w-0">
           {edOf(obra) && (
-            <div className={`font-mono font-medium uppercase text-acento-texto truncate ${feature ? 'text-rotulo lg:text-apoio' : 'text-rotulo'}`}>{edOf(obra)}</div>
+            <div className={`font-dado font-medium uppercase text-acento-texto truncate ${feature ? 'text-rotulo lg:text-apoio' : 'text-rotulo'}`}>{edOf(obra)}</div>
           )}
           {/* o destaque é o cartão maior da grade: a tipografia sobe junto,
               senão ele fica com corpo de cartaz e letra de miniatura */}

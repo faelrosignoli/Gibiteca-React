@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600&family=Montserrat:wght@500;600;700&family=Lexend+Zetta:wght@600;900&family=Space+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600&family=Montserrat:wght@500;600;700&family=Lexend+Zetta:wght@600;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -94,11 +94,21 @@ body {
   .neo-icon:hover { @apply text-ink; background: var(--toque); }
   .neo-icon:active { transform: scale(.94); }
 
+  /* O PAPEL `dado` JÁ VEM COM LARGURA FIXA DE DÍGITO.
+     A Space Mono dava isso de graça — era monoespaçada. A Montserrat dá só
+     quando pedem: sem `tnum` o "1" tem METADE da largura do "0" (medido:
+     148 contra 267 em 100px). Numa coluna de números isso desalinha, e num
+     número que muda sozinho a linha inteira pula de lugar.
+     Carregar o `tnum` no próprio papel é o que evita ter de lembrar disso em
+     cada um dos 34 lugares — e é só nos dígitos, que é onde a largura fixa
+     tinha função. */
+  .font-dado { font-variant-numeric: tabular-nums; }
+
   /* selos (pills) — fiéis à referência */
   /* borda transparente nos selos preenchidos: sem ela o .pill-quero (que tem
      borda) fica 2px mais alto que os outros, e uma fileira de selos alinhada
      pela base sai desalinhada por 2px. */
-  .pill { @apply inline-flex items-center font-mono text-rotulo font-bold uppercase px-2 py-0.5 rounded-full leading-none whitespace-nowrap border border-transparent; }
+  .pill { @apply inline-flex items-center font-dado text-rotulo font-bold uppercase px-2 py-0.5 rounded-full leading-none whitespace-nowrap border border-transparent; }
   .pill-tenho { @apply bg-moss text-sobre-acento; }
   .pill-quero { @apply bg-paper-2 text-ink-soft border border-moss-line; }
   /* Nao tenho: sem cor propria de proposito. Nao e conquista (moss) nem
@@ -273,7 +283,7 @@ body::after {
   /* ---- etiqueta minúscula que antecede títulos ---- */
   .eyebrow {
     @apply inline-flex items-center gap-2 rounded-full px-3 py-1.5
-           font-mono text-rotulo font-medium uppercase text-acento-texto;
+           font-dado text-rotulo font-medium uppercase text-acento-texto;
     background: rgba(75,93,58,.08);
   }
 }

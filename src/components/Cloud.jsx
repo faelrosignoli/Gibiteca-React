@@ -254,7 +254,7 @@ export default function Cloud({ open, onClose, onNotice }) {
                 <div className="flex flex-col gap-1"><label className={lbl}>Caminho do arquivo</label>
                   <input className="field-input" value={form.path} onChange={e => set('path', e.target.value)} placeholder="data/gibiteca.json" autoComplete="off" spellCheck={false} /></div>
                 <div className="flex flex-col gap-1 col-span-2"><label className={lbl}>Token de acesso</label>
-                  <input className="field-input font-mono !text-apoio" type="password" value={form.token} onChange={e => set('token', e.target.value)} placeholder="github_pat_… ou ghp_…" autoComplete="off" spellCheck={false} /></div>
+                  <input className="field-input font-dado !text-apoio" type="password" value={form.token} onChange={e => set('token', e.target.value)} placeholder="github_pat_… ou ghp_…" autoComplete="off" spellCheck={false} /></div>
               </div>
 
               {/* Só aparece quando há o que mover — senão vira ruído fixo. */}
@@ -287,7 +287,7 @@ export default function Cloud({ open, onClose, onNotice }) {
                 {/* o que o GitHub respondeu, palavra por palavra: sem isto não
                     dá para distinguir token errado de repositório errado */}
                 {sync === 'err' && syncErro && (
-                  <div className="font-mono text-apoio text-rust break-words pl-[21px]">{syncErro}</div>
+                  <div className="font-dado text-apoio text-rust break-words pl-[21px]">{syncErro}</div>
                 )}
               </div>
             </div>

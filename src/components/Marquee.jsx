@@ -8,7 +8,7 @@ export default function Marquee({ onOpen }) {
   const row = [...withCover, ...withCover]
   return (
     <div className="relative mt-2 mb-5 overflow-hidden rounded-xl2 border-[1.5px] border-moss-line bg-paper-2 py-3 group">
-      <div className="absolute left-3.5 -top-2.5 z-[2] bg-paper border-[1.5px] border-moss-line rounded-full px-2.5 py-0.5 font-mono text-[9px] tracking-widest uppercase text-ink-soft">Adicionados recentemente</div>
+      <div className="absolute left-3.5 -top-2.5 z-[2] bg-paper border-[1.5px] border-moss-line rounded-full px-2.5 py-0.5 font-dado text-[9px] tracking-widest uppercase text-ink-soft">Adicionados recentemente</div>
       <div className="flex gap-3 w-max animate-[marquee_34s_linear_infinite] group-hover:[animation-play-state:paused]">
         {row.map((o, i) => (
           <button key={i} onClick={() => onOpen?.(o)} title={o.nome}

@@ -96,8 +96,8 @@ export default function BulkCovers({ open, onClose, onNotice }) {
             <div className="flex-1 overflow-auto px-5 py-4 flex flex-col gap-3">
               <p className="text-apoio text-ink-soft leading-relaxed">
                 Selecione as imagens: o app <b className="text-acento-texto">casa cada arquivo com a obra pelo nome</b>
-                {' '}(ex.: <span className="font-mono">100 Balas.jpg</span> → “100 Balas”). As capas são enviadas para o
-                seu repositório em <span className="font-mono">{COVER_BASE}/</span> e vinculadas à obra.
+                {' '}(ex.: <span className="font-dado">100 Balas.jpg</span> → “100 Balas”). As capas são enviadas para o
+                seu repositório em <span className="font-dado">{COVER_BASE}/</span> e vinculadas à obra.
               </p>
 
               <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={e => { if (e.target.files.length) analyze(e.target.files); e.target.value = '' }} />

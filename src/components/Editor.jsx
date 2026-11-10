@@ -137,7 +137,7 @@ function VolPanel({ v, i, withCover, autores, onChange, onCopyAll, onCover, onRe
   return (
     <div className="rounded-medio border border-separador bg-surface overflow-hidden">
       <button type="button" onClick={() => set({ _open: !v._open })} className="w-full flex items-center gap-2 px-3 py-2 bg-paper-2 text-left">
-        <span className="font-mono text-apoio font-bold text-acento-texto">#{i + 1}</span>
+        <span className="font-dado text-apoio font-bold text-acento-texto">#{i + 1}</span>
         <span className="text-corpo text-ink truncate flex-1">{v.nome || `Vol. ${i + 1}`}</span>
         {/* o selo é só leitura aqui: a posse se muda na gaveta */}
         <span className={`pill ${SELO_POSSE[posseDe(v)].classe}`}>{SELO_POSSE[posseDe(v)].rotulo}</span>
