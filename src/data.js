@@ -5,8 +5,10 @@ export const EDITORAS = ["2000 AD / Rebellion","Abrams ComicArts","Abril","After
    as duas. O valor guardado é a chave; o rótulo é só para a tela. */
 export const TIPOS_EDICAO = [
   ['absoluta', 'Absoluta'],
-  ['definitiva', 'Definitiva'],
-  ['integral', 'Integral'],
-  ['omnibus', 'Omnibus'],
   ['bolso', 'Bolso'],
+  ['definitiva', 'Definitiva'],
+  ['especial', 'Especial'],
+  ['integral', 'Integral'],
+  ['luxo', 'Luxo'],
+  ['omnibus', 'Omnibus'],
 ]
