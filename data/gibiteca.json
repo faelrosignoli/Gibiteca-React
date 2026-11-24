@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1795466238970,
- "updated": "2026-11-23T20:37:18.970Z",
+ "atualizadoEm": 1795539148312,
+ "updated": "2026-11-24T16:52:28.312Z",
  "obras": [
   {
    "id": 1,
@@ -5683,7 +5683,7 @@
    "imagem": "https://raw.githubusercontent.com/faelrosignoli/Gibiteca-React/main/covers/5-por-infinito-336.jpg",
    "roteirista": "Esteban Maroto",
    "desenhista": "Esteban Maroto",
-   "status": "biblioteca",
+   "status": "wishlist",
    "urgencia": false,
    "valorPago": 0,
    "lido": false,
