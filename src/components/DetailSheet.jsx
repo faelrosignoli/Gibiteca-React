@@ -427,8 +427,9 @@ export default function DetailSheet({ obra: obraAberta, onClose, onEdit, onDupli
   // volumes — inclusive o que falta. Agora a lista respeita o filtro.
   const volumes = obra != null ? unitsForStatus(obra, filters.status) : []
   const filtrando = filters.status !== 'todos' && volumes.length !== todosOsVolumes.length
-  const notaDoFiltro = filters.status === 'biblioteca' ? 'só os que você tem'
-    : filters.status === 'tive' ? 'só os que saíram' : 'só os que faltam'
+  // "Tenho" não ganha nota: o "N de M" ao lado já diz quantos são seus.
+  const notaDoFiltro = filters.status === 'tive' ? 'só os que saíram'
+    : filters.status === 'biblioteca' ? '' : 'só os que faltam'
   /* Qual volume está com a ficha aberta (índice na obra, não na lista
      filtrada). Zera ao trocar de obra: o volume 2 de uma série não é o
      volume 2 da seguinte. */
@@ -740,7 +741,7 @@ export default function DetailSheet({ obra: obraAberta, onClose, onEdit, onDupli
                   <div className="flex items-baseline gap-3 mb-3">
                     <div className="font-rotulo text-rotulo uppercase text-ink-faint flex-1 min-w-0">
                       Volumes — {ownedCount(obra)} de {unidades}
-                      {filtrando && (
+                      {filtrando && notaDoFiltro && (
                         <span className="text-acento-texto"> · {notaDoFiltro} ({volumes.length})</span>
                       )}
                     </div>

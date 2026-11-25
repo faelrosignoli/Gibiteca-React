@@ -551,7 +551,11 @@ export default function Editor({ target, onClose, onSaved }) {
                       e ficava largado depois do campo de resenha. */}
                   <div className={`${box} col-span-2`}>
                     <label className={lbl}>Tipo da edição</label>
-                    <div className="flex flex-wrap gap-2">
+                    {/* gap e padding apertados para os 7 caberem numa linha só
+                        no desktop (640px de modal → ~585 úteis; 7 chips = 582).
+                        No celular ainda quebra: 7 chips legíveis não cabem em
+                        335px, e flex-wrap é o degrau honesto. */}
+                    <div className="flex flex-wrap gap-1.5">
                       {TIPOS_EDICAO.map(([v, rotulo]) => {
                         const marcada = rascunho.tipoEdicao === v
                         return (
@@ -559,7 +563,7 @@ export default function Editor({ target, onClose, onSaved }) {
                             key={v} type="button"
                             aria-pressed={marcada}
                             onClick={() => patch({ tipoEdicao: marcada ? '' : v })}
-                            className={`rounded-full border px-4 py-2 text-corpo font-semibold transition-colors duration-200
+                            className={`rounded-full border px-3 py-2 text-corpo font-semibold transition-colors duration-200
                               ${marcada ? 'border-moss bg-moss text-sobre-acento' : 'border-separador bg-surface text-ink-soft hover:border-moss-3 hover:text-ink'}`}
                           >{rotulo}</button>
                         )
