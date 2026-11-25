@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1795539148312,
- "updated": "2026-11-24T16:52:28.312Z",
+ "atualizadoEm": 1795642202604,
+ "updated": "2026-11-25T21:30:02.604Z",
  "obras": [
   {
    "id": 1,
@@ -8087,7 +8087,7 @@
    "roteirista": "Alejandro Jodorowsky",
    "desenhista": "François Boucq",
    "status": "wishlist",
-   "urgencia": false,
+   "urgencia": true,
    "valorPago": 0,
    "lido": false,
    "nota": 0
