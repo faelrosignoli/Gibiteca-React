@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1795814354595,
- "updated": "2026-11-27T21:19:14.595Z",
+ "atualizadoEm": 1795814386721,
+ "updated": "2026-11-27T21:19:46.721Z",
  "obras": [
   {
    "id": 1,
@@ -6925,9 +6925,10 @@
    "id": 413,
    "nome": "A Entrevista",
    "tipo": "avulso",
-   "origem": "importado",
+   "origem": "nacional",
    "editora": "Mino",
    "pais": "Itália",
+   "adulto": false,
    "tags": [],
    "resenha": "",
    "tipoEdicao": "",
@@ -6937,6 +6938,7 @@
    "status": "wishlist",
    "urgencia": false,
    "valorPago": 0,
+   "valorRetorno": 0,
    "lido": false,
    "nota": 0
   },
