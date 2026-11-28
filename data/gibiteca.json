@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1795830892518,
- "updated": "2026-11-28T01:54:52.518Z",
+ "atualizadoEm": 1795830900501,
+ "updated": "2026-11-28T01:55:00.501Z",
  "obras": [
   {
    "id": 1,
@@ -13604,7 +13604,7 @@
    "imagem": null,
    "roteirista": "Érico Veríssimo / Rafael Scavone",
    "desenhista": "Olavo Costa / Mariane Gusmão",
-   "status": "wishlist",
+   "status": "biblioteca",
    "urgencia": false,
    "valorPago": 0,
    "valorRetorno": 0,
