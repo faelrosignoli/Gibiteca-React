@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1795830667028,
- "updated": "2026-11-28T01:51:07.028Z",
+ "atualizadoEm": 1795830692791,
+ "updated": "2026-11-28T01:51:32.791Z",
  "obras": [
   {
    "id": 1,
@@ -1121,7 +1121,7 @@
    "desenhista": "George Bess",
    "status": "biblioteca",
    "urgencia": false,
-   "valorPago": 0,
+   "valorPago": 81.5,
    "lido": false,
    "nota": 0,
    "valorRetorno": 0
