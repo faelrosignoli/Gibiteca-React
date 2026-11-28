@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1795830740985,
- "updated": "2026-11-28T01:52:20.985Z",
+ "atualizadoEm": 1795830746662,
+ "updated": "2026-11-28T01:52:26.662Z",
  "obras": [
   {
    "id": 1,
@@ -697,7 +697,7 @@
    "desenhista": "Stefano Tamburini / Gaetano Liberatore / Andrea Pazienza",
    "status": "biblioteca",
    "urgencia": false,
-   "valorPago": 0,
+   "valorPago": 90.12,
    "lido": false,
    "nota": 0,
    "valorRetorno": 0
