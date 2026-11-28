@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1795830608451,
- "updated": "2026-11-28T01:50:08.451Z",
+ "atualizadoEm": 1795830624243,
+ "updated": "2026-11-28T01:50:24.243Z",
  "obras": [
   {
    "id": 1,
@@ -854,7 +854,7 @@
    "desenhista": "Alberto Breccia",
    "status": "biblioteca",
    "urgencia": false,
-   "valorPago": 0,
+   "valorPago": 34.38,
    "lido": false,
    "nota": 0,
    "valorRetorno": 0
