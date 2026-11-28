@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1795830624243,
- "updated": "2026-11-28T01:50:24.243Z",
+ "atualizadoEm": 1795830667028,
+ "updated": "2026-11-28T01:51:07.028Z",
  "obras": [
   {
    "id": 1,
@@ -1119,11 +1119,12 @@
    "imagem": "https://raw.githubusercontent.com/faelrosignoli/Gibiteca-React/main/covers/juan-solo-65.jpg",
    "roteirista": "Alejandro Jodorowsky",
    "desenhista": "George Bess",
-   "status": "wishlist",
-   "urgencia": true,
+   "status": "biblioteca",
+   "urgencia": false,
    "valorPago": 0,
    "lido": false,
-   "nota": 0
+   "nota": 0,
+   "valorRetorno": 0
   },
   {
    "id": 66,
