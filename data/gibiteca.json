@@ -1,7 +1,7 @@
 {
  "version": 1,
- "atualizadoEm": 1795830711777,
- "updated": "2026-11-28T01:51:51.777Z",
+ "atualizadoEm": 1795830721087,
+ "updated": "2026-11-28T01:52:01.087Z",
  "obras": [
   {
    "id": 1,
@@ -8980,7 +8980,7 @@
      "desenhista": "Paolo Serpieri",
      "status": "biblioteca",
      "urgencia": false,
-     "valorPago": 0,
+     "valorPago": 98.74,
      "lido": false,
      "nota": 0,
      "valorRetorno": 0
